@@ -1,0 +1,80 @@
+---
+// The "Entra nel mood" entry: a ladder descending into a hole, linking to the showcase.
+// Phase 3 enhances [data-entry] with a hole-widening View Transition; until then it is a
+// plain (working) link. The [data-hole] element is the clip target for that animation.
+interface Props {
+  showcaseHref: string;
+  enterLabel: string;
+}
+const { showcaseHref, enterLabel } = Astro.props;
+---
+
+<a class="entry" href={showcaseHref} data-entry aria-label={enterLabel}>
+  <span class="entry__label">{enterLabel}</span>
+  <span class="entry__stage" data-hole aria-hidden="true">
+    <svg class="entry__ladder" viewBox="0 0 120 220" fill="none" preserveAspectRatio="xMidYMin meet">
+      <!-- rails converge downward to imply descent into the hole -->
+      <line x1="34" y1="0" x2="50" y2="200" stroke="currentColor" stroke-width="6" stroke-linecap="round" />
+      <line x1="86" y1="0" x2="70" y2="200" stroke="currentColor" stroke-width="6" stroke-linecap="round" />
+      <line x1="36" y1="22" x2="84" y2="22" stroke="currentColor" stroke-width="6" stroke-linecap="round" />
+      <line x1="38" y1="66" x2="82" y2="66" stroke="currentColor" stroke-width="6" stroke-linecap="round" />
+      <line x1="41" y1="110" x2="79" y2="110" stroke="currentColor" stroke-width="6" stroke-linecap="round" />
+      <line x1="44" y1="154" x2="76" y2="154" stroke="currentColor" stroke-width="6" stroke-linecap="round" />
+      <line x1="47" y1="196" x2="73" y2="196" stroke="currentColor" stroke-width="6" stroke-linecap="round" />
+    </svg>
+    <span class="entry__hole"></span>
+  </span>
+</a>
+
+<style>
+  .entry {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-s);
+    text-decoration: none;
+    color: var(--fg);
+  }
+  .entry__label {
+    font-family: var(--font-display);
+    font-size: var(--step-0);
+    letter-spacing: 0.04em;
+  }
+  .entry__stage {
+    position: relative;
+    width: clamp(7rem, 18vw, 11rem);
+    height: clamp(9rem, 22vw, 14rem);
+    display: grid;
+    place-items: end center;
+  }
+  .entry__ladder {
+    position: relative;
+    z-index: 2;
+    width: 62%;
+    height: 86%;
+    color: var(--c-black);
+  }
+  /* The hole the ladder descends into — the seed of the entry transition. */
+  .entry__hole {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    translate: -50% 0;
+    width: 78%;
+    aspect-ratio: 2 / 1;
+    border-radius: 50%;
+    background: radial-gradient(
+      ellipse at center,
+      var(--c-black) 0%,
+      var(--c-black) 55%,
+      color-mix(in srgb, var(--c-black) 30%, transparent) 80%,
+      transparent 100%
+    );
+    z-index: 1;
+  }
+  /* Subtle invitation to scroll/click */
+  .entry:hover .entry__ladder,
+  .entry:focus-visible .entry__ladder {
+    translate: 0 4%;
+    transition: translate var(--dur-med) var(--ease-out);
+  }
+</style>

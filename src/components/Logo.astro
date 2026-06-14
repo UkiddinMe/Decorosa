@@ -1,0 +1,75 @@
+---
+// Reconstructs the DECOROSA wordmark from per-letter PNGs using the slicer's layout
+// manifest. Every glyph is an independent, absolutely-positioned element so any of them
+// can be linked/animated. The starburst-TM glyph is the Contacts link.
+import layout from '../data/logo-layout.json';
+
+interface Props {
+  /** Where the starburst-TM glyph links (Contacts page for the current locale). */
+  contactsHref: string;
+  /** Accessible, localized label for the starburst link. */
+  contactsLabel: string;
+}
+const { contactsHref, contactsLabel } = Astro.props;
+const { width, height, glyphs } = layout;
+const pct = (n: number, total: number) => `${(n / total) * 100}%`;
+const boxStyle = (g: (typeof glyphs)[number]) =>
+  `left:${pct(g.x, width)};top:${pct(g.y, height)};width:${pct(g.w, width)}`;
+---
+
+<div class="logo" style={`aspect-ratio:${width} / ${height}`}>
+  {
+    glyphs.map((g) =>
+      g.key === 'starburst' ? (
+        <a
+          class="glyph glyph--starburst"
+          style={boxStyle(g)}
+          href={contactsHref}
+          aria-label={contactsLabel}
+          data-glyph="starburst"
+        >
+          <img src={g.src} alt="" />
+        </a>
+      ) : (
+        <span class="glyph" style={boxStyle(g)} data-glyph={g.key}>
+          <img src={g.src} alt="" />
+        </span>
+      ),
+    )
+  }
+</div>
+
+<style>
+  .logo {
+    position: relative;
+    width: min(90vw, 56rem);
+    margin-inline: auto;
+  }
+  .glyph {
+    position: absolute;
+    display: block;
+  }
+  .glyph img {
+    width: 100%;
+    height: auto;
+  }
+  /* The starburst-TM is the only interactive glyph: links to Contacts, spins on hover. */
+  .glyph--starburst {
+    cursor: pointer;
+    transform-origin: 50% 50%;
+    transition: transform var(--dur-med) var(--ease-out);
+  }
+  .glyph--starburst:hover,
+  .glyph--starburst:focus-visible {
+    transform: rotate(18deg) scale(1.08);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .glyph--starburst {
+      transition: none;
+    }
+    .glyph--starburst:hover,
+    .glyph--starburst:focus-visible {
+      transform: none;
+    }
+  }
+</style>

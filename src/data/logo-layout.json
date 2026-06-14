@@ -1,0 +1,78 @@
+{
+  "width": 874,
+  "height": 164,
+  "glyphs": [
+    {
+      "key": "d",
+      "letter": "D",
+      "src": "/assets/logo/d.png",
+      "x": 22,
+      "y": 38,
+      "w": 101,
+      "h": 97
+    },
+    {
+      "key": "e",
+      "letter": "E",
+      "src": "/assets/logo/e.png",
+      "x": 133,
+      "y": 42,
+      "w": 81,
+      "h": 90
+    },
+    {
+      "key": "c",
+      "letter": "C",
+      "src": "/assets/logo/c.png",
+      "x": 229,
+      "y": 37,
+      "w": 87,
+      "h": 96
+    },
+    {
+      "key": "o1",
+      "letter": "O",
+      "src": "/assets/logo/o1.png",
+      "x": 339,
+      "y": 37,
+      "w": 71,
+      "h": 91
+    },
+    {
+      "key": "r",
+      "letter": "R",
+      "src": "/assets/logo/r.png",
+      "x": 427,
+      "y": 32,
+      "w": 51,
+      "h": 103
+    },
+    {
+      "key": "starburst",
+      "letter": "O",
+      "src": "/assets/logo/starburst.png",
+      "x": 478,
+      "y": 12,
+      "w": 147,
+      "h": 134
+    },
+    {
+      "key": "s",
+      "letter": "S",
+      "src": "/assets/logo/s.png",
+      "x": 633,
+      "y": 45,
+      "w": 104,
+      "h": 83
+    },
+    {
+      "key": "a",
+      "letter": "A",
+      "src": "/assets/logo/a.png",
+      "x": 741,
+      "y": 37,
+      "w": 110,
+      "h": 112
+    }
+  ]
+}

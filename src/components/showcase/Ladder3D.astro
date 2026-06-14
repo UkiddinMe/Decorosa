@@ -1,0 +1,27 @@
+---
+// The central ladder running down the spiral's vertical axis. Purely decorative; its
+// diagonal incline + opposite-direction spin are applied by the parent group.
+---
+
+<div class="ladder3d" aria-hidden="true"></div>
+
+<style>
+  .ladder3d {
+    width: 92px;
+    height: 2800px;
+    margin-left: -46px;
+    margin-top: -1400px;
+    background:
+      /* rungs */
+      repeating-linear-gradient(
+          to bottom,
+          var(--c-black) 0 7px,
+          transparent 7px 52px
+        )
+        no-repeat,
+      /* left rail */ linear-gradient(var(--c-black), var(--c-black)) left / 7px 100%
+        no-repeat,
+      /* right rail */ linear-gradient(var(--c-black), var(--c-black)) right / 7px 100%
+        no-repeat;
+  }
+</style>

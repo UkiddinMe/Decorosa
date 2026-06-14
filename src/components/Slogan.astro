@@ -1,0 +1,44 @@
+---
+interface Props {
+  lead: string;
+  items: string[];
+}
+const { lead, items } = Astro.props;
+---
+
+<div class="slogan">
+  <p class="slogan__lead">{lead}</p>
+  <ul class="slogan__items">
+    {items.map((item) => <li>{item}</li>)}
+  </ul>
+</div>
+
+<style>
+  .slogan {
+    display: grid;
+    gap: var(--space-m);
+    max-width: 52ch;
+    margin-inline: auto;
+    text-align: center;
+  }
+  .slogan__lead {
+    margin: 0;
+    font-size: var(--step-1);
+    line-height: 1.25;
+  }
+  .slogan__items {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-s);
+    font-family: var(--font-display);
+    color: var(--c-grey);
+    font-size: var(--step-0);
+  }
+  .slogan__items li + li::before {
+    content: '|';
+    margin-inline-end: var(--space-s);
+    color: var(--c-yellow);
+  }
+</style>

@@ -1,0 +1,53 @@
+---
+import '../styles/tokens.css';
+import '../styles/global.css';
+import { ClientRouter } from 'astro:transitions';
+import LangToggle from '../components/LangToggle.astro';
+import { t } from '../data/i18n';
+
+interface Props {
+  lang?: 'it' | 'en';
+  title?: string;
+  description?: string;
+}
+
+const { lang = 'it', title, description } = Astro.props;
+const dict = t(lang);
+const pageTitle = title ?? dict.meta.title;
+const pageDescription = description ?? dict.meta.description;
+const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url).href;
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={pageDescription} />
+    <link rel="canonical" href={canonical} />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:locale" content={lang === 'it' ? 'it_IT' : 'en_US'} />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <ClientRouter />
+  </head>
+  <body>
+    <slot />
+    <LangToggle lang={lang} />
+    <script>
+      import '../scripts/transition.ts';
+    </script>
+  </body>
+</html>

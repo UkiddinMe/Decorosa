@@ -1,0 +1,42 @@
+/* DECOROSA design tokens — palette derived from the collage logo. */
+:root {
+  /* Brand palette (from the wordmark glyphs) */
+  --c-green: #8bb6a2;   /* D — sage green triangle */
+  --c-orange: #ef6d2a;  /* E */
+  --c-purple: #9a83c6;  /* C */
+  --c-yellow: #f4c456;  /* first O — golden round */
+  --c-red: #e5331d;     /* R */
+  --c-black: #141414;   /* starburst-TM O, S */
+  --c-grey: #6f6f6f;    /* A — warm grey arch */
+  --c-white: #ffffff;   /* background */
+
+  /* Semantic */
+  --bg: var(--c-white);
+  --fg: var(--c-black);
+  --accent: var(--c-red);
+
+  /* Type */
+  --font-display: 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif;
+  --font-body: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  --step--1: clamp(0.83rem, 0.78rem + 0.25vw, 0.95rem);
+  --step-0: clamp(1rem, 0.92rem + 0.4vw, 1.2rem);
+  --step-1: clamp(1.33rem, 1.1rem + 1.1vw, 2rem);
+  --step-2: clamp(2rem, 1.4rem + 3vw, 4rem);
+
+  /* Spacing / layout */
+  --space-s: clamp(0.75rem, 0.6rem + 0.75vw, 1.25rem);
+  --space-m: clamp(1.25rem, 1rem + 1.25vw, 2.5rem);
+  --space-l: clamp(2.5rem, 1.8rem + 3.5vw, 6rem);
+  --maxw: 72rem;
+
+  /* Showcase 3D (tuned per-breakpoint in global.css) */
+  --scene-perspective: 1200px;
+  --spiral-radius: 360px;
+  --card-w: 220px;
+  --card-h: 280px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 0.25s;
+  --dur-med: 0.6s;
+}
