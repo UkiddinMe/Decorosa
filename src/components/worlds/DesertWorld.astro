@@ -1,0 +1,42 @@
+---
+// "DESSERT" — a sweet on top of a dune in a pastel desert. Emoji + CSS dune are
+// placeholders for the client's artwork.
+interface Props {
+  title: string;
+  subtitle?: string;
+  body: string;
+}
+const { title, subtitle, body } = Astro.props;
+---
+
+<div class="world world--desert">
+  <div class="world__layer bg" data-depth="1"></div>
+  <span class="world__big" data-depth="0.5" aria-hidden="true">DESSERT</span>
+  <div class="world__layer dune" data-depth="0.8"></div>
+  <span class="world__focal sweet" data-depth="0.95" aria-hidden="true">🍰</span>
+  <div class="world__caption">
+    <h2>{title}</h2>
+    {subtitle && <span class="sub">{subtitle}</span>}
+    <p>{body}</p>
+  </div>
+</div>
+
+<style>
+  .world--desert {
+    color: #5a3b14;
+  }
+  .world--desert .bg {
+    background: linear-gradient(180deg, #f7e7c5 0%, #f4d08a 60%, #e9b15a 100%);
+  }
+  .world--desert .world__big {
+    left: 70vw;
+    color: #fff6e6;
+  }
+  .world--desert .dune {
+    background: radial-gradient(80% 60% at 60% 130%, #d99a3f 0%, #e9b15a 60%, transparent 70%);
+  }
+  .world--desert .sweet {
+    left: 158vw;
+    top: 34%;
+  }
+</style>

@@ -1,0 +1,45 @@
+---
+// "Domestic jungle" — tropical plants overrunning a domestic scene. Emoji are
+// placeholders for the client's artwork.
+interface Props {
+  title: string;
+  subtitle?: string;
+  body: string;
+}
+const { title, subtitle, body } = Astro.props;
+---
+
+<div class="world world--jungle">
+  <div class="world__layer bg" data-depth="1"></div>
+  <div class="world__caption">
+    <h2>{title}</h2>
+    {subtitle && <span class="sub">{subtitle}</span>}
+    <p>{body}</p>
+  </div>
+  <span class="world__focal palm" data-depth="0.35" aria-hidden="true">🌴</span>
+  <span class="world__focal leaf" data-depth="0.6" aria-hidden="true">🌿</span>
+  <span class="world__focal pot" data-depth="0.9" aria-hidden="true">🪴</span>
+</div>
+
+<style>
+  .world--jungle {
+    color: #0e2417;
+  }
+  .world--jungle .bg {
+    background: radial-gradient(120% 90% at 30% 10%, #4aa063 0%, #277445 55%, #123a25 100%);
+  }
+  .world--jungle .palm {
+    left: 80vw;
+    top: 12%;
+  }
+  .world--jungle .leaf {
+    left: 150vw;
+    bottom: 10%;
+    top: auto;
+  }
+  .world--jungle .pot {
+    left: 225vw;
+    bottom: 6%;
+    top: auto;
+  }
+</style>

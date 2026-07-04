@@ -1,38 +1,57 @@
 // Hole-widening entry transition between the landing and the showcase.
 //
-// On clicking [data-entry], a dark overlay clip-circle grows from the hole to cover the
-// viewport ("descending"), then we navigate. On arrival, an overlay clip-circle shrinks
-// away to reveal the showcase. Coordinates are handed across the navigation via
-// sessionStorage. Falls back to a plain navigation when motion is reduced.
+// Clicking [data-entry] reveals a viewport-sized `cover` sky through a growing elliptical clip
+// that starts exactly over the existing hole — so the sky never scales (no stretch) and ends
+// framed identically to the showcase background. In step, the front rim [data-rim] opens (its
+// elliptical mask scales out), the clip [data-ladder-clip] opens fully, and the ladder itself
+// is FLIPped — translated up and scaled down — onto the exact spot where the showcase ladder
+// rests (measured off-screen via a replica of the showcase transform chain), so the page swap
+// is seamless. On arrival, a matching sky cover fades out to hide the swap. Falls back to plain
+// navigation when motion is reduced.
 import { navigate } from 'astro:transitions/client';
 import gsap from 'gsap';
 import { prefersReduced } from './motion';
 
 const REVEAL_KEY = 'decorosa:entering';
+const INTRO_KEY = 'decorosa:enter-intro';
 
-/** Largest distance from (cx,cy) to a viewport corner — the radius that fully covers. */
-function coverRadius(cx: number, cy: number): number {
-  return Math.hypot(Math.max(cx, innerWidth - cx), Math.max(cy, innerHeight - cy));
+/** Uniform scale factor that grows the hole ellipse until it contains every viewport corner. */
+function coverScale(rect: DOMRect): number {
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const dx = Math.max(cx, innerWidth - cx) / (rect.width / 2);
+  const dy = Math.max(cy, innerHeight - cy) / (rect.height / 2);
+  // A point is inside the scaled ellipse iff hypot(dx, dy) <= scale (in ellipse units).
+  return Math.hypot(dx, dy) * 1.05;
 }
 
-function makeOverlay(cxPct: number, cyPct: number, r: number): HTMLElement {
-  const el = document.createElement('div');
-  el.className = 'descent-overlay';
-  el.style.setProperty('--cx', `${cxPct}%`);
-  el.style.setProperty('--cy', `${cyPct}%`);
-  el.style.setProperty('--r', `${r}px`);
-  document.body.appendChild(el);
-  return el;
-}
-
-function tweenRadius(el: HTMLElement, from: number, to: number, ease: string) {
-  const proxy = { r: from };
-  return gsap.to(proxy, {
-    r: to,
-    duration: 0.75,
-    ease,
-    onUpdate: () => el.style.setProperty('--r', `${proxy.r}px`),
-  });
+// On-screen rect of the showcase ladder at rest. Built by mirroring the showcase transform
+// chain (Scene.astro: .scene → .stage → .ladder-group → .ladder3d) off-screen and measuring a
+// clone of the (geometrically identical) landing ladder SVG — so the browser does the
+// perspective math and the target is exact. Constants must track Scene.astro / tokens.css.
+function measureShowcaseLadder(svg: SVGElement): DOMRect {
+  const s = matchMedia('(max-width: 640px)').matches ? 0.62 : 1; // --scene-scale
+  const scene = document.createElement('div');
+  scene.style.cssText =
+    'position:fixed;inset:0;perspective:1200px;visibility:hidden;pointer-events:none;z-index:-1;';
+  const stage = document.createElement('div');
+  stage.style.cssText = `position:absolute;top:50%;left:calc(50% - 100vw / 10);transform-style:preserve-3d;transform:scale(${s}) rotateX(8deg);`;
+  const group = document.createElement('div');
+  group.style.cssText =
+    'position:absolute;top:0;left:0;transform-style:preserve-3d;transform:rotateZ(13deg) translateZ(-160px);';
+  const l3d = document.createElement('div');
+  l3d.style.cssText =
+    'position:absolute;top:0;left:0;width:74px;height:3601px;transform:translate(-50%, -50%);';
+  const clone = svg.cloneNode(true) as SVGElement;
+  clone.style.cssText = 'width:100%;height:100%;display:block;';
+  l3d.appendChild(clone);
+  group.appendChild(l3d);
+  stage.appendChild(group);
+  scene.appendChild(stage);
+  document.body.appendChild(scene);
+  const rect = clone.getBoundingClientRect();
+  scene.remove();
+  return rect;
 }
 
 async function onEntryClick(event: MouseEvent) {
@@ -40,33 +59,116 @@ async function onEntryClick(event: MouseEvent) {
   const href = link.getAttribute('href');
   if (!href || prefersReduced()) return; // let the normal navigation happen
 
+  const hole = link.querySelector<HTMLElement>('[data-hole]');
+  if (!hole) return;
+  const clip = link.querySelector<HTMLElement>('[data-ladder-clip]');
+  const rim = link.querySelector<HTMLElement>('[data-rim]');
+  const ladder = link.querySelector<HTMLElement>('[data-entry-ladder]');
+  const ladderSvg = ladder?.querySelector('svg');
+
   event.preventDefault();
-  const hole = link.querySelector<HTMLElement>('[data-hole]') ?? link;
   const rect = hole.getBoundingClientRect();
+
+  // FLIP target: where the showcase ladder will rest, vs. where ours sits now. Aligning the
+  // bbox centres + width matches it exactly (same SVG geometry, same incline).
+  let flip: { x: number; y: number; scale: number; origin: string } | null = null;
+  if (ladder && ladderSvg) {
+    const first = ladderSvg.getBoundingClientRect();
+    const last = measureShowcaseLadder(ladderSvg);
+    const box = ladder.getBoundingClientRect();
+    const fcx = first.left + first.width / 2;
+    const fcy = first.top + first.height / 2;
+    flip = {
+      x: last.left + last.width / 2 - fcx,
+      y: last.top + last.height / 2 - fcy,
+      scale: last.width / first.width,
+      origin: `${fcx - box.left}px ${fcy - box.top}px`,
+    };
+  }
+
+  // Elliptical clip window over the existing hole, grown until it clears every corner.
+  // Both radii scale by the SAME factor the rim scales by, with the same ease — the clip edge
+  // and the rim's masked opening are the same ellipse throughout, so only one oval is visible.
   const cx = rect.left + rect.width / 2;
   const cy = rect.top + rect.height / 2;
-  const cxPct = (cx / innerWidth) * 100;
-  const cyPct = (cy / innerHeight) * 100;
+  const rx0 = rect.width / 2;
+  const ry0 = rect.height / 2;
+  const scaleEnd = coverScale(rect);
 
-  const overlay = makeOverlay(cxPct, cyPct, 0);
-  sessionStorage.setItem(REVEAL_KEY, JSON.stringify({ cx: cxPct, cy: cyPct }));
-  await tweenRadius(overlay, 0, coverRadius(cx, cy), 'power2.in');
+  // Viewport-sized sky cover (same framing as the showcase), revealed by the clip below.
+  const cover = document.createElement('div');
+  cover.className = 'entry-grow';
+  const sky = document.createElement('div');
+  sky.className = 'entry-grow__sky';
+  cover.appendChild(sky);
+  document.body.appendChild(cover);
+
+  const setClip = (rx: number, ry: number) =>
+    cover.style.setProperty('clip-path', `ellipse(${rx}px ${ry}px at ${cx}px ${cy}px)`);
+  setClip(rx0, ry0);
+
+  if (clip) gsap.set(clip, { zIndex: 101 });
+  if (rim) gsap.set(rim, { zIndex: 102, willChange: 'transform' });
+  if (ladder) gsap.set(ladder, { willChange: 'transform' });
+  sessionStorage.setItem(REVEAL_KEY, '1');
+  sessionStorage.setItem(INTRO_KEY, '1'); // tells the showcase to play its entrance
+
+  const grow = { v: 0 };
+  const open = { v: 0 };
+  const tl = gsap
+    .timeline({ defaults: { duration: 0.9, ease: 'power2.inOut' } })
+    .to(
+      grow,
+      {
+        v: 1,
+        onUpdate: () => {
+          const k = 1 + (scaleEnd - 1) * grow.v;
+          setClip(rx0 * k, ry0 * k);
+        },
+      },
+      0
+    )
+    .to(rim, { scale: scaleEnd }, 0)
+    // Open the ladder clip on every side, in step with the sky, so the lifting ladder stays
+    // revealed (and never ends abruptly at the old stage edge).
+    .to(
+      open,
+      {
+        v: 1,
+        onUpdate: () => {
+          const e = -60 - 540 * open.v;
+          // Bottom starts at the resting 2% inset (see LadderEntry.astro) and opens downward.
+          clip?.style.setProperty('clip-path', `inset(${e}% ${e}% ${2 - 602 * open.v}% ${e}%)`);
+        },
+      },
+      0
+    );
+  // The lift starts only once the sky has (almost) fully taken over, so the hole-grow reads
+  // first and the ladder then rises to meet its showcase resting spot.
+  if (flip)
+    tl.to(
+      ladder,
+      { x: flip.x, y: flip.y, scale: flip.scale, transformOrigin: flip.origin, duration: 0.85, ease: 'power3.inOut' },
+      0.75
+    );
+  await tl;
   navigate(href);
 }
 
-/** On arriving at the showcase, shrink the covering circle away to reveal the page. */
+/** On arriving at the showcase, fade a covering sky away to hide the page swap. */
 function playReveal() {
-  const raw = sessionStorage.getItem(REVEAL_KEY);
-  if (!raw) return;
+  if (!sessionStorage.getItem(REVEAL_KEY)) return;
   sessionStorage.removeItem(REVEAL_KEY);
   if (prefersReduced()) return;
 
-  const { cx, cy } = JSON.parse(raw) as { cx: number; cy: number };
-  const cxpx = (innerWidth * cx) / 100;
-  const cypx = (innerHeight * cy) / 100;
-  const r = coverRadius(cxpx, cypx);
-  const overlay = makeOverlay(cx, cy, r);
-  tweenRadius(overlay, r, 0, 'power2.out').then(() => overlay.remove());
+  const cover = document.createElement('div');
+  cover.className = 'descent';
+  cover.style.setProperty('--r', '150vmax');
+  const sky = document.createElement('div');
+  sky.className = 'descent__sky';
+  cover.appendChild(sky);
+  document.body.appendChild(cover);
+  gsap.to(cover, { opacity: 0, duration: 0.45, ease: 'power1.out', onComplete: () => cover.remove() });
 }
 
 function bindEntries() {

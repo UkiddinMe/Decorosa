@@ -81,14 +81,79 @@ h3 {
   mix-blend-mode: multiply;
 }
 
-/* Hole-widening entry transition overlay (driven by src/scripts/transition.ts) */
-.descent-overlay {
+/* Shared detail-panel "world" structure (themed per world component) */
+.world {
+  position: relative;
+  width: 300vw;
+  height: 100%;
+}
+.world__layer {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+.world__focal {
+  position: absolute;
+  font-size: clamp(4rem, 14vw, 12rem);
+  line-height: 1;
+  will-change: transform;
+}
+.world__caption {
+  position: absolute;
+  left: 6vw;
+  top: 50%;
+  translate: 0 -50%;
+  z-index: 5;
+  max-width: 34ch;
+  display: grid;
+  gap: var(--space-s);
+}
+.world__caption h2 {
+  font-size: var(--step-2);
+}
+.world__caption .sub {
+  font-family: var(--font-display);
+  opacity: 0.85;
+}
+.world__big {
+  position: absolute;
+  top: 50%;
+  translate: 0 -50%;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(5rem, 20vw, 18rem);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* Sky cover faded out on arrival at the showcase to hide the page swap
+   (src/scripts/transition.ts → playReveal). */
+.descent {
   position: fixed;
   inset: 0;
   z-index: 100;
   pointer-events: none;
-  background: var(--c-black);
   clip-path: circle(var(--r, 0px) at var(--cx, 50%) var(--cy, 100%));
+}
+.descent__sky {
+  position: absolute;
+  inset: 0;
+  background: #8fb8e6 url('/assets/sky.jpg') center / cover no-repeat;
+}
+
+/* Hole-grow sky cover for the entry transition (src/scripts/transition.ts → onEntryClick).
+   A viewport-sized `cover` sky revealed by a growing elliptical clip: only the window grows,
+   the sky never scales, so it ends exactly matching the showcase background. */
+.entry-grow {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+}
+.entry-grow__sky {
+  position: absolute;
+  inset: 0;
+  background: #8fb8e6 url('/assets/sky.jpg') center / cover no-repeat;
 }
 
 /* Accessibility: collapse motion for users who ask for it */

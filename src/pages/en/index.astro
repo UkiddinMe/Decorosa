@@ -27,6 +27,10 @@ const dict = t(lang);
     grid-template-rows: 1fr auto;
     gap: var(--space-l);
     padding: var(--space-l) var(--space-m) var(--space-m);
+    /* The 95-rung entry ladder is absolutely positioned and its long tail hangs far below
+       the hole; clip-path only hides it visually, so without this it inflates the page's
+       scroll height. Clip it away (as the showcase clips its ladder to the viewport). */
+    overflow: clip;
   }
   .landing__hero {
     display: grid;

@@ -1,0 +1,76 @@
+---
+import type { Piece } from '../../data/pieces';
+import DiscoWorld from '../worlds/DiscoWorld.astro';
+import JungleWorld from '../worlds/JungleWorld.astro';
+import DesertWorld from '../worlds/DesertWorld.astro';
+
+interface Props {
+  piece: Piece;
+  lang: 'it' | 'en';
+}
+const { piece, lang } = Astro.props;
+const txt = piece.i18n[lang];
+const worlds = { disco: DiscoWorld, jungle: JungleWorld, desert: DesertWorld } as const;
+const World = worlds[piece.world];
+const closeLabel = lang === 'it' ? 'Chiudi' : 'Close';
+---
+
+<aside class="panel" data-panel={piece.id} aria-label={txt.title} hidden>
+  <button class="panel__close" data-close aria-label={closeLabel}>✕</button>
+  <div class="panel__viewport" data-parallax tabindex="0">
+    <div class="panel__track">
+      <World title={txt.title} subtitle={txt.subtitle} body={txt.body} />
+    </div>
+  </div>
+</aside>
+
+<style>
+  .panel {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    background: var(--c-black);
+    transform: translateX(100%);
+    transition: transform 0.45s var(--ease-out);
+  }
+  .panel.is-open {
+    transform: translateX(0);
+  }
+  .panel[hidden] {
+    display: none;
+  }
+  .panel__close {
+    position: fixed;
+    top: var(--space-s);
+    right: var(--space-s);
+    z-index: 90;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 999px;
+    border: 1.5px solid currentColor;
+    background: var(--bg);
+    color: var(--fg);
+    font-size: 1.1rem;
+    cursor: pointer;
+  }
+  .panel__viewport {
+    width: 100%;
+    height: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+  }
+  .panel__viewport::-webkit-scrollbar {
+    display: none;
+  }
+  .panel__track {
+    position: relative;
+    width: 300vw;
+    height: 100%;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .panel {
+      transition: none;
+    }
+  }
+</style>

@@ -1,27 +1,27 @@
 ---
-// The central ladder running down the spiral's vertical axis. Purely decorative; its
-// diagonal incline + opposite-direction spin are applied by the parent group.
+// The central ladder running down the spiral's vertical axis — the *same* vector ladder
+// shown on the landing, so it stays continuous across the entry transition. Its diagonal
+// incline + opposite-direction spin are applied by the parent group (Scene.astro).
+// The SVG lives inside a plain (flat) wrapper div: an <svg> placed directly in a
+// preserve-3d context fails to rasterize in Chrome, but a flat div flattens it to a
+// texture that composites correctly in 3D.
+import Ladder from '../Ladder.astro';
 ---
 
-<div class="ladder3d" aria-hidden="true"></div>
+<div class="ladder3d"><Ladder rungs={95} /></div>
 
 <style>
   .ladder3d {
-    width: 92px;
-    height: 2800px;
-    margin-left: -46px;
-    margin-top: -1400px;
-    background:
-      /* rungs */
-      repeating-linear-gradient(
-          to bottom,
-          var(--c-black) 0 7px,
-          transparent 7px 52px
-        )
-        no-repeat,
-      /* left rail */ linear-gradient(var(--c-black), var(--c-black)) left / 7px 100%
-        no-repeat,
-      /* right rail */ linear-gradient(var(--c-black), var(--c-black)) right / 7px 100%
-        no-repeat;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 74px;
+    height: 3601px; /* matches the SVG's 113:5499 aspect (rungs=95) — no distortion */
+    transform: translate(-50%, -50%);
+  }
+  .ladder3d :global(svg) {
+    width: 100%;
+    height: 100%;
+    display: block;
   }
 </style>

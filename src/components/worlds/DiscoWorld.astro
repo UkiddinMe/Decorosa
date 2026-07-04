@@ -1,0 +1,40 @@
+---
+// "The dark side of the mood" — dark disco hall. Emoji are placeholders for the
+// client's artwork; layers carry data-depth for horizontal parallax.
+interface Props {
+  title: string;
+  subtitle?: string;
+  body: string;
+}
+const { title, subtitle, body } = Astro.props;
+---
+
+<div class="world world--disco">
+  <div class="world__layer bg" data-depth="1"></div>
+  <div class="world__caption">
+    <h2>{title}</h2>
+    {subtitle && <span class="sub">{subtitle}</span>}
+    <p>{body}</p>
+  </div>
+  <span class="world__focal ball" data-depth="0.45" aria-hidden="true">🪩</span>
+  <span class="world__focal animal" data-depth="0.85" aria-hidden="true">🦫</span>
+</div>
+
+<style>
+  .world--disco {
+    color: #eef1ff;
+  }
+  .world--disco .bg {
+    background: radial-gradient(120% 90% at 70% 10%, #2b3b6b 0%, #16203f 55%, #0a0f20 100%);
+  }
+  .world--disco .ball {
+    left: 95vw;
+    top: 18%;
+    filter: drop-shadow(0 0 40px rgba(180, 200, 255, 0.5));
+  }
+  .world--disco .animal {
+    left: 175vw;
+    bottom: 8%;
+    top: auto;
+  }
+</style>

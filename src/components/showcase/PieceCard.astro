@@ -12,7 +12,14 @@ const { angleDeg, radius, dropY } = piece.spiral;
 const style = `--angle:${angleDeg}deg;--radius:${radius}px;--drop:${dropY}px`;
 ---
 
-<article class="card" style={style} data-piece={piece.id} data-world={piece.world}>
+<article
+  class="card"
+  style={style}
+  data-piece={piece.id}
+  data-world={piece.world}
+  data-angle={angleDeg}
+>
+  <button class="card__hit" data-open={piece.id} aria-label={txt.title}></button>
   <!-- Placeholder media (colored per world) until client artwork lands -->
   <div class="card__media"></div>
   <h2 class="card__title">{txt.title}</h2>
@@ -28,12 +35,27 @@ const style = `--angle:${angleDeg}deg;--radius:${radius}px;--drop:${dropY}px`;
     height: var(--card-h);
     margin-left: calc(var(--card-w) / -2);
     margin-top: calc(var(--card-h) / -2);
-    transform: rotateY(var(--angle)) translateZ(var(--radius)) translateY(var(--drop));
+    /* Place on the spiral, then counter-rotate by (spin + angle) so the card always
+       faces the viewer (billboard) — keeps artwork readable as the spiral turns. */
+    transform: rotateY(var(--angle)) translateZ(var(--radius)) translateY(var(--drop))
+      rotateY(calc((var(--spin, 0deg) + var(--angle)) * -1));
     transform-style: preserve-3d;
     display: grid;
     grid-template-rows: 1fr auto auto;
     gap: 0.4rem;
     color: var(--c-black);
+  }
+  .card__hit {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    /* the .scene layers are pointer-events: none; clicks land here */
+    pointer-events: auto;
+    appearance: none;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    cursor: pointer;
   }
   .card__media {
     border-radius: 0.5rem;

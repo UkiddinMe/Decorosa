@@ -25,3 +25,18 @@ export function destroyLenis(): void {
   lenis?.destroy();
   lenis = null;
 }
+
+/** Pause/resume smooth scroll (e.g. while a detail panel is open). */
+export function stopLenis(): void {
+  lenis?.stop();
+}
+export function startLenis(): void {
+  lenis?.start();
+}
+
+// Dev only: on HMR, tear down the live instance before this module is replaced.
+// Otherwise the old Lenis keeps its wheel listener + ticker callback while a fresh
+// one is created, and the two fight over the wheel — scrolling appears to freeze.
+if (import.meta.hot) {
+  import.meta.hot.dispose(destroyLenis);
+}

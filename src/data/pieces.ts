@@ -22,53 +22,55 @@ export const pieces: Piece[] = [
     id: 'comodino-disco',
     world: 'disco',
     spiral: { angleDeg: 0, radius: 360, dropY: 0 },
+    // NOTE: angle/dropY/turns are coupled so each card faces front exactly at
+    // viewport center — see showcase.ts (turns) for the relationship.
     cover: '/assets/pieces/comodino-disco/cover.png',
     i18n: {
       it: {
-        title: 'Comodino Disco',
+        title: 'Item 1',
         subtitle: 'The dark side of the mood',
-        body: 'Un comodino anni ’70 riportato in vita sotto la palla stroboscopica.',
+        body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore.',
       },
       en: {
-        title: 'Disco Nightstand',
+        title: 'Item 1',
         subtitle: 'The dark side of the mood',
-        body: 'A 1970s nightstand brought back to life under the mirror ball.',
+        body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore.',
       },
     },
   },
   {
     id: 'credenza-jungle',
     world: 'jungle',
-    spiral: { angleDeg: 137.5, radius: 360, dropY: 520 },
+    spiral: { angleDeg: 120, radius: 360, dropY: 700 },
     cover: '/assets/pieces/credenza-jungle/cover.png',
     i18n: {
       it: {
         title: 'Credenza Jungle',
-        subtitle: 'Domestic jungle',
-        body: 'Una credenza che diventa serra: foglie tropicali e ottoni.',
+        subtitle: 'Lorem ipsum',
+        body: 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo.',
       },
       en: {
         title: 'Jungle Sideboard',
-        subtitle: 'Domestic jungle',
-        body: 'A sideboard turned greenhouse: tropical leaves and brass.',
+        subtitle: 'Lorem ipsum',
+        body: 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo.',
       },
     },
   },
   {
     id: 'sedia-dessert',
     world: 'desert',
-    spiral: { angleDeg: 275, radius: 360, dropY: 1040 },
+    spiral: { angleDeg: 240, radius: 360, dropY: 1400 },
     cover: '/assets/pieces/sedia-dessert/cover.png',
     i18n: {
       it: {
-        title: 'Sedia Dessert',
-        subtitle: 'DESSERT',
-        body: 'Una seduta dolce come una duna: pastello e zucchero filato.',
+        title: 'Item 3',
+        subtitle: 'Lorem ipsum',
+        body: 'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
       },
       en: {
-        title: 'Dessert Chair',
-        subtitle: 'DESSERT',
-        body: 'A seat as sweet as a dune: pastels and candy floss.',
+        title: 'Item 3',
+        subtitle: 'Lorem ipsum',
+        body: 'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
       },
     },
   },

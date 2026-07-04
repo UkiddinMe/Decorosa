@@ -4,6 +4,7 @@ import '../styles/global.css';
 import { ClientRouter } from 'astro:transitions';
 import LangToggle from '../components/LangToggle.astro';
 import { t } from '../data/i18n';
+import { pairFor } from '../data/routes';
 
 interface Props {
   lang?: 'it' | 'en';
@@ -15,7 +16,19 @@ const { lang = 'it', title, description } = Astro.props;
 const dict = t(lang);
 const pageTitle = title ?? dict.meta.title;
 const pageDescription = description ?? dict.meta.description;
-const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url).href;
+const base = Astro.site ?? Astro.url;
+const canonical = new URL(Astro.url.pathname, base).href;
+const ogImage = new URL('/assets/logo-original.png', base).href;
+
+// hreflang alternates for this route (IT default + EN)
+const pair = pairFor(Astro.url.pathname);
+const alternates = pair
+  ? [
+      { hreflang: 'it', href: new URL(pair.it, base).href },
+      { hreflang: 'en', href: new URL(pair.en, base).href },
+      { hreflang: 'x-default', href: new URL(pair.it, base).href },
+    ]
+  : [];
 ---
 
 <!doctype html>
@@ -26,12 +39,17 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url).href;
     <title>{pageTitle}</title>
     <meta name="description" content={pageDescription} />
     <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    {alternates.map((a) => <link rel="alternate" hreflang={a.hreflang} href={a.href} />)}
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={pageDescription} />
+    <meta property="og:image" content={ogImage} />
     <meta property="og:locale" content={lang === 'it' ? 'it_IT' : 'en_US'} />
+    <meta name="twitter:card" content="summary_large_image" />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />

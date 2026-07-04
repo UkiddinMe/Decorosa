@@ -1,0 +1,86 @@
+---
+// Shared white/black 3D ladder, recreated as vector art from the brand image
+// (public/assets/cielo e scala.jpeg). Used on the landing (descending into the hole)
+// and as the rotating central axis of the showcase spiral — so it reads as the *same*
+// ladder across the entry transition. `rungs` sets the length; the SVG scales to any size.
+interface Props {
+  rungs?: number;
+  spacing?: number;
+  class?: string;
+}
+const { rungs = 5, spacing = 58, class: className = '' } = Astro.props;
+
+// Isometric extrusion of the rails (faces go up-and-right). Units are arbitrary SVG coords.
+const D = 16, ey = -10;
+const lx = 6, rx = 84, rw = 9; // left rail x, right rail x, rail width
+const top = 16, rungH = 9;
+const H = top + (rungs - 1) * spacing + top;
+// Round-capped rungs. The visible left end rests at the middle of the left rail's side
+// (depth) face — on top of it, stopping short of the front/side edge — while the right
+// end tucks behind the right rail (drawn last), hidden.
+const rungLeft = lx + rw + D / 2, rungRight = rx + 3, rungW = rungRight - rungLeft;
+
+const quad = (pts: number[][]) => pts.map((p) => p.join(',')).join(' ');
+type Bar = { tag: 'poly' | 'rect'; cls: string; pts?: number[][]; rect?: number[]; r?: number };
+
+const rail = (x: number): Bar[] => [
+  { tag: 'poly', cls: 'face-top', pts: [[x, 0], [x + D, ey], [x + rw + D, ey], [x + rw, 0]] },
+  { tag: 'poly', cls: 'face-side', pts: [[x + rw, 0], [x + rw + D, ey], [x + rw + D, H + ey], [x + rw, H]] },
+  { tag: 'rect', cls: 'face-front', rect: [x, 0, rw, H] },
+];
+
+// Paint order = depth. The left rail is drawn first so the rung ends sit *over* it
+// (visible insertion), then the rungs, then the right rail on top so the right ends are
+// hidden behind it. Net effect: rungs tuck behind the rail on one side only.
+const bars: Bar[] = [...rail(lx)];
+for (let k = 0; k < rungs; k++) {
+  const y = top + k * spacing;
+  bars.push({ tag: 'rect', cls: 'face-front', rect: [rungLeft, y, rungW, rungH], r: rungH / 2 });
+}
+bars.push(...rail(rx));
+
+const minX = lx - 3;
+const minY = ey - 3;
+const vbW = rx + rw + D + 3 - minX;
+const vbH = H + 3 - minY;
+---
+
+<svg
+  class:list={['ladder', className]}
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox={`${minX} ${minY} ${vbW} ${vbH}`}
+  width={vbW}
+  height={vbH}
+  preserveAspectRatio="xMidYMid meet"
+  aria-hidden="true"
+>
+  {
+    bars.map((b) =>
+      b.tag === 'rect' ? (
+        <rect class={b.cls} x={b.rect![0]} y={b.rect![1]} width={b.rect![2]} height={b.rect![3]} rx={b.r} ry={b.r} />
+      ) : (
+        <polygon class={b.cls} points={quad(b.pts!)} />
+      )
+    )
+  }
+</svg>
+
+<style>
+  .ladder {
+    display: block;
+    overflow: visible;
+  }
+  .ladder .face-front,
+  .ladder .face-top,
+  .ladder .face-side {
+    stroke: #111;
+    stroke-width: 1.2;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+  }
+  .ladder .face-front,
+  .ladder .face-top,
+  .ladder .face-side {
+    fill: #fff;
+  }
+</style>

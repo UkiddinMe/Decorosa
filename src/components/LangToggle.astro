@@ -1,22 +1,14 @@
 ---
-// Swaps locale while preserving the logical route.
-// IT is unprefixed (/, /showcase, /contatti); EN is /en/* (/en, /en/showcase, /en/contact).
+// Swaps locale while preserving the logical route (see src/data/routes.ts).
+import { pairFor } from '../data/routes';
+
 interface Props {
   lang: 'it' | 'en';
 }
 const { lang } = Astro.props;
 
-// Route name mapping so locale-specific slugs (contatti <-> contact) line up.
-const routePairs: Array<{ it: string; en: string }> = [
-  { it: '/', en: '/en' },
-  { it: '/showcase', en: '/en/showcase' },
-  { it: '/contatti', en: '/en/contact' },
-];
-
-const path = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const pair = pairFor(Astro.url.pathname);
 let target = lang === 'it' ? '/en' : '/';
-
-const pair = routePairs.find((p) => (lang === 'it' ? p.it : p.en) === path);
 if (pair) target = lang === 'it' ? pair.en : pair.it;
 
 const label = lang === 'it' ? 'EN' : 'IT';

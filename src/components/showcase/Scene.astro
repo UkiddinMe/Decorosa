@@ -1,7 +1,8 @@
 ---
 import PieceCard from './PieceCard.astro';
 import Ladder3D from './Ladder3D.astro';
-import { pieces } from '../../data/pieces';
+import DetailPanel from './DetailPanel.astro';
+import { pieces, type Piece } from '../../data/pieces';
 
 interface Props {
   lang: 'it' | 'en';
@@ -10,20 +11,47 @@ const { lang } = Astro.props;
 
 // Scroll length = one viewport per piece (+1 lead-in); descent spans the lowest card.
 const travel = Math.max(0, ...pieces.map((p) => p.spiral.dropY));
-const driverVh = (pieces.length + 1) * 100;
+const driverVh = (pieces.length + 1) * 130;
+
+// Server-side layer assignment at spin = 0 (front of orbit = positive z);
+// showcase.ts re-sorts cards between the layers as the spiral turns.
+const isFront = (p: Piece) => Math.cos((p.spiral.angleDeg * Math.PI) / 180) >= 0;
 ---
 
 <!-- 3D experience: a sticky scene inside a tall scroll driver -->
 <section class="viewport" data-driver data-travel={travel} style={`height:${driverVh}svh`}>
-  <div class="scene" data-scene>
-    <div class="stage" data-stage>
-      <div class="ladder-group" data-ladder><Ladder3D /></div>
-      <div class="spiral" data-spiral>
-        {pieces.map((p) => <PieceCard piece={p} lang={lang} />)}
+  <!-- clip on a plain 2D sticky wrapper; perspective on a separate inner element so
+       WebKit/Safari doesn't flatten the 3D (overflow + perspective on one node is buggy) -->
+  <div class="scene-clip" data-scene>
+    <div class="sky" data-sky aria-hidden="true"></div>
+    <!-- Occlusion sandwich: cards behind the ladder / the ladder / cards in front.
+         Each .scene is its own 3D context (own perspective), so card and ladder planes
+         can never slice through each other; showcase.ts moves each card between the two
+         card layers as it orbits, so cards still read as going *around* the ladder. -->
+    <div class="scene">
+      <div class="stage">
+        <div class="spiral" data-spiral>
+          {pieces.filter((p) => !isFront(p)).map((p) => <PieceCard piece={p} lang={lang} />)}
+        </div>
+      </div>
+    </div>
+    <div class="scene" aria-hidden="true">
+      <div class="stage">
+        <div class="ladder-group" data-ladder><Ladder3D /></div>
+      </div>
+    </div>
+    <div class="scene">
+      <div class="stage">
+        <div class="spiral" data-spiral>
+          {pieces.filter(isFront).map((p) => <PieceCard piece={p} lang={lang} />)}
+        </div>
       </div>
     </div>
   </div>
 </section>
+
+<!-- Bespoke world detail panels (opened by clicking a card) -->
+{pieces.map((p) => <DetailPanel piece={p} lang={lang} />)}
 
 <!-- Reduced-motion / no-3D fallback: a plain vertical list -->
 <ul class="fallback">
@@ -48,17 +76,37 @@ const driverVh = (pieces.length + 1) * 100;
   .viewport {
     position: relative;
   }
-  .scene {
+  .scene-clip {
     position: sticky;
     top: 0;
     height: 100svh;
     overflow: hidden;
+  }
+  /* Full-bleed sky (cropped from the brand image) that gently drifts with the scroll. */
+  .sky {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -12%;
+    height: 124%;
+    background: #8fb8e6 url('/assets/sky.jpg') center / cover no-repeat;
+    transform: translateY(var(--sky-shift, 0px));
+    will-change: transform;
+    z-index: 0;
+  }
+  .scene {
+    position: absolute;
+    inset: 0;
     perspective: var(--scene-perspective);
+    z-index: 1;
+    /* stacked layers must not block clicks on cards in the layers beneath */
+    pointer-events: none;
   }
   .stage {
     position: absolute;
     top: 50%;
-    left: 50%;
+    /* nudged left of center by ~1/7 of the viewport */
+    left: calc(50% - 100vw / 10);
     transform-style: preserve-3d;
     /* scale lets us keep one set of spiral coords across breakpoints */
     transform: scale(var(--scene-scale, 1)) rotateX(8deg) translateY(var(--descend, 0px));
@@ -70,10 +118,12 @@ const driverVh = (pieces.length + 1) * 100;
     left: 0;
     transform-style: preserve-3d;
   }
+  /* --rise lets the entrance intro offset the cards (not the ladder) one scroll slot down */
   .spiral {
-    transform: rotateY(var(--spin, 0deg));
+    transform: translateY(var(--rise, 0px)) rotateY(var(--spin, 0deg));
   }
-  /* opposite spin + fixed diagonal incline */
+  /* Opposite spin + fixed diagonal incline, centered on the spiral axis (the card
+     layers handle stacking, so no push-back is needed). */
   .ladder-group {
     transform: rotateY(var(--spin, 0deg)) rotateZ(13deg);
   }

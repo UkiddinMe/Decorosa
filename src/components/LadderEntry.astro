@@ -1,7 +1,15 @@
 ---
-// The "Entra nel mood" entry: a ladder descending into a hole, linking to the showcase.
-// Phase 3 enhances [data-entry] with a hole-widening View Transition; until then it is a
-// plain (working) link. The [data-hole] element is the clip target for that animation.
+// The "Entra nel mood" entry: the brand ladder (shared vector) descending into a round
+// hole that opens onto the sky — recreating public/assets/cielo e scala.jpeg.
+//
+// Layering: the sky ellipse [data-hole] sits behind a full-length ladder; in front of the
+// ladder, a page-coloured rim [data-rim] — shaped to the hole's curve with an elliptical
+// mask — occludes everything below the ellipse's lower arc, so the ladder descends from
+// above, into the hole, and disappears behind the curved near rim, its lower length running
+// on hidden. Clicking runs the entry transition (src/scripts/transition.ts): the hole grows
+// to fill the page with sky while the rim opens (and the clip releases the off-stage tail)
+// to reveal the rest of the ladder; only its top stays put.
+import Ladder from './Ladder.astro';
 interface Props {
   showcaseHref: string;
   enterLabel: string;
@@ -11,70 +19,119 @@ const { showcaseHref, enterLabel } = Astro.props;
 
 <a class="entry" href={showcaseHref} data-entry aria-label={enterLabel}>
   <span class="entry__label">{enterLabel}</span>
-  <span class="entry__stage" data-hole aria-hidden="true">
-    <svg class="entry__ladder" viewBox="0 0 120 220" fill="none" preserveAspectRatio="xMidYMin meet">
-      <!-- rails converge downward to imply descent into the hole -->
-      <line x1="34" y1="0" x2="50" y2="200" stroke="currentColor" stroke-width="6" stroke-linecap="round" />
-      <line x1="86" y1="0" x2="70" y2="200" stroke="currentColor" stroke-width="6" stroke-linecap="round" />
-      <line x1="36" y1="22" x2="84" y2="22" stroke="currentColor" stroke-width="6" stroke-linecap="round" />
-      <line x1="38" y1="66" x2="82" y2="66" stroke="currentColor" stroke-width="6" stroke-linecap="round" />
-      <line x1="41" y1="110" x2="79" y2="110" stroke="currentColor" stroke-width="6" stroke-linecap="round" />
-      <line x1="44" y1="154" x2="76" y2="154" stroke="currentColor" stroke-width="6" stroke-linecap="round" />
-      <line x1="47" y1="196" x2="73" y2="196" stroke="currentColor" stroke-width="6" stroke-linecap="round" />
-    </svg>
-    <span class="entry__hole"></span>
+  <span class="entry__stage">
+    <span class="entry__hole" data-hole></span>
+    <span class="entry__ladder-clip" data-ladder-clip>
+      <span class="entry__ladder" data-entry-ladder>
+        <span class="entry__ladder-incline"><Ladder rungs={95} /></span>
+      </span>
+    </span>
+    <span class="entry__rim" data-rim aria-hidden="true"></span>
   </span>
 </a>
 
 <style>
   .entry {
+    position: relative;
     display: grid;
     justify-items: center;
-    gap: var(--space-s);
     text-decoration: none;
     color: var(--fg);
   }
+  /* Removed from flow so the centered stage stays put; sits to the right of the
+     ladder, vertically centred on the stage. */
   .entry__label {
+    position: absolute;
+    top: 50%;
+    left: calc(50% + clamp(8rem, 20vw, 12rem) / 2 + var(--space-m));
+    transform: translateY(-50%);
     font-family: var(--font-display);
     font-size: var(--step-0);
     letter-spacing: 0.04em;
+    text-transform: uppercase;
   }
   .entry__stage {
     position: relative;
-    width: clamp(7rem, 18vw, 11rem);
-    height: clamp(9rem, 22vw, 14rem);
-    display: grid;
-    place-items: end center;
+    width: clamp(8rem, 20vw, 12rem);
+    aspect-ratio: 3 / 4;
   }
-  .entry__ladder {
-    position: relative;
-    z-index: 2;
-    width: 62%;
-    height: 86%;
-    color: var(--c-black);
-  }
-  /* The hole the ladder descends into — the seed of the entry transition. */
+  /* The hole the ladder descends into: an ellipse opening onto the sky, thin dark rim. */
   .entry__hole {
     position: absolute;
-    bottom: 0;
     left: 50%;
+    bottom: 4%;
     translate: -50% 0;
-    width: 78%;
+    width: 92%;
     aspect-ratio: 2 / 1;
     border-radius: 50%;
-    background: radial-gradient(
-      ellipse at center,
-      var(--c-black) 0%,
-      var(--c-black) 55%,
-      color-mix(in srgb, var(--c-black) 30%, transparent) 80%,
-      transparent 100%
-    );
+    border: 1.5px solid var(--c-black);
+    /* Viewport-anchored `cover` (fixed attachment): the ellipse is a window onto the same
+       sky framing the showcase uses, so the resting view matches the grown view seamlessly. */
+    background: #8fb8e6 url('/assets/sky.jpg') center / cover fixed no-repeat;
+    box-shadow: inset 0 6px 14px rgba(0, 0, 0, 0.18);
     z-index: 1;
   }
-  /* Subtle invitation to scroll/click */
-  .entry:hover .entry__ladder,
-  .entry:focus-visible .entry__ladder {
-    translate: 0 4%;
-    transition: translate var(--dur-med) var(--ease-out);
+  /* Holds the ladder; clips only the off-stage tail so it stays hidden until the transition
+     opens the bottom edge to release it. The 2% bottom inset keeps the clip edge safely above
+     the rim's own bottom edge — at 0% the two edges coincide and antialiasing lets a hairline
+     of ladder show below the rim; the clipped band is still behind the rim, so nothing visible
+     changes. */
+  .entry__ladder-clip {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    clip-path: inset(-60% -60% 2% -60%);
+  }
+  /* The full ladder, leaning into the hole. Two nested elements: the outer [data-entry-ladder]
+     only positions/sizes (the entry transition FLIPs *it* onto the showcase ladder), while the
+     inner carries the shared 13deg incline. Matched to the showcase ladder's rung count (95) so
+     that, once lifted to showcase size, it spans the viewport instead of ending abruptly.
+     Sized by WIDTH (the rail width is the same at any rung count) with height:auto — so the
+     resting scale/top are fixed and rung-count-independent, and the SVG can never get
+     vertically centred (which a height:100% + huge viewBox box can, pushing the ladder down).
+     51.85% reproduces the original 11-rung render width; the extra rungs run on below. */
+  .entry__ladder {
+    position: absolute;
+    left: 50%;
+    top: -8%;
+    width: 51.85%;
+  }
+  /* Incline only. Pivot 5.14% keeps the rotation centre at the SAME physical point as the old
+     45%-of-224% pivot, so the resting composition (top in the hole) is unchanged by the length. */
+  .entry__ladder-incline {
+    display: block;
+    transform: translateX(-50%) rotate(13deg);
+    transform-origin: 50% 5.14%;
+    transition: transform var(--dur-med) var(--ease-out);
+  }
+  .entry__ladder :global(svg) {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  /* Page-coloured front rim. The mask keeps it opaque only where it lies BELOW the hole's
+     centre line AND OUTSIDE the sky ellipse (radii/centre mirror .entry__hole: rx 46% of
+     width, ry 17.25% of height, centre 50%/78.75%) — i.e. the crescent of ground in front
+     of the hole's lower arc. So it covers the ladder's lower length exactly along the curve,
+     while the ellipse interior and everything above the centre stay clear. */
+  .entry__rim {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    background: var(--bg);
+    transform-origin: 50% 78.75%;
+    -webkit-mask-image: radial-gradient(46% 17.25% at 50% 78.75%, transparent 99%, #000 100%),
+      linear-gradient(to bottom, transparent 78.75%, #000 78.75%);
+    mask-image: radial-gradient(46% 17.25% at 50% 78.75%, transparent 99%, #000 100%),
+      linear-gradient(to bottom, transparent 78.75%, #000 78.75%);
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+  }
+  /* Subtle invitation: a small upward nudge. The translate is a % of the (now very tall)
+     incline element, so the value is tiny — -0.17% ≈ the old 1.5%-of-224% nudge, but upward. */
+  .entry:hover .entry__ladder-incline,
+  .entry:focus-visible .entry__ladder-incline {
+    transform: translateX(-50%) rotate(13deg) translateY(-0.17%);
   }
 </style>
