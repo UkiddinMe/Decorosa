@@ -68,6 +68,9 @@ scripts/slice-logo.mjs    One-off glyph slicer (see below)
 - Per-piece copy lives inside each piece in `pieces.ts` (`i18n: { it, en }`).
 - `routes.ts` maps IT↔EN paths; used by `LangToggle` (swap language, keep the page) and
   by `BaseLayout` for `hreflang` alternate tags. **Add every new route pair there.**
+- `routes.ts` also exports `withBase()` — the site deploys under a subpath
+  (`base: '/Decorosa'` on GitHub Pages), so **every internal href/asset path must go
+  through `withBase()`**; `normalize()` strips the base before route-pair matching.
 
 ## Content model
 
@@ -88,7 +91,8 @@ Card artwork is currently a placeholder gradient per world (tokens
 ## Styling
 
 - `tokens.css` — brand palette (from the wordmark), fluid type scale (`--step-*`),
-  spacing (`--space-*`), the shared `--sky-bg` and per-world gradients, motion tokens,
+  spacing (`--space-*`), the shared `--sky-bg` (its `--sky-url` image is injected on
+  `<html>` by `BaseLayout` so it respects the deploy base) and per-world gradients, motion tokens,
   and the showcase-3D scene tokens (perspective, stage offset/tilt/scale, ladder
   incline/size) — shared by `Scene.astro`, `Ladder3D.astro`, `LadderEntry.astro` *and*
   the entry-transition replica in `transition.ts`.
@@ -115,7 +119,8 @@ npm run dev / build / preview
 Pushes to `main` deploy via GitHub Actions (`.github/workflows/deploy-website.yaml`,
 withastro/action → GitHub Pages). The site is fully static; Cloudflare Pages/Netlify
 work identically (build `npm run build`, publish `dist/`). Before launch: update `site`
-in `astro.config.mjs` and the URL in `public/robots.txt`.
+in `astro.config.mjs`, drop/adjust `base` (currently `/Decorosa` for GitHub Pages), and
+update the URL in `public/robots.txt`.
 
 ---
 *Keep this file and ANIMATIONS.md up to date with every significant change.*
