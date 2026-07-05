@@ -5,14 +5,15 @@ import Logo from '../Logo.astro';
 import Slogan from '../Slogan.astro';
 import LadderEntry from '../LadderEntry.astro';
 import { t } from '../../data/i18n';
+import { withBase } from '../../data/routes';
 
 interface Props {
   lang: 'it' | 'en';
 }
 const { lang } = Astro.props;
 const dict = t(lang);
-const contactsHref = lang === 'it' ? '/contatti' : '/en/contact';
-const showcaseHref = lang === 'it' ? '/showcase' : '/en/showcase';
+const contactsHref = withBase(lang === 'it' ? '/contatti' : '/en/contact');
+const showcaseHref = withBase(lang === 'it' ? '/showcase' : '/en/showcase');
 ---
 
 <BaseLayout lang={lang}>

@@ -2,13 +2,14 @@
 // Shared contacts page for both locales — the thin files in src/pages/ only pick `lang`.
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { t } from '../../data/i18n';
+import { withBase } from '../../data/routes';
 
 interface Props {
   lang: 'it' | 'en';
 }
 const { lang } = Astro.props;
 const dict = t(lang);
-const backHref = lang === 'it' ? '/' : '/en';
+const backHref = withBase(lang === 'it' ? '/' : '/en');
 const ig = dict.contacts.instagram.replace('@', '');
 ---
 
