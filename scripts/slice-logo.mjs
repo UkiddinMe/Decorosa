@@ -117,8 +117,6 @@ async function main() {
     );
   }
 
-  // Letters of the wordmark, for screen-reader alt text per glyph.
-  const LETTERS = { d: 'D', e: 'E', c: 'C', o1: 'O', r: 'R', starburst: 'O', s: 'S', a: 'A' };
   const manifest = { width, height, glyphs: [] };
 
   for (let g = 0; g < glyphs.length; g++) {
@@ -146,7 +144,6 @@ async function main() {
       .toFile(join(OUT_DIR, `${key}.png`));
     manifest.glyphs.push({
       key,
-      letter: LETTERS[key] ?? '',
       src: `/assets/logo/${key}.png`,
       x: left,
       y: top,

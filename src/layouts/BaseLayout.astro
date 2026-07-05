@@ -60,6 +60,33 @@ const alternates = pair
     />
 
     <ClientRouter />
+
+    <!-- First-paint gate (hard loads only — SPA swaps keep the old page visible anyway):
+         hide the page until fonts, images and the shared sky texture are ready, then
+         global.css fades everything in at once (html.is-loading → body opacity). -->
+    <script is:inline>
+      document.documentElement.classList.add('is-loading');
+      (function () {
+        var loaded = new Promise(function (r) {
+          if (document.readyState === 'complete') r();
+          else window.addEventListener('load', r, { once: true });
+        });
+        var fonts = document.fonts ? document.fonts.ready : Promise.resolve();
+        var sky = new Promise(function (r) {
+          var img = new Image();
+          img.onload = img.onerror = r;
+          img.src = '/assets/sky.jpg'; // keep in sync with --sky-bg (tokens.css)
+        });
+        var cap = new Promise(function (r) {
+          setTimeout(r, 2500); // never hold the page hostage on a slow asset
+        });
+        Promise.race([Promise.all([loaded, fonts, sky]), cap]).then(function () {
+          requestAnimationFrame(function () {
+            document.documentElement.classList.remove('is-loading');
+          });
+        });
+      })();
+    </script>
   </head>
   <body>
     <slot />

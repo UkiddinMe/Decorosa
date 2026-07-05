@@ -15,8 +15,8 @@ import Ladder from '../Ladder.astro';
     position: absolute;
     top: 0;
     left: 0;
-    width: 74px;
-    height: 3601px; /* matches the SVG's 113:5499 aspect (rungs=95) — no distortion */
+    width: var(--ladder3d-w);
+    height: var(--ladder3d-h); /* size tokens live in tokens.css (shared with transition.ts) */
     transform: translate(-50%, -50%);
   }
   .ladder3d :global(svg) {

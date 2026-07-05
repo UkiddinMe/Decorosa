@@ -1,0 +1,39 @@
+---
+// Shared showcase page for both locales — the thin files in src/pages/ only pick `lang`.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Scene from '../showcase/Scene.astro';
+import { t } from '../../data/i18n';
+
+interface Props {
+  lang: 'it' | 'en';
+}
+const { lang } = Astro.props;
+const dict = t(lang);
+const backHref = lang === 'it' ? '/' : '/en';
+---
+
+<BaseLayout lang={lang} title="Showcase — DECOROSA">
+  <a class="showcase-back" href={backHref}>← {dict.nav.back}</a>
+  <Scene lang={lang} />
+  <script>
+    import '../../scripts/showcase.ts';
+    import '../../scripts/parallax.ts';
+  </script>
+</BaseLayout>
+
+<style>
+  .showcase-back {
+    position: fixed;
+    top: var(--space-s);
+    left: var(--space-s);
+    z-index: 50;
+    font-family: var(--font-display);
+    font-size: var(--step--1);
+    text-decoration: none;
+    padding: 0.35em 0.6em;
+    border: 1.5px solid currentColor;
+    border-radius: 999px;
+    background: var(--bg);
+    mix-blend-mode: multiply;
+  }
+</style>

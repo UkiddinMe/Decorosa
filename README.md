@@ -5,6 +5,9 @@ Scenographic portfolio for the artist Decorosa — a collage-wordmark landing, a
 "worlds" reached through horizontal-parallax detail panels. Built with Astro + GSAP
 (ScrollTrigger) + Lenis, CSS 3D transforms, bilingual IT/EN.
 
+**Docs:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) (structure, i18n, content model)
+and [docs/ANIMATIONS.md](docs/ANIMATIONS.md) (how every animation works).
+
 ## Develop
 
 ```bash
@@ -28,7 +31,7 @@ filenames) and re-run is not needed. The layout manifest is `src/data/logo-layou
 
 ## Content
 
-Pieces live in `src/data/pieces.ts` (id, world, spiral position, cover, IT/EN text).
+Pieces live in `src/data/pieces.ts` (id, world, spiral position, IT/EN text).
 Each `world` maps to a component in `src/components/worlds/`. Adding a new bespoke
 piece = add an entry + assets in `public/assets/pieces/<id>/` + (if a new aesthetic)
 a new world component. UI copy is in `src/data/i18n/`.

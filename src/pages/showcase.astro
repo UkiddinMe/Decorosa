@@ -1,34 +1,5 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import Scene from '../components/showcase/Scene.astro';
-import { t } from '../data/i18n';
-
-const lang = 'it' as const;
-const dict = t(lang);
+import ShowcasePage from '../components/pages/ShowcasePage.astro';
 ---
 
-<BaseLayout lang={lang} title="Showcase — DECOROSA">
-  <a class="showcase-back" href="/">← {dict.nav.back}</a>
-  <Scene lang={lang} />
-  <script>
-    import '../scripts/showcase.ts';
-    import '../scripts/parallax.ts';
-  </script>
-</BaseLayout>
-
-<style>
-  .showcase-back {
-    position: fixed;
-    top: var(--space-s);
-    left: var(--space-s);
-    z-index: 50;
-    font-family: var(--font-display);
-    font-size: var(--step--1);
-    text-decoration: none;
-    padding: 0.35em 0.6em;
-    border: 1.5px solid currentColor;
-    border-radius: 999px;
-    background: var(--bg);
-    mix-blend-mode: multiply;
-  }
-</style>
+<ShowcasePage lang="it" />

@@ -1,0 +1,47 @@
+---
+// Shared landing page for both locales — the thin files in src/pages/ only pick `lang`.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Logo from '../Logo.astro';
+import Slogan from '../Slogan.astro';
+import LadderEntry from '../LadderEntry.astro';
+import { t } from '../../data/i18n';
+
+interface Props {
+  lang: 'it' | 'en';
+}
+const { lang } = Astro.props;
+const dict = t(lang);
+const contactsHref = lang === 'it' ? '/contatti' : '/en/contact';
+const showcaseHref = lang === 'it' ? '/showcase' : '/en/showcase';
+---
+
+<BaseLayout lang={lang}>
+  <main class="landing">
+    <h1 class="sr-only">DECOROSA</h1>
+    <section class="landing__hero">
+      <Logo contactsHref={contactsHref} contactsLabel={dict.nav.contacts} />
+      <Slogan lead={dict.slogan.lead} items={dict.slogan.items} />
+    </section>
+    <LadderEntry showcaseHref={showcaseHref} enterLabel={dict.nav.enter} />
+  </main>
+</BaseLayout>
+
+<style>
+  .landing {
+    min-height: 100svh;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    gap: var(--space-l);
+    padding: var(--space-l) var(--space-m) var(--space-m);
+    /* The 95-rung entry ladder is absolutely positioned and its long tail hangs far below
+       the hole; clip-path only hides it visually, so without this it inflates the page's
+       scroll height. Clip it away (as the showcase clips its ladder to the viewport). */
+    overflow: clip;
+  }
+  .landing__hero {
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: var(--space-l);
+  }
+</style>

@@ -6,7 +6,8 @@ import sitemap from '@astrojs/sitemap';
 // View Transitions are enabled per-document via <ClientRouter /> in BaseLayout.
 // NOTE: update `site` to the final production domain before launch.
 export default defineConfig({
-  site: 'https://decorosa.art',
+  site: 'https://ukiddinme.github.io',
+  base: '/Decorosa',
   output: 'static',
   integrations: [sitemap()],
   i18n: {

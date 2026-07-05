@@ -11,8 +11,6 @@ export interface Piece {
   world: WorldKind;
   /** position in the 3D spiral */
   spiral: { angleDeg: number; radius: number; dropY: number };
-  /** cover image path (public/) shown on the spiral card */
-  cover: string;
   /** localized text */
   i18n: Record<'it' | 'en', { title: string; subtitle?: string; body: string }>;
 }
@@ -24,7 +22,6 @@ export const pieces: Piece[] = [
     spiral: { angleDeg: 0, radius: 360, dropY: 0 },
     // NOTE: angle/dropY/turns are coupled so each card faces front exactly at
     // viewport center — see showcase.ts (turns) for the relationship.
-    cover: '/assets/pieces/comodino-disco/cover.png',
     i18n: {
       it: {
         title: 'Item 1',
@@ -42,7 +39,6 @@ export const pieces: Piece[] = [
     id: 'credenza-jungle',
     world: 'jungle',
     spiral: { angleDeg: 120, radius: 360, dropY: 700 },
-    cover: '/assets/pieces/credenza-jungle/cover.png',
     i18n: {
       it: {
         title: 'Credenza Jungle',
@@ -60,7 +56,6 @@ export const pieces: Piece[] = [
     id: 'sedia-dessert',
     world: 'desert',
     spiral: { angleDeg: 240, radius: 360, dropY: 1400 },
-    cover: '/assets/pieces/sedia-dessert/cover.png',
     i18n: {
       it: {
         title: 'Item 3',

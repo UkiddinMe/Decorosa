@@ -1,0 +1,63 @@
+---
+// Shared contacts page for both locales — the thin files in src/pages/ only pick `lang`.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { t } from '../../data/i18n';
+
+interface Props {
+  lang: 'it' | 'en';
+}
+const { lang } = Astro.props;
+const dict = t(lang);
+const backHref = lang === 'it' ? '/' : '/en';
+const ig = dict.contacts.instagram.replace('@', '');
+---
+
+<BaseLayout lang={lang} title={`${dict.contacts.heading} — DECOROSA`}>
+  <main class="contacts">
+    <a class="contacts__back" href={backHref}>← {dict.nav.back}</a>
+    <h1 class="contacts__title">{dict.contacts.heading}</h1>
+    <p class="contacts__intro">{dict.contacts.intro}</p>
+    <ul class="contacts__list">
+      <li><a href={`mailto:${dict.contacts.email}`}>{dict.contacts.email}</a></li>
+      <li>
+        <a href={`https://instagram.com/${ig}`} target="_blank" rel="noopener">
+          {dict.contacts.instagram}
+        </a>
+      </li>
+    </ul>
+  </main>
+</BaseLayout>
+
+<style>
+  .contacts {
+    min-height: 100svh;
+    max-width: var(--maxw);
+    margin-inline: auto;
+    padding: var(--space-l) var(--space-m);
+    display: grid;
+    align-content: center;
+    gap: var(--space-m);
+  }
+  .contacts__back {
+    font-family: var(--font-display);
+    font-size: var(--step--1);
+    text-decoration: none;
+    justify-self: start;
+  }
+  .contacts__title {
+    font-size: var(--step-2);
+  }
+  .contacts__list {
+    display: grid;
+    gap: var(--space-s);
+    font-size: var(--step-1);
+    font-family: var(--font-display);
+  }
+  .contacts__list a {
+    text-decoration: none;
+    border-bottom: 3px solid var(--c-yellow);
+  }
+  .contacts__list a:hover {
+    border-color: var(--accent);
+  }
+</style>

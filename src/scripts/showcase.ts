@@ -8,20 +8,26 @@
 import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
 import { prefersReduced } from './motion';
-import { initLenis, destroyLenis } from './lenis';
+import { initLenis, destroyLenis, stopLenis, startLenis } from './lenis';
 
 gsap.registerPlugin(ScrollTrigger);
 
 const INTRO_KEY = 'decorosa:enter-intro';
 let trigger: ScrollTrigger | null = null;
+// While the entrance intro tweens the spiral, scroll must not drive it too (the two
+// writers fight over --spin): lenis is stopped and the ScrollTrigger update is ignored.
+let introPlaying = false;
 
 // When arriving from the landing (the ladder has just risen to its resting spot), the first
 // piece enters exactly like pieces do on scroll: the spiral starts one scroll slot back
 // (240deg of spin, 700px lower — see the angle/drop coupling in pieces.ts) and decelerates
 // to its resting point. The ladder is left alone: it just landed via the entry transition.
+// (Scene.astro pre-paints the same start pose inline so the resting spot never flashes.)
 function playIntro(spirals: HTMLElement[], sortLayers: (spin: number) => void): void {
   if (!sessionStorage.getItem(INTRO_KEY)) return;
   sessionStorage.removeItem(INTRO_KEY);
+  introPlaying = true;
+  stopLenis();
   gsap.set(spirals, { '--spin': '-240deg', '--rise': '700px' });
   gsap.to(spirals, {
     '--spin': '0deg',
@@ -30,6 +36,13 @@ function playIntro(spirals: HTMLElement[], sortLayers: (spin: number) => void): 
     ease: 'power2.out',
     delay: 0.5,
     onUpdate: () => sortLayers(parseFloat(String(gsap.getProperty(spirals[0], '--spin')))),
+    onComplete: () => {
+      // Discard any scroll that slipped through (scrollbar drag, keyboard) while locked,
+      // so the resting pose and the scroll position agree before handing control back.
+      window.scrollTo(0, 0);
+      introPlaying = false;
+      startLenis();
+    },
   });
 }
 
@@ -69,6 +82,7 @@ function init(): void {
     end: 'bottom bottom',
     scrub: true,
     onUpdate: (self) => {
+      if (introPlaying) return;
       const spin = self.progress * 360 * turns;
       for (const spiral of spirals) spiral.style.setProperty('--spin', `${spin}deg`);
       ladder.style.setProperty('--spin', `${-spin}deg`);
@@ -86,6 +100,7 @@ function init(): void {
 function teardown(): void {
   trigger?.kill();
   trigger = null;
+  introPlaying = false;
   destroyLenis();
 }
 

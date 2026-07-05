@@ -4,7 +4,6 @@
   "glyphs": [
     {
       "key": "d",
-      "letter": "D",
       "src": "/assets/logo/d.png",
       "x": 22,
       "y": 38,
@@ -13,7 +12,6 @@
     },
     {
       "key": "e",
-      "letter": "E",
       "src": "/assets/logo/e.png",
       "x": 133,
       "y": 42,
@@ -22,7 +20,6 @@
     },
     {
       "key": "c",
-      "letter": "C",
       "src": "/assets/logo/c.png",
       "x": 229,
       "y": 37,
@@ -31,7 +28,6 @@
     },
     {
       "key": "o1",
-      "letter": "O",
       "src": "/assets/logo/o1.png",
       "x": 339,
       "y": 37,
@@ -40,7 +36,6 @@
     },
     {
       "key": "r",
-      "letter": "R",
       "src": "/assets/logo/r.png",
       "x": 427,
       "y": 32,
@@ -49,7 +44,6 @@
     },
     {
       "key": "starburst",
-      "letter": "O",
       "src": "/assets/logo/starburst.png",
       "x": 478,
       "y": 12,
@@ -58,7 +52,6 @@
     },
     {
       "key": "s",
-      "letter": "S",
       "src": "/assets/logo/s.png",
       "x": 633,
       "y": 45,
@@ -67,7 +60,6 @@
     },
     {
       "key": "a",
-      "letter": "A",
       "src": "/assets/logo/a.png",
       "x": 741,
       "y": 37,

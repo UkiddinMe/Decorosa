@@ -29,14 +29,35 @@
   --space-l: clamp(2.5rem, 1.8rem + 3.5vw, 6rem);
   --maxw: 72rem;
 
-  /* Showcase 3D (tuned per-breakpoint in global.css) */
+  /* Showcase 3D. Also consumed by the entry transition's off-screen replica
+     (src/scripts/transition.ts → measureShowcaseLadder), so the FLIP target
+     can't drift from the real scene (Scene.astro / Ladder3D.astro). */
   --scene-perspective: 1200px;
-  --spiral-radius: 360px;
+  --scene-scale: 1;
+  --stage-left: calc(50% - 100vw / 10); /* stage nudged left of centre by ~1/10 viewport */
+  --stage-tilt: 8deg;
+  --ladder-incline: 13deg; /* shared with the landing ladder (LadderEntry.astro) */
+  --ladder3d-w: 74px;
+  --ladder3d-h: 3601px; /* matches the ladder SVG's 113:5499 aspect (rungs=95) — no distortion */
   --card-w: 220px;
   --card-h: 280px;
 
+  /* Shared sky background (landing hole, showcase backdrop, transition covers) */
+  --sky-bg: #8fb8e6 url('/assets/sky.jpg') center / cover no-repeat;
+
+  /* Per-world placeholder gradients (spiral cards + reduced-motion fallback list) */
+  --world-disco-bg: linear-gradient(150deg, #16203f, #2b3b6b 60%, #8aa0d8);
+  --world-jungle-bg: linear-gradient(150deg, #1f5132, #3f8f53 60%, #8fc79a);
+  --world-desert-bg: linear-gradient(150deg, #e9b15a, #f4d08a 55%, #f7e7c5);
+
   /* Motion */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --dur-fast: 0.25s;
   --dur-med: 0.6s;
+}
+
+/* Mobile parity: shrink the whole 3D projection rather than re-laying out */
+@media (max-width: 640px) {
+  :root {
+    --scene-scale: 0.62;
+  }
 }

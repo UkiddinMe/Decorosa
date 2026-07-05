@@ -15,6 +15,17 @@ import { prefersReduced } from './motion';
 const REVEAL_KEY = 'decorosa:entering';
 const INTRO_KEY = 'decorosa:enter-intro';
 
+/** Append a viewport-sized sky cover (styles in global.css → .sky-cover). */
+function makeSkyCover(): HTMLElement {
+  const cover = document.createElement('div');
+  cover.className = 'sky-cover';
+  const sky = document.createElement('div');
+  sky.className = 'sky-cover__sky';
+  cover.appendChild(sky);
+  document.body.appendChild(cover);
+  return cover;
+}
+
 /** Uniform scale factor that grows the hole ellipse until it contains every viewport corner. */
 function coverScale(rect: DOMRect): number {
   const cx = rect.left + rect.width / 2;
@@ -28,20 +39,22 @@ function coverScale(rect: DOMRect): number {
 // On-screen rect of the showcase ladder at rest. Built by mirroring the showcase transform
 // chain (Scene.astro: .scene → .stage → .ladder-group → .ladder3d) off-screen and measuring a
 // clone of the (geometrically identical) landing ladder SVG — so the browser does the
-// perspective math and the target is exact. Constants must track Scene.astro / tokens.css.
+// perspective math and the target is exact. All shared values come from tokens.css custom
+// properties (they resolve on these inline styles too, media queries included); only the
+// *structure* of the chain must track Scene.astro.
 function measureShowcaseLadder(svg: SVGElement): DOMRect {
-  const s = matchMedia('(max-width: 640px)').matches ? 0.62 : 1; // --scene-scale
   const scene = document.createElement('div');
   scene.style.cssText =
-    'position:fixed;inset:0;perspective:1200px;visibility:hidden;pointer-events:none;z-index:-1;';
+    'position:fixed;inset:0;perspective:var(--scene-perspective);visibility:hidden;pointer-events:none;z-index:-1;';
   const stage = document.createElement('div');
-  stage.style.cssText = `position:absolute;top:50%;left:calc(50% - 100vw / 10);transform-style:preserve-3d;transform:scale(${s}) rotateX(8deg);`;
+  stage.style.cssText =
+    'position:absolute;top:50%;left:var(--stage-left);transform-style:preserve-3d;transform:scale(var(--scene-scale)) rotateX(var(--stage-tilt));';
   const group = document.createElement('div');
   group.style.cssText =
-    'position:absolute;top:0;left:0;transform-style:preserve-3d;transform:rotateZ(13deg) translateZ(-160px);';
+    'position:absolute;top:0;left:0;transform-style:preserve-3d;transform:rotateZ(var(--ladder-incline));';
   const l3d = document.createElement('div');
   l3d.style.cssText =
-    'position:absolute;top:0;left:0;width:74px;height:3601px;transform:translate(-50%, -50%);';
+    'position:absolute;top:0;left:0;width:var(--ladder3d-w);height:var(--ladder3d-h);transform:translate(-50%, -50%);';
   const clone = svg.cloneNode(true) as SVGElement;
   clone.style.cssText = 'width:100%;height:100%;display:block;';
   l3d.appendChild(clone);
@@ -96,12 +109,7 @@ async function onEntryClick(event: MouseEvent) {
   const scaleEnd = coverScale(rect);
 
   // Viewport-sized sky cover (same framing as the showcase), revealed by the clip below.
-  const cover = document.createElement('div');
-  cover.className = 'entry-grow';
-  const sky = document.createElement('div');
-  sky.className = 'entry-grow__sky';
-  cover.appendChild(sky);
-  document.body.appendChild(cover);
+  const cover = makeSkyCover();
 
   const setClip = (rx: number, ry: number) =>
     cover.style.setProperty('clip-path', `ellipse(${rx}px ${ry}px at ${cx}px ${cy}px)`);
@@ -161,13 +169,7 @@ function playReveal() {
   sessionStorage.removeItem(REVEAL_KEY);
   if (prefersReduced()) return;
 
-  const cover = document.createElement('div');
-  cover.className = 'descent';
-  cover.style.setProperty('--r', '150vmax');
-  const sky = document.createElement('div');
-  sky.className = 'descent__sky';
-  cover.appendChild(sky);
-  document.body.appendChild(cover);
+  const cover = makeSkyCover();
   gsap.to(cover, { opacity: 0, duration: 0.45, ease: 'power1.out', onComplete: () => cover.remove() });
 }
 
