@@ -42,9 +42,8 @@
   --card-w: 220px;
   --card-h: 280px;
 
-  /* Shared sky background (landing hole, showcase backdrop, transition covers).
-     --sky-url is set on <html> in BaseLayout so the path respects the deploy base. */
-  --sky-bg: #8fb8e6 var(--sky-url) center / cover no-repeat;
+  /* Shared sky background (landing hole, showcase backdrop, transition covers) */
+  --sky-bg: #8fb8e6 url('/assets/sky.jpg') center / cover no-repeat;
 
   /* Per-world placeholder gradients (spiral cards + reduced-motion fallback list) */
   --world-disco-bg: linear-gradient(150deg, #16203f, #2b3b6b 60%, #8aa0d8);

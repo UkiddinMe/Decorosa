@@ -3,14 +3,13 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Scene from '../showcase/Scene.astro';
 import { t } from '../../data/i18n';
-import { withBase } from '../../data/routes';
 
 interface Props {
   lang: 'it' | 'en';
 }
 const { lang } = Astro.props;
 const dict = t(lang);
-const backHref = withBase(lang === 'it' ? '/' : '/en');
+const backHref = lang === 'it' ? '/' : '/en';
 ---
 
 <BaseLayout lang={lang} title="Showcase — DECOROSA">

@@ -1,6 +1,6 @@
 ---
 // Swaps locale while preserving the logical route (see src/data/routes.ts).
-import { pairFor, withBase } from '../data/routes';
+import { pairFor } from '../data/routes';
 
 interface Props {
   lang: 'it' | 'en';
@@ -10,7 +10,6 @@ const { lang } = Astro.props;
 const pair = pairFor(Astro.url.pathname);
 let target = lang === 'it' ? '/en' : '/';
 if (pair) target = lang === 'it' ? pair.en : pair.it;
-target = withBase(target);
 
 const label = lang === 'it' ? 'EN' : 'IT';
 ---

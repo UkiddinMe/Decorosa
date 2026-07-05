@@ -11,17 +11,7 @@ export const routePairs: RoutePair[] = [
   { it: '/contatti', en: '/en/contact' },
 ];
 
-// Deploy base path without trailing slash ('' when deployed at the domain root).
-const BASE = import.meta.env.BASE_URL.replace(/\/+$/, '');
-
-/** Prefix a root-relative path with the deploy base (e.g. '/Decorosa' on GitHub Pages). */
-export const withBase = (path: string): string => `${BASE}${path}`;
-
-export const normalize = (path: string): string => {
-  let p = path.replace(/\/+$/, '') || '/';
-  if (BASE && p.startsWith(BASE)) p = p.slice(BASE.length) || '/';
-  return p;
-};
+export const normalize = (path: string): string => path.replace(/\/+$/, '') || '/';
 
 /** The IT/EN pair that the given pathname belongs to (if any). */
 export function pairFor(path: string): RoutePair | undefined {

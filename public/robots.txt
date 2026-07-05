@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://ukiddinme.github.io/Decorosa/sitemap-index.xml
+Sitemap: https://decorosa.art/sitemap-index.xml

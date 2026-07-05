@@ -3,7 +3,6 @@
 // manifest. Every glyph is an independent, absolutely-positioned element so any of them
 // can be linked/animated. The starburst-TM glyph is the Contacts link.
 import layout from '../data/logo-layout.json';
-import { withBase } from '../data/routes';
 
 interface Props {
   /** Where the starburst-TM glyph links (Contacts page for the current locale). */
@@ -29,11 +28,11 @@ const boxStyle = (g: (typeof glyphs)[number]) =>
           aria-label={contactsLabel}
           data-glyph="starburst"
         >
-          <img src={withBase(g.src)} alt="" />
+          <img src={g.src} alt="" />
         </a>
       ) : (
         <span class="glyph" style={boxStyle(g)} data-glyph={g.key}>
-          <img src={withBase(g.src)} alt="" />
+          <img src={g.src} alt="" />
         </span>
       ),
     )
