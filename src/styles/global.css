@@ -118,9 +118,9 @@ h3 {
 }
 
 /* Viewport-sized sky cover used by the entry transition (src/scripts/transition.ts):
-   during the hole-grow it is revealed by an inline elliptical clip-path (only the window
-   grows — the sky never scales, so it ends exactly matching the showcase background);
-   on arrival at the showcase it is faded out to hide the page swap. */
+   during the hole-grow it is revealed by an inline elliptical clip-path — only the window
+   grows, the sky never scales, so it ends exactly matching the showcase background
+   (width 100vw keeps the shared --sky-bg framing scrollbar-independent). */
 .sky-cover {
   position: fixed;
   inset: 0;
@@ -129,7 +129,10 @@ h3 {
 }
 .sky-cover__sky {
   position: absolute;
-  inset: 0;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 100vw;
   background: var(--sky-bg);
 }
 

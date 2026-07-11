@@ -2,13 +2,32 @@
 // The central ladder running down the spiral's vertical axis — the *same* vector ladder
 // shown on the landing, so it stays continuous across the entry transition. Its diagonal
 // incline + opposite-direction spin are applied by the parent group (Scene.astro).
-// The SVG lives inside a plain (flat) wrapper div: an <svg> placed directly in a
+//
+// The ladder is split into three planes (each rendering one `part` of the shared SVG,
+// all with the full viewBox, so at rest they stack back into exactly the flat drawing —
+// pixel-identical to the entry transition's single-plane flight clone). The rung plane
+// spins with the group, so rungs foreshorten naturally; each rail is a separate plane
+// counter-rotated (rotateY(−spin), pivoted on its own front-face centre line) so it
+// always faces the viewer. The rails' screen separation still narrows as the ladder
+// turns (their pivot lines orbit the axis) and with perspective distance — but each
+// rail keeps its drawn width instead of collapsing, so edge-on the ladder reads as a
+// solid rail rather than vanishing.
+//
+// Each SVG lives inside a plain (flat) wrapper div: an <svg> placed directly in a
 // preserve-3d context fails to rasterize in Chrome, but a flat div flattens it to a
 // texture that composites correctly in 3D.
 import Ladder from '../Ladder.astro';
 ---
 
-<div class="ladder3d"><Ladder rungs={95} /></div>
+<div class="ladder3d ladder3d--rail-left">
+  <Ladder rungs={95} part="rail-left" />
+  <Ladder rungs={95} part="rail-left-flat" class="ladder-flat" />
+</div>
+<div class="ladder3d"><Ladder rungs={95} part="rungs" /></div>
+<div class="ladder3d ladder3d--rail-right">
+  <Ladder rungs={95} part="rail-right" />
+  <Ladder rungs={95} part="rail-right-flat" class="ladder-flat" />
+</div>
 
 <style>
   .ladder3d {
@@ -23,5 +42,35 @@ import Ladder from '../Ladder.astro';
     width: 100%;
     height: 100%;
     display: block;
+  }
+  /* Billboarded rails: rotateY(−spin) cancels the group's spin, pivoting via transform-origin
+     on the CENTRE of the rail's drawn strip — the box ratio matches the viewBox exactly
+     (tokens.css), so box % = viewBox %: left strip spans x 6..31 → centre 18.5 → (18.5−3)/109,
+     right 84..109 → 96.5 → (96.5−3)/109 (constants in Ladder.astro). Centre pivots matter
+     twice over: the strip extends equally both sides of its pivot, so the rung junction
+     (max 9.5 viewBox units off-pivot) stays covered in every phase, including mirrored
+     back-facing ones; and the two pivots sit symmetric about the spin axis, so edge-on the
+     rails converge exactly onto each other and the near one occludes the far.
+     The final translateZ (applied in the counter-rotated frame, ≈ view space) reproduces the
+     flat drawing's paint order — rungs over the left rail, right rail over the rungs —
+     without coplanar z-fighting; at 0.5px against 1200px perspective it is far too small
+     to see. */
+  .ladder3d--rail-left {
+    transform-origin: 14.2202% 50%;
+    transform: translate(-50%, -50%) rotateY(calc(-1 * var(--spin, 0deg))) translateZ(-0.5px);
+  }
+  .ladder3d--rail-right {
+    transform-origin: 85.7798% 50%;
+    transform: translate(-50%, -50%) rotateY(calc(-1 * var(--spin, 0deg))) translateZ(0.5px);
+  }
+  /* Near edge-on, each rail's fake-isometric faces would show their inner seam as a double
+     stripe; the seamless flat silhouette fades in over them (sin⁴ ramps late: ~0.25 at 45°,
+     ~1 edge-on) so the side reads as one solid white face. Exactly 0 at rest — the resting
+     composite stays pixel-identical to the flight clone. */
+  .ladder3d :global(.ladder-flat) {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: calc(pow(sin(var(--spin, 0deg)), 4));
   }
 </style>

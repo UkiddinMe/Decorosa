@@ -95,11 +95,14 @@ const isFront = (p: Piece) => Math.cos((p.spiral.angleDeg * Math.PI) / 180) >= 0
     height: 100svh;
     overflow: hidden;
   }
-  /* Full-bleed sky (cropped from the brand image) that gently drifts with the scroll. */
+  /* Full-bleed sky (cropped from the brand image) that gently drifts with the scroll.
+     The 12% overscan must stay larger than the max --sky-shift (8svh, showcase.ts).
+     Width 100vw (not the scrollbar-narrowed body width) keeps the shared --sky-bg
+     framing identical to the scrollbar-less landing; the overflow is clipped. */
   .sky {
     position: absolute;
     left: 0;
-    right: 0;
+    width: 100vw;
     top: -12%;
     height: 124%;
     background: var(--sky-bg);
