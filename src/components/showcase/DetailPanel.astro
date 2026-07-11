@@ -67,6 +67,9 @@ const closeLabel = lang === 'it' ? 'Chiudi' : 'Close';
     position: relative;
     width: 300vw;
     height: 100%;
+    /* parallax layers are translated right on scroll; clip them so they can't
+       extend the scrollable area past the track (black gap at the end) */
+    overflow: hidden;
   }
   @media (prefers-reduced-motion: reduce) {
     .panel {
