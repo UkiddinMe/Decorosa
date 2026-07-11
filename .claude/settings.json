@@ -10,7 +10,8 @@
       "Bash(* .env*)"
     ],
     "allow": [
-      "PowerShell([console]::beep*)"
+      "PowerShell([console]::beep*)",
+      "PowerShell([console]::beep(880,150); [console]::beep(1175,200))"
     ]
   }
 }

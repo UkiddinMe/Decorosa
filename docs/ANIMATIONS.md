@@ -137,7 +137,9 @@ Clicking a card (`[data-open]`) slides in the matching fullscreen `DetailPanel`
 vertical wheel input is converted (`scrollLeft += deltaY`). Parallax is one line of
 math: every `[data-depth]` layer gets `translateX(scrollLeft × (1 − depth))` on scroll
 — depth 1 background moves with the content (appears fixed to the world), depth ≈ 0
-elements stay near the viewport. Escape / ✕ closes; `astro:before-swap` force-closes so
+elements stay near the viewport. The track has `overflow: hidden` so translated layers
+can't extend the scroll range past 300vw (would expose the black panel background).
+Escape / ✕ closes; `astro:before-swap` force-closes so
 no panel or scroll-lock survives a navigation.
 
 ---
