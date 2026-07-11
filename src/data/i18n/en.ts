@@ -7,7 +7,7 @@ export const en: Dict = {
       'An artistic project giving new life to furniture, fabrics, objects and spaces.',
   },
   nav: {
-    enter: 'Enter the mood',
+    enter: 'Get in the mood',
     contacts: 'Contact',
     back: 'Back',
   },

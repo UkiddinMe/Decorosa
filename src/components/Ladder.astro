@@ -6,9 +6,12 @@
 interface Props {
   rungs?: number;
   spacing?: number;
+  /* Render a subset of the drawing (same viewBox for every part, so stacked parts
+     recompose into exactly the full drawing — used by Ladder3D's per-rail planes). */
+  part?: 'full' | 'rail-left' | 'rungs' | 'rail-right' | 'rail-left-flat' | 'rail-right-flat';
   class?: string;
 }
-const { rungs = 5, spacing = 58, class: className = '' } = Astro.props;
+const { rungs = 5, spacing = 58, part = 'full', class: className = '' } = Astro.props;
 
 // Isometric extrusion of the rails (faces go up-and-right). Units are arbitrary SVG coords.
 const D = 16, ey = -10;
@@ -29,15 +32,30 @@ const rail = (x: number): Bar[] => [
   { tag: 'rect', cls: 'face-front', rect: [x, 0, rw, H] },
 ];
 
+// Flat silhouette of a rail: the union outline of its three faces, with no internal
+// seams. Ladder3D fades it in over the isometric faces as the spinning rail nears
+// edge-on, where the extrusion's inner edge would read as a double stripe instead
+// of a solid white side.
+const railFlat = (x: number): Bar[] => [
+  { tag: 'poly', cls: 'face-front', pts: [[x, 0], [x + rw, 0], [x + rw + D, ey], [x + rw + D, H + ey], [x + rw, H], [x, H]] },
+];
+
 // Paint order = depth. The left rail is drawn first so the rung ends sit *over* it
 // (visible insertion), then the rungs, then the right rail on top so the right ends are
 // hidden behind it. Net effect: rungs tuck behind the rail on one side only.
-const bars: Bar[] = [...rail(lx)];
+const rungBars: Bar[] = [];
 for (let k = 0; k < rungs; k++) {
   const y = top + k * spacing;
-  bars.push({ tag: 'rect', cls: 'face-front', rect: [rungLeft, y, rungW, rungH], r: rungH / 2 });
+  rungBars.push({ tag: 'rect', cls: 'face-front', rect: [rungLeft, y, rungW, rungH], r: rungH / 2 });
 }
-bars.push(...rail(rx));
+const parts: Record<Exclude<Props['part'], 'full' | undefined>, Bar[]> = {
+  'rail-left': rail(lx),
+  rungs: rungBars,
+  'rail-right': rail(rx),
+  'rail-left-flat': railFlat(lx),
+  'rail-right-flat': railFlat(rx),
+};
+const bars: Bar[] = part === 'full' ? [...parts['rail-left'], ...parts.rungs, ...parts['rail-right']] : parts[part];
 
 const minX = lx - 3;
 const minY = ey - 3;

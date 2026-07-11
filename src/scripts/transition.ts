@@ -3,11 +3,12 @@
 // Clicking [data-entry] reveals a viewport-sized `cover` sky through a growing elliptical clip
 // that starts exactly over the existing hole — so the sky never scales (no stretch) and ends
 // framed identically to the showcase background. In step, the front rim [data-rim] opens (its
-// elliptical mask scales out), the clip [data-ladder-clip] opens fully, and the ladder itself
-// is FLIPped — translated up and scaled down — onto the exact spot where the showcase ladder
-// rests (measured off-screen via a replica of the showcase transform chain), so the page swap
-// is seamless. On arrival, a matching sky cover fades out to hide the swap. Falls back to plain
-// navigation when motion is reduced.
+// elliptical mask scales out) and the clip [data-ladder-clip] opens fully. The ladder is then
+// lifted by a "flight" replica of the showcase 3D chain: a clone starts flat, exactly over the
+// landing ladder, and animates to the showcase resting pose — so it ENDS pixel-identical to
+// the real perspective-rendered ladder and the page swap is seamless (the sky too: all sky
+// paints share one viewport-anchored framing, see --sky-bg in tokens.css). On arrival only
+// the showcase chrome fades in. Falls back to plain navigation when motion is reduced.
 import { navigate } from 'astro:transitions/client';
 import gsap from 'gsap';
 import { prefersReduced } from './motion';
@@ -36,19 +37,34 @@ function coverScale(rect: DOMRect): number {
   return Math.hypot(dx, dy) * 1.05;
 }
 
-// On-screen rect of the showcase ladder at rest. Built by mirroring the showcase transform
-// chain (Scene.astro: .scene → .stage → .ladder-group → .ladder3d) off-screen and measuring a
-// clone of the (geometrically identical) landing ladder SVG — so the browser does the
-// perspective math and the target is exact. All shared values come from tokens.css custom
-// properties (they resolve on these inline styles too, media queries included); only the
-// *structure* of the chain must track Scene.astro.
-function measureShowcaseLadder(svg: SVGElement): DOMRect {
+// The ladder "flight": a live replica of the showcase transform chain (Scene.astro:
+// .scene → .stage → .ladder-group → .ladder3d) carrying a clone of the landing ladder SVG.
+// The stage tilt starts at 0deg (flat) so the clone can be overlaid exactly on the landing
+// ladder with a plain 2D translate + uniform scale on the wrapper; both then animate to rest
+// (tilt to --stage-tilt, wrapper to identity), so the flight ends pixel-identical to the real
+// perspective-rendered showcase ladder. A 2D FLIP of the flat ladder cannot achieve this:
+// perspective foreshortening is non-affine over the ladder's length, so matching bounding
+// boxes still leaves a visible size/offset difference at the swap. All shared values come
+// from tokens.css custom properties; only the *structure* of the chain must track Scene.astro.
+function buildFlight(svg: SVGElement): { flight: HTMLElement; stage: HTMLElement; clone: SVGElement } {
+  // The showcase always scrolls (tall driver), so its .scene is one classic scrollbar
+  // narrower than a non-scrolling landing viewport — size the replica scene to match
+  // its end-state width (with overlay scrollbars the probe measures 0).
+  const probe = document.createElement('div');
+  probe.style.cssText = 'position:fixed;overflow:scroll;width:60px;height:60px;visibility:hidden;';
+  document.body.appendChild(probe);
+  const scrollbar = probe.offsetWidth - probe.clientWidth;
+  probe.remove();
+
+  const flight = document.createElement('div');
+  // z-index 101: above the sky cover (100), below the rim (102) like the original ladder.
+  flight.style.cssText = 'position:fixed;inset:0;visibility:hidden;pointer-events:none;z-index:101;';
   const scene = document.createElement('div');
-  scene.style.cssText =
-    'position:fixed;inset:0;perspective:var(--scene-perspective);visibility:hidden;pointer-events:none;z-index:-1;';
+  scene.style.cssText = `position:absolute;top:0;left:0;width:${innerWidth - scrollbar}px;height:100svh;perspective:var(--scene-perspective);`;
   const stage = document.createElement('div');
   stage.style.cssText =
-    'position:absolute;top:50%;left:var(--stage-left);transform-style:preserve-3d;transform:scale(var(--scene-scale)) rotateX(var(--stage-tilt));';
+    'position:absolute;top:50%;left:var(--stage-left);transform-style:preserve-3d;transform:scale(var(--scene-scale)) rotateX(var(--flight-tilt));';
+  stage.style.setProperty('--flight-tilt', '0deg');
   const group = document.createElement('div');
   group.style.cssText =
     'position:absolute;top:0;left:0;transform-style:preserve-3d;transform:rotateZ(var(--ladder-incline));';
@@ -56,15 +72,23 @@ function measureShowcaseLadder(svg: SVGElement): DOMRect {
   l3d.style.cssText =
     'position:absolute;top:0;left:0;width:var(--ladder3d-w);height:var(--ladder3d-h);transform:translate(-50%, -50%);';
   const clone = svg.cloneNode(true) as SVGElement;
-  clone.style.cssText = 'width:100%;height:100%;display:block;';
   l3d.appendChild(clone);
   group.appendChild(l3d);
   stage.appendChild(group);
   scene.appendChild(stage);
-  document.body.appendChild(scene);
-  const rect = clone.getBoundingClientRect();
-  scene.remove();
-  return rect;
+  flight.appendChild(scene);
+  document.body.appendChild(flight);
+
+  // Size the clone to the box's drawn-content area. The real showcase SVG letterboxes inside
+  // .ladder3d (width/height 100% + `xMidYMid meet`; the box ratio need not equal the viewBox
+  // ratio), so a clone filling the box would render the ladder narrower than the box itself.
+  // This draws identically to the real one while keeping the clone's rect measurable.
+  const boxW = parseFloat(getComputedStyle(l3d).width);
+  const boxH = parseFloat(getComputedStyle(l3d).height);
+  const vb = (svg as SVGSVGElement).viewBox.baseVal;
+  const fit = Math.min(boxW / vb.width, boxH / vb.height);
+  clone.style.cssText = `position:absolute;left:50%;top:50%;width:${vb.width * fit}px;height:${vb.height * fit}px;transform:translate(-50%, -50%);display:block;`;
+  return { flight, stage, clone };
 }
 
 async function onEntryClick(event: MouseEvent) {
@@ -82,21 +106,22 @@ async function onEntryClick(event: MouseEvent) {
   event.preventDefault();
   const rect = hole.getBoundingClientRect();
 
-  // FLIP target: where the showcase ladder will rest, vs. where ours sits now. Aligning the
-  // bbox centres + width matches it exactly (same SVG geometry, same incline).
-  let flip: { x: number; y: number; scale: number; origin: string } | null = null;
+  // Build the flight chain and overlay its (flat, tilt 0) clone exactly on the landing
+  // ladder: both are the same artwork at the same incline, so bbox centres + one uniform
+  // scale on the wrapper align them pixel-for-pixel.
+  let flight: { flight: HTMLElement; stage: HTMLElement; clone: SVGElement } | null = null;
   if (ladder && ladderSvg) {
+    flight = buildFlight(ladderSvg);
     const first = ladderSvg.getBoundingClientRect();
-    const last = measureShowcaseLadder(ladderSvg);
-    const box = ladder.getBoundingClientRect();
-    const fcx = first.left + first.width / 2;
-    const fcy = first.top + first.height / 2;
-    flip = {
-      x: last.left + last.width / 2 - fcx,
-      y: last.top + last.height / 2 - fcy,
-      scale: last.width / first.width,
-      origin: `${fcx - box.left}px ${fcy - box.top}px`,
-    };
+    const flat = flight.clone.getBoundingClientRect();
+    const c0x = flat.left + flat.width / 2;
+    const c0y = flat.top + flat.height / 2;
+    gsap.set(flight.flight, {
+      x: first.left + first.width / 2 - c0x,
+      y: first.top + first.height / 2 - c0y,
+      scale: first.width / flat.width,
+      transformOrigin: `${c0x}px ${c0y}px`,
+    });
   }
 
   // Elliptical clip window over the existing hole, grown until it clears every corner.
@@ -117,7 +142,6 @@ async function onEntryClick(event: MouseEvent) {
 
   if (clip) gsap.set(clip, { zIndex: 101 });
   if (rim) gsap.set(rim, { zIndex: 102, willChange: 'transform' });
-  if (ladder) gsap.set(ladder, { willChange: 'transform' });
   sessionStorage.setItem(REVEAL_KEY, '1');
   sessionStorage.setItem(INTRO_KEY, '1'); // tells the showcase to play its entrance
 
@@ -151,26 +175,32 @@ async function onEntryClick(event: MouseEvent) {
       },
       0
     );
-  // The lift starts only once the sky has (almost) fully taken over, so the hole-grow reads
-  // first and the ladder then rises to meet its showcase resting spot.
-  if (flip)
-    tl.to(
-      ladder,
-      { x: flip.x, y: flip.y, scale: flip.scale, transformOrigin: flip.origin, duration: 0.85, ease: 'power3.inOut' },
-      0.75
-    );
+  // The lift starts only once the sky has (almost) fully taken over (by then the clip and
+  // rim are fully open): the flight clone takes over from the (identical, overlaid) landing
+  // ladder and rises into the showcase resting pose — wrapper to identity, tilt to its token.
+  if (flight) {
+    const tilt = getComputedStyle(document.documentElement).getPropertyValue('--stage-tilt').trim();
+    tl.set(ladder!, { visibility: 'hidden' }, 0.75)
+      .set(flight.flight, { visibility: 'visible' }, 0.75)
+      .to(flight.flight, { x: 0, y: 0, scale: 1, duration: 0.85, ease: 'power3.inOut' }, 0.75)
+      .to(flight.stage, { '--flight-tilt': tilt, duration: 0.85, ease: 'power3.inOut' }, 0.75);
+  }
   await tl;
   navigate(href);
 }
 
-/** On arriving at the showcase, fade a covering sky away to hide the page swap. */
+/** On arriving at the showcase: the sky and the ladder are pixel-continuous across the
+ * swap (shared --sky-bg framing + the flight's end pose), so nothing may be covered —
+ * a cover over the just-landed ladder reads as a blink. Only the fixed chrome (back
+ * link, language toggle), absent on the landing, eases in. */
 function playReveal() {
   if (!sessionStorage.getItem(REVEAL_KEY)) return;
   sessionStorage.removeItem(REVEAL_KEY);
   if (prefersReduced()) return;
 
-  const cover = makeSkyCover();
-  gsap.to(cover, { opacity: 0, duration: 0.45, ease: 'power1.out', onComplete: () => cover.remove() });
+  const chrome = document.querySelectorAll('.showcase-back, .lang-toggle');
+  if (chrome.length)
+    gsap.from(chrome, { opacity: 0, duration: 0.45, ease: 'power1.out', clearProps: 'opacity' });
 }
 
 function bindEntries() {

@@ -88,8 +88,10 @@ function init(): void {
       ladder.style.setProperty('--spin', `${-spin}deg`);
       sortLayers(spin);
       scene.style.setProperty('--descend', `${-self.progress * travel}px`);
-      // Gentle parallax: the sky drifts a little in the scroll direction.
-      sky?.style.setProperty('--sky-shift', `${self.progress * 90}px`);
+      // Gentle parallax: the sky drifts a little in the scroll direction. Kept in svh so
+      // the max shift (8svh) always stays inside the sky's 12% overscan (Scene.astro) —
+      // a px value can outrun the overscan on short viewports and expose the page behind.
+      sky?.style.setProperty('--sky-shift', `${self.progress * 8}svh`);
     },
   });
 

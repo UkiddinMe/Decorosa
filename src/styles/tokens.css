@@ -29,22 +29,32 @@
   --space-l: clamp(2.5rem, 1.8rem + 3.5vw, 6rem);
   --maxw: 72rem;
 
-  /* Showcase 3D. Also consumed by the entry transition's off-screen replica
-     (src/scripts/transition.ts → measureShowcaseLadder), so the FLIP target
+  /* Showcase 3D. Also consumed by the entry transition's flight replica
+     (src/scripts/transition.ts → buildFlight), so the flight's end pose
      can't drift from the real scene (Scene.astro / Ladder3D.astro). */
   --scene-perspective: 1200px;
   --scene-scale: 1;
   --stage-left: calc(50% - 100vw / 10); /* stage nudged left of centre by ~1/10 viewport */
   --stage-tilt: 8deg;
   --ladder-incline: 13deg; /* shared with the landing ladder (LadderEntry.astro) */
-  --ladder3d-w: 74px;
-  --ladder3d-h: 3601px; /* matches the ladder SVG's 113:5499 aspect (rungs=95) — no distortion */
+  /* Width derived from the height so the box matches the ladder SVG's 109:5500 viewBox
+     (rungs=95) EXACTLY — no letterbox, so box % = viewBox % (Ladder3D's rail pivot
+     origins rely on this). The drawn ladder is unchanged: the old 74px box letterboxed
+     the SVG to this same width. */
+  --ladder3d-w: calc(3601px * 109 / 5500);
+  --ladder3d-h: 3601px;
   --card-w: 220px;
   --card-h: 280px;
 
   /* Shared sky background (landing hole, showcase backdrop, transition covers).
-     --sky-url is set on <html> in BaseLayout so the path respects the deploy base. */
-  --sky-bg: #8fb8e6 var(--sky-url) center / cover no-repeat;
+     --sky-url is set on <html> in BaseLayout so the path respects the deploy base.
+     The size is an explicit `cover` of the showcase sky's overscan box (100vw wide,
+     124svh tall, centred on the viewport — see .sky in Scene.astro; 1280/2752 is
+     sky.jpg's aspect ratio). Every consumer paints the SAME framing regardless of its
+     own box, so the landing hole, the transition cover and the showcase backdrop stay
+     pixel-identical across the page swap — element-based `cover` would reframe when
+     the showcase scrollbar changes the box width, or on the 124%-tall overscan box. */
+  --sky-bg: #8fb8e6 var(--sky-url) center / max(100vw, calc(124svh * 1280 / 2752)) no-repeat;
 
   /* Per-world placeholder gradients (spiral cards + reduced-motion fallback list) */
   --world-disco-bg: linear-gradient(150deg, #16203f, #2b3b6b 60%, #8aa0d8);
