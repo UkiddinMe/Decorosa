@@ -1,0 +1,40 @@
+---
+// Fixed "back" pill, shared by every section that isn't the landing page.
+import { withBase } from '../data/routes';
+
+interface Props {
+  href: string;
+  label: string;
+  /** light pill on dark backgrounds */
+  tone?: 'light' | 'dark';
+}
+const { href, label, tone = 'light' } = Astro.props;
+---
+
+<a class="back-link" data-tone={tone} href={withBase(href)}>← {label}</a>
+
+<style>
+  .back-link {
+    position: fixed;
+    top: var(--space-s);
+    left: var(--space-s);
+    z-index: 50;
+    font-family: var(--font-display);
+    font-size: var(--step--1);
+    text-decoration: none;
+    padding: 0.35em 0.6em;
+    border: 1.5px solid currentColor;
+    border-radius: 999px;
+    background: var(--bg);
+    color: var(--fg);
+    /* over the showcase sky this sinks the white pill into the image; a no-op on the
+       white pages */
+    mix-blend-mode: multiply;
+  }
+  .back-link[data-tone='dark'] {
+    background: transparent;
+    color: #eef1ff;
+    /* multiply would sink light text into a dark backdrop until it disappears */
+    mix-blend-mode: normal;
+  }
+</style>

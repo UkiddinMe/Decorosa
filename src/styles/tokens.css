@@ -18,6 +18,12 @@
   /* Type */
   --font-display: 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif;
   --font-body: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  /* Futura for the big showcase panel titles. Real Futura only exists on the user's
+     machine (macOS/Adobe); Jost is the loaded web stand-in — same geometric skeleton. */
+  --font-futura: 'Futura', 'Futura PT', 'Jost', 'Century Gothic', 'Space Grotesk', sans-serif;
+  /* Placeholder artwork is emoji; the body stack has no emoji face, so Chrome/Windows
+     draws tofu boxes unless the colour-emoji font is named explicitly. */
+  --font-emoji: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
   --step--1: clamp(0.83rem, 0.78rem + 0.25vw, 0.95rem);
   --step-0: clamp(1rem, 0.92rem + 0.4vw, 1.2rem);
   --step-1: clamp(1.33rem, 1.1rem + 1.1vw, 2rem);
@@ -56,17 +62,31 @@
      the showcase scrollbar changes the box width, or on the 124%-tall overscan box. */
   --sky-bg: #8fb8e6 var(--sky-url) center / max(100vw, calc(124svh * 1280 / 2752)) no-repeat;
 
-  /* Per-world placeholder gradients (spiral cards + reduced-motion fallback list) */
+  /* Per-world placeholder gradients (artifact cards + reduced-motion fallback lists) */
   --world-disco-bg: linear-gradient(150deg, #16203f, #2b3b6b 60%, #8aa0d8);
   --world-jungle-bg: linear-gradient(150deg, #1f5132, #3f8f53 60%, #8fc79a);
   --world-desert-bg: linear-gradient(150deg, #e9b15a, #f4d08a 55%, #f7e7c5);
+
+  /* The disco hall backdrop — shared by DiscoWorld and the "dark side" page. */
+  --disco-bg: radial-gradient(120% 90% at 70% 10%, #2b3b6b 0%, #16203f 55%, #0a0f20 100%);
+
+  /* Placeholder media for the three showcase panels */
+  --panel-iam-bg: linear-gradient(150deg, #e5331d, #ef6d2a 55%, #f4c456);
+  --panel-my-bg: linear-gradient(150deg, #9a83c6, #8bb6a2 60%, #f4c456);
+  --panel-dark-bg: linear-gradient(150deg, #0a0f20, #2b3b6b 65%, #8aa0d8);
 
   /* Motion */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --dur-med: 0.6s;
 }
 
-/* Mobile parity: shrink the whole 3D projection rather than re-laying out */
+/* Narrower viewports: shrink the whole 3D projection rather than re-laying out — this
+   also keeps each panel's big side title inside the frame at its closest point. */
+@media (max-width: 1100px) {
+  :root {
+    --scene-scale: 0.8;
+  }
+}
 @media (max-width: 640px) {
   :root {
     --scene-scale: 0.62;

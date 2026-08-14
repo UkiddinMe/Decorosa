@@ -1,10 +1,11 @@
 // Showcase spiral: scroll progress drives opposite-direction rotation of the spiral and
-// the ladder, plus a vertical descent of the stage. Cards orbit the ladder across three
-// stacked perspective layers (cards behind / ladder / cards in front): each layer is its
+// the ladder, plus a vertical descent of the stage. The three panels orbit the ladder
+// across three stacked perspective layers (behind / ladder / in front): each layer is its
 // own 3D context so planes can never slice through each other, and sortLayers() keeps
-// every card on the side of the sandwich matching its current orbit position. Reduced
-// motion skips all of this (a static fallback list is shown via CSS). Lifecycle-safe for
-// View-Transition navigation.
+// every panel on the side of the sandwich matching its current orbit position.
+// sortNear() reveals each panel's big title while it is in the closer half of its
+// apparent-size range. Reduced motion skips all of this (a static fallback list is shown
+// via CSS). Lifecycle-safe for View-Transition navigation.
 import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
 import { prefersReduced } from './motion';
@@ -18,12 +19,20 @@ let trigger: ScrollTrigger | null = null;
 // writers fight over --spin): lenis is stopped and the ScrollTrigger update is ignored.
 let introPlaying = false;
 
+// A panel's apparent size is set by perspective alone: scale(z) = P / (P − z), with
+// z = radius·cos(worldAngle) sweeping [−radius, +radius]. "Closer half of its size range"
+// is therefore the z at which scale reaches the midpoint of [scale(−r), scale(+r)].
+function nearThresholdZ(perspective: number, radius: number): number {
+  const mid = (perspective / (perspective + radius) + perspective / (perspective - radius)) / 2;
+  return perspective - perspective / mid;
+}
+
 // When arriving from the landing (the ladder has just risen to its resting spot), the first
-// piece enters exactly like pieces do on scroll: the spiral starts one scroll slot back
-// (240deg of spin, 700px lower — see the angle/drop coupling in pieces.ts) and decelerates
+// panel enters exactly like panels do on scroll: the spiral starts one scroll slot back
+// (240deg of spin, 700px lower — see the angle/drop coupling in panels.ts) and decelerates
 // to its resting point. The ladder is left alone: it just landed via the entry transition.
 // (Scene.astro pre-paints the same start pose inline so the resting spot never flashes.)
-function playIntro(spirals: HTMLElement[], sortLayers: (spin: number) => void): void {
+function playIntro(spirals: HTMLElement[], onSpin: (spin: number) => void): void {
   if (!sessionStorage.getItem(INTRO_KEY)) return;
   sessionStorage.removeItem(INTRO_KEY);
   introPlaying = true;
@@ -35,7 +44,7 @@ function playIntro(spirals: HTMLElement[], sortLayers: (spin: number) => void): 
     duration: 2.4,
     ease: 'power2.out',
     delay: 0.5,
-    onUpdate: () => sortLayers(parseFloat(String(gsap.getProperty(spirals[0], '--spin')))),
+    onUpdate: () => onSpin(parseFloat(String(gsap.getProperty(spirals[0], '--spin')))),
     onComplete: () => {
       // Discard any scroll that slipped through (scrollbar drag, keyboard) while locked,
       // so the resting pose and the scroll position agree before handing control back.
@@ -52,27 +61,34 @@ function init(): void {
   const ladder = document.querySelector<HTMLElement>('[data-ladder]');
   const sky = document.querySelector<HTMLElement>('[data-sky]');
   const spirals = Array.from(document.querySelectorAll<HTMLElement>('[data-spiral]'));
-  const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-piece]'));
+  const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-panel]'));
   if (!driver || !scene || !ladder || spirals.length !== 2 || prefersReduced()) return;
 
   initLenis();
 
   const [backSpiral, frontSpiral] = spirals;
+  const perspective =
+    parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--scene-perspective')) ||
+    1200;
 
-  // A card is in front of the ladder when its orbit z is positive, i.e. when the cosine
-  // of its current world angle (spin + own angle) is; move it to the matching layer so
-  // the ladder occludes it — or not — correctly.
-  const sortLayers = (spin: number): void => {
+  // Per orbit tick: (a) a panel is in front of the ladder when its orbit z is positive,
+  // i.e. when the cosine of its world angle (spin + own angle) is — move it to the
+  // matching layer so the ladder occludes it (or not) correctly; (b) its title shows
+  // once that same z crosses the "closer half of the size range" mark.
+  const onSpin = (spin: number): void => {
     for (const card of cards) {
-      const worldAngle = spin + Number(card.dataset.angle ?? 0);
-      const layer = Math.cos((worldAngle * Math.PI) / 180) >= 0 ? frontSpiral : backSpiral;
+      const worldAngle = ((spin + Number(card.dataset.angle ?? 0)) * Math.PI) / 180;
+      const cos = Math.cos(worldAngle);
+      const layer = cos >= 0 ? frontSpiral : backSpiral;
       if (card.parentElement !== layer) layer.appendChild(card);
+      const radius = Number(card.dataset.radius ?? 0);
+      card.classList.toggle('is-near', radius * cos >= nearThresholdZ(perspective, radius));
     }
   };
 
   // Spiral rotations across the whole scroll. With evenly spaced angles (120deg) and
-  // drops, 4/3 turns makes every card face front exactly as it passes viewport center,
-  // so each piece reaches its frontal point at the same height.
+  // drops, 4/3 turns makes every panel face front exactly as it passes viewport center,
+  // so each one reaches its frontal point at the same height.
   const turns = 4 / 3;
   const travel = Number(driver.dataset.travel ?? 0);
 
@@ -86,7 +102,7 @@ function init(): void {
       const spin = self.progress * 360 * turns;
       for (const spiral of spirals) spiral.style.setProperty('--spin', `${spin}deg`);
       ladder.style.setProperty('--spin', `${-spin}deg`);
-      sortLayers(spin);
+      onSpin(spin);
       scene.style.setProperty('--descend', `${-self.progress * travel}px`);
       // Gentle parallax: the sky drifts a little in the scroll direction. Kept in svh so
       // the max shift (8svh) always stays inside the sky's 12% overscan (Scene.astro) —
@@ -95,8 +111,8 @@ function init(): void {
     },
   });
 
-  sortLayers(trigger.progress * 360 * turns);
-  playIntro(spirals, sortLayers);
+  onSpin(trigger.progress * 360 * turns);
+  playIntro(spirals, onSpin);
 }
 
 function teardown(): void {

@@ -1,0 +1,88 @@
+---
+// "MY" — the artifacts as an endlessly looping lateral carousel. Shared by both locales.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BackLink from '../BackLink.astro';
+import ArtifactCard from '../works/ArtifactCard.astro';
+import { artifacts } from '../../data/artifacts';
+import { t } from '../../data/i18n';
+
+interface Props {
+  lang: 'it' | 'en';
+}
+const { lang } = Astro.props;
+const dict = t(lang);
+---
+
+<BaseLayout lang={lang} title={`${dict.works.heading} — DECOROSA`}>
+  <BackLink href={lang === 'it' ? '/showcase' : '/en/showcase'} label={dict.nav.back} />
+
+  <main class="works">
+    <h1 class="works__head">{dict.works.heading}</h1>
+
+    <div class="works__viewport" data-works tabindex="0" aria-label={dict.works.heading}>
+      <!-- One set is rendered; works.ts clones it a few times to make the loop seamless. -->
+      <div class="works__track" data-works-track>
+        <div class="works__set" data-works-set>
+          {artifacts.map((a) => <ArtifactCard artifact={a} lang={lang} />)}
+        </div>
+      </div>
+    </div>
+
+    <p class="works__hint" aria-hidden="true">← {dict.works.hint} →</p>
+  </main>
+
+  <script>
+    import '../../scripts/works.ts';
+  </script>
+</BaseLayout>
+
+<style>
+  /* header band / carousel / hint band — the carousel centres in whatever is left, so
+     the heading can never sit on top of a card */
+  .works {
+    height: 100svh;
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+  }
+  .works__head {
+    padding: calc(var(--space-l) + 1rem) var(--space-m) 0;
+    font-family: var(--font-futura);
+    font-size: var(--step-2);
+    letter-spacing: 0.02em;
+  }
+  .works__hint {
+    margin: 0;
+    padding: 0 var(--space-m) var(--space-m);
+    justify-self: end;
+    font-family: var(--font-display);
+    font-size: var(--step--1);
+    color: var(--c-grey);
+  }
+  .works__viewport {
+    align-self: center;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    /* room for the centre card's swell */
+    padding-block: 6svh;
+  }
+  .works__viewport::-webkit-scrollbar {
+    display: none;
+  }
+  .works__track {
+    display: flex;
+    width: max-content;
+  }
+  /* Gap lives inside the set (with a trailing one) so the loop period is exactly the
+     set's own width — works.ts wraps scrollLeft by that number. */
+  .works__set {
+    --gap: clamp(3rem, 8vw, 9rem);
+    display: flex;
+    /* start, not center: a two-line title must not push its card up relative to the
+       others — every card hangs from the same top edge */
+    align-items: start;
+    gap: var(--gap);
+    padding-right: var(--gap);
+  }
+</style>

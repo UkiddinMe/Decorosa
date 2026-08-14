@@ -8,8 +8,9 @@ Map of the moving parts, in the order a visitor meets them.
 | The ladder drawing | `src/components/Ladder.astro` |
 | Landing entry composition | `src/components/LadderEntry.astro` |
 | Entry transition (landing → showcase) | `src/scripts/transition.ts`, `.sky-cover` in `global.css` |
-| Showcase spiral | `src/scripts/showcase.ts`, `showcase/Scene.astro`, `PieceCard.astro`, `Ladder3D.astro` |
-| Detail-panel parallax | `src/scripts/parallax.ts`, `worlds/*`, `.world` in `global.css` |
+| Showcase spiral | `src/scripts/showcase.ts`, `showcase/Scene.astro`, `PanelCard.astro`, `Ladder3D.astro` |
+| Sideways sections (bio / works / artifact) | `src/scripts/hscroll.ts` + `bio.ts`, `works.ts`, `artifact.ts` |
+| Artifact-page parallax | `src/scripts/artifact.ts`, `worlds/*`, `.world` in `global.css` |
 
 **Reduced motion:** everything below is skipped when `prefers-reduced-motion` is on
 (`motion.ts → prefersReduced()`), and the showcase swaps to a plain list via CSS.
@@ -97,7 +98,7 @@ Clicking the entry runs a GSAP timeline instead of a normal navigation:
 ## Showcase spiral — `Scene.astro` + `showcase.ts`
 
 **Scroll driver.** The scene is `position: sticky` inside a tall section
-(`(pieces+1) × 130svh`). A single ScrollTrigger scrubs progress 0→1 across it; all
+(`(panels+1) × 130svh`). A single ScrollTrigger scrubs progress 0→1 across it; all
 motion derives from that one number, written to CSS custom properties:
 
 - `--spin` = `progress × 360° × turns` on the two card groups; `−spin` on the ladder
@@ -109,9 +110,17 @@ motion derives from that one number, written to CSS custom properties:
 **The turns constant.** With cards every 120° and `turns = 4/3`, each card completes
 `(4/3×360 − 120×i)°`... in practice: every card arrives *facing front exactly when its
 dropY passes viewport centre*. Change card count/angles/drops and `turns` must be
-retuned together (see the note in `pieces.ts`).
+retuned together (see the note in `panels.ts`).
 
-**Card placement & billboarding** (`PieceCard.astro`). Each card's transform is
+**The side titles** (`PanelCard.astro` + `sortNear` inside `onSpin`). Each panel carries
+its big Futura title to its right. A panel's apparent size comes from perspective alone —
+`scale(z) = P / (P − z)` with `z = radius·cos(worldAngle)` — so "the closer half of its
+size range" is a fixed z threshold: the z at which `scale` reaches the midpoint of
+`[scale(−r), scale(+r)]` (`nearThresholdZ` in `showcase.ts`). Crossing it toggles
+`.is-near`, and CSS fades/slides the title in. Because the title lives inside the card's
+3D box and is sized in px, perspective grows it with the panel as it approaches.
+
+**Card placement & billboarding** (`PanelCard.astro`). Each card's transform is
 `rotateY(angle) translateZ(radius) translateY(drop) rotateY(−(spin+angle))`: the first
 three place it on the spiral (inside the spinning group), the final counter-rotation
 cancels the *total* world rotation so the card always faces the viewer.
@@ -149,7 +158,7 @@ rasterize in Chrome — hence the flat wrapper div in `Ladder3D.astro`; and
 
 **Entrance intro** (`playIntro`). When arriving via the entry transition, the card
 groups start one "scroll slot" back (−240° spin, +700px `--rise`) and ease to rest
-over 2.4s — the first piece enters exactly like pieces do on scroll. The ladder is left
+over 2.4s — the first panel enters exactly like panels do on scroll. The ladder is left
 alone; it just landed via the flight. Two guards keep it clean: an inline pre-paint
 script in `Scene.astro` (re-run on SPA swaps via `data-astro-rerun`) parks the spirals
 in the start pose *before first paint*, so the first card never flashes at rest; and
@@ -157,18 +166,45 @@ scroll is locked for the duration (`stopLenis` + the ScrollTrigger update ignore
 an `introPlaying` flag), with any leaked scroll (scrollbar/keyboard) reset to 0 on
 completion before control is handed back.
 
-## Detail panels — `parallax.ts`
+## Sideways sections — `hscroll.ts`
 
-Clicking a card (`[data-open]`) slides in the matching fullscreen `DetailPanel`
-(CSS transition on `translateX`) and locks page scroll (`overflow: hidden` +
-`stopLenis`). Inside, the panel viewport scrolls **horizontally** across a 300vw world;
-vertical wheel input is converted (`scrollLeft += deltaY`). Parallax is one line of
-math: every `[data-depth]` layer gets `translateX(scrollLeft × (1 − depth))` on scroll
-— depth 1 background moves with the content (appears fixed to the world), depth ≈ 0
-elements stay near the viewport. The track has `overflow: hidden` so translated layers
-can't extend the scroll range past 300vw (would expose the black panel background).
-Escape / ✕ closes; `astro:before-swap` force-closes so
-no panel or scroll-lock survives a navigation.
+The three horizontal sections are plain overflow-x containers, not panels: `hscroll.ts`
+holds the parts they share and each page's controller supplies the rest. All three are
+lifecycle-safe (listeners collected in a `cleanup` array, dropped on `astro:before-swap`)
+and Lenis is not involved — these pages don't scroll vertically at all.
+
+- `wheelToHorizontal` — vertical wheel becomes `scrollLeft`; trackpad `deltaX` passes
+  straight through to the browser.
+- `onScrollFrame` — scroll + resize coalesced to one callback per animation frame.
+- `writeCentreProximity` — writes `--near` (1 at the viewport's horizontal centre, 0 half
+  a viewport away) so CSS decides what "closer" looks like. All rects are measured before
+  any style is written, and unchanged values are skipped, so a still section costs nothing.
+- `applyDepthParallax` — every `[data-depth]` layer gets
+  `translateX(scrollLeft × (1 − depth))`: depth 1 moves with the content (reads as fixed
+  to the world), depth ≈ 0 stays with the viewport.
+
+**Bio timeline** (`bio.ts`, `BioPage.astro`). A ruler of brushstroke ticks, one group per
+event with the event's own (taller, tinted) tick dead centre of its slot; the track's
+lead-in/out is `50vw − slot/2` so the first and last event land exactly at centre. The
+tick jitter (height, tilt, taper, opacity) comes from a seeded RNG in the frontmatter, so
+it is identical on server and client and stable across builds. `--near` swells each photo
+as it crosses the middle; hover/focus adds `--hover`, which swells it a little further and
+fades in the description over it.
+
+**Works carousel** (`works.ts`, `WorksPage.astro`). One set of cards is rendered; the
+script clones it to five and parks `scrollLeft` inside the middle copy, teleporting back
+by whole sets whenever it leaves that band — the strip is identical every `period` px
+(the set's own width, trailing gap included), so the jump is invisible. `--near` swells
+the card crossing the centre. On click the clicked card's media is stamped with
+`view-transition-name: artifact-hero`; naming it only at click time keeps the identical
+loop clones from colliding over the name, and the artifact page's hero carries the same
+name in CSS, so Astro's View Transition morphs the card into the page.
+
+**Artifact pages** (`artifact.ts`, `ArtifactPage.astro`, `worlds/*`). The world is a 300vw
+track scrolled sideways with `wheelToHorizontal` + `applyDepthParallax`. `.world` has
+`overflow: hidden` so translated layers can't extend the scroll range past 300vw (would
+expose the black page background). The world components are pure scenery; the page slots
+its hero + caption into them.
 
 ---
 *Keep this file and ARCHITECTURE.md up to date with every significant change.*

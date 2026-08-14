@@ -1,0 +1,65 @@
+---
+// One card of the "MY" carousel. The media element is what flies into the detail page:
+// works.ts stamps `view-transition-name: artifact-hero` on it just before navigating.
+import { artifactMedia, artifactPath, type Artifact } from '../../data/artifacts';
+import { withBase } from '../../data/routes';
+
+interface Props {
+  artifact: Artifact;
+  lang: 'it' | 'en';
+}
+const { artifact, lang } = Astro.props;
+const txt = artifact.i18n[lang];
+---
+
+<a
+  class="artifact-card"
+  href={withBase(artifactPath(artifact.id, lang))}
+  data-artifact={artifact.id}
+  style={`--media:${artifactMedia(artifact)}`}
+>
+  <span class="artifact-card__media" data-hero></span>
+  <span class="artifact-card__title">{txt.title}</span>
+</a>
+
+<style>
+  .artifact-card {
+    flex: 0 0 auto;
+    /* height-aware: a 2:3 card must leave room for its title *and* its centre swell */
+    width: clamp(140px, min(15vw, 26svh), 260px);
+    text-decoration: none;
+    color: var(--fg);
+    display: grid;
+    gap: 0.9rem;
+    /* --near is written by works.ts (1 at viewport centre) */
+    scale: calc(1 + 0.2 * var(--near, 0));
+    transform-origin: 50% 50%;
+    transition: scale 0.3s var(--ease-out);
+  }
+  .artifact-card__media {
+    aspect-ratio: 2 / 3;
+    border-radius: 0.4rem;
+    background: var(--media, var(--c-grey));
+    box-shadow: 0 16px 40px rgb(0 0 0 / 0.2);
+  }
+  .artifact-card__title {
+    font-family: var(--font-futura);
+    font-size: var(--step-0);
+    letter-spacing: 0.04em;
+    line-height: 1.2;
+    /* reserve two lines so a wrapping title can't make its card taller than the rest —
+       with equal heights every card sits on the same line, scaled or not */
+    min-height: 2.4em;
+    text-align: center;
+    text-transform: uppercase;
+  }
+  .artifact-card:hover .artifact-card__title {
+    color: var(--accent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .artifact-card {
+      scale: 1;
+    }
+  }
+</style>

@@ -1,0 +1,85 @@
+---
+// "DARK SIDE OF THE MOOD" — the one section that doesn't develop sideways: a single
+// screen of text on the disco hall's backdrop, with the same mirrorball and animal as
+// DiscoWorld standing in the corners. Shared by both locales.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BackLink from '../BackLink.astro';
+import { t } from '../../data/i18n';
+
+interface Props {
+  lang: 'it' | 'en';
+}
+const { lang } = Astro.props;
+const dict = t(lang);
+---
+
+<BaseLayout lang={lang} title={`${dict.darkSide.heading} — DECOROSA`}>
+  <BackLink href={lang === 'it' ? '/showcase' : '/en/showcase'} label={dict.nav.back} tone="dark" />
+
+  <main class="dark-side">
+    <!-- The very same placeholders as DiscoWorld — same glyphs, same .world__focal
+         rendering path — only resized and repositioned. Deliberately off-diagonal so the
+         pair reads as found rather than composed. -->
+    <span class="world__focal dark-side__ball" aria-hidden="true">🪩</span>
+    <span class="world__focal dark-side__animal" aria-hidden="true">🦫</span>
+
+    <article class="dark-side__text">
+      <h1>{dict.darkSide.heading}</h1>
+      {dict.darkSide.paragraphs.map((p) => <p>{p}</p>)}
+    </article>
+  </main>
+</BaseLayout>
+
+<style>
+  .dark-side {
+    position: relative;
+    min-height: 100svh;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    padding: var(--space-l) var(--space-m);
+    background: var(--disco-bg);
+    color: #eef1ff;
+  }
+  .dark-side__ball,
+  .dark-side__animal {
+    user-select: none;
+  }
+  /* Big, behind the text, tucked into the upper-left corner. */
+  .dark-side__ball {
+    left: -2%;
+    top: -4%;
+    z-index: 0;
+    font-size: clamp(11rem, 30vw, 30rem);
+    opacity: 0.5;
+    filter: drop-shadow(0 0 40px rgb(180 200 255 / 0.5));
+  }
+  /* A quarter smaller, lower-right — intentionally not the mirror of the ball's offsets. */
+  .dark-side__animal {
+    right: 8%;
+    bottom: 2%;
+    z-index: 2;
+    font-size: clamp(8.8rem, 24vw, 24rem);
+    opacity: 0.6;
+  }
+  .dark-side__text {
+    position: relative;
+    z-index: 1;
+    max-width: 62ch;
+    display: grid;
+    gap: var(--space-s);
+    text-align: justify;
+    hyphens: auto;
+    text-shadow: 0 2px 14px rgb(0 0 0 / 0.55);
+  }
+  .dark-side__text h1 {
+    font-family: var(--font-futura);
+    font-size: var(--step-2);
+    letter-spacing: 0.02em;
+    text-align: center;
+    margin-bottom: var(--space-s);
+  }
+  .dark-side__text p {
+    margin: 0;
+  }
+</style>

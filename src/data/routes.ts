@@ -5,10 +5,17 @@ export interface RoutePair {
   en: string;
 }
 
+import { artifacts, artifactPath } from './artifacts';
+
 export const routePairs: RoutePair[] = [
   { it: '/', en: '/en' },
   { it: '/showcase', en: '/en/showcase' },
   { it: '/contatti', en: '/en/contact' },
+  { it: '/bio', en: '/en/bio' },
+  { it: '/opere', en: '/en/works' },
+  { it: '/dark-side', en: '/en/dark-side' },
+  // one pair per artifact detail page
+  ...artifacts.map((a) => ({ it: artifactPath(a.id, 'it'), en: artifactPath(a.id, 'en') })),
 ];
 
 // Deploy base path without trailing slash ('' when deployed at the domain root).

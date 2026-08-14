@@ -1,0 +1,249 @@
+---
+// "I AM" — the artist's life as a horizontally scrolled ruler. Shared by both locales.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BackLink from '../BackLink.astro';
+import { bioEvents } from '../../data/bio';
+import { t } from '../../data/i18n';
+
+interface Props {
+  lang: 'it' | 'en';
+}
+const { lang } = Astro.props;
+const dict = t(lang);
+
+// Ruler ticks: one group per event column, the middle tick being the event's own.
+// Heights/tilts/tapers come from a seeded RNG so the "hand-drawn" jitter is stable
+// between server render and client (no hydration flicker) and stable between builds.
+const TICKS_PER_EVENT = 9;
+const EVENT_TICK = (TICKS_PER_EVENT - 1) / 2;
+function mulberry32(seed: number): () => number {
+  let a = seed;
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const ticksFor = (index: number) => {
+  const rand = mulberry32(index * 7919 + 13);
+  return Array.from({ length: TICKS_PER_EVENT }, (_, i) => {
+    const isEvent = i === EVENT_TICK;
+    const major = i % 3 === 0;
+    return {
+      isEvent,
+      left: ((i + 0.5) / TICKS_PER_EVENT) * 100,
+      // the event tick's own height comes from --event-tick in CSS
+      height: (major ? 44 : 22) + rand() * 16,
+      width: isEvent ? 8 : 4 + rand() * 2.5,
+      tilt: (rand() - 0.5) * 6,
+      taper: 14 + rand() * 26, // % the stroke narrows toward its top
+      fade: isEvent ? 1 : 0.35 + rand() * 0.4,
+    };
+  });
+};
+---
+
+<BaseLayout lang={lang} title={`${dict.bio.heading} — DECOROSA`}>
+  <BackLink href={lang === 'it' ? '/showcase' : '/en/showcase'} label={dict.nav.back} />
+
+  <main class="bio">
+    <header class="bio__head">
+      <h1>{dict.bio.heading}</h1>
+      <p>{dict.bio.intro}</p>
+    </header>
+
+    <div class="bio__viewport" data-bio tabindex="0" aria-label={dict.bio.heading}>
+      <ol class="bio__track">
+        {
+          bioEvents.map((event, index) => {
+            const txt = event.i18n[lang];
+            return (
+              <li class="bio-event" data-bio-event style={`--tint:${event.tint}`}>
+                <div class="bio-event__stack">
+                  <figure class="bio-event__card" tabindex="0">
+                    <div class="bio-event__photo" />
+                    <figcaption class="bio-event__desc">
+                      <strong>{txt.title}</strong>
+                      <span>{txt.description}</span>
+                    </figcaption>
+                  </figure>
+                  <span class="bio-event__year">{event.year}</span>
+                </div>
+                <div class="bio-event__ruler" aria-hidden="true">
+                  {ticksFor(index).map((tick) => (
+                    <span
+                      class="tick"
+                      data-event={tick.isEvent ? '' : undefined}
+                      style={`--left:${tick.left}%;--h:${tick.height}px;--w:${tick.width}px;--tilt:${tick.tilt}deg;--taper:${tick.taper}%;--fade:${tick.fade}`}
+                    />
+                  ))}
+                </div>
+              </li>
+            );
+          })
+        }
+      </ol>
+    </div>
+
+    <p class="bio__hint" aria-hidden="true">{dict.bio.hint} →</p>
+  </main>
+
+  <script>
+    import '../../scripts/bio.ts';
+  </script>
+</BaseLayout>
+
+<style>
+  /* header band / ruler / hint band — the ruler gets whatever is left, so the heading
+     can never sit on top of a photo */
+  .bio {
+    height: 100svh;
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+  }
+  .bio__head {
+    padding: calc(var(--space-l) + 1rem) var(--space-m) 0;
+    max-width: 24ch;
+  }
+  .bio__head h1 {
+    font-family: var(--font-futura);
+    font-size: var(--step-2);
+    letter-spacing: 0.02em;
+  }
+  .bio__head p {
+    margin: 0.4em 0 0;
+    color: var(--c-grey);
+    font-size: var(--step--1);
+  }
+  .bio__hint {
+    margin: 0;
+    padding: 0 var(--space-m) var(--space-m);
+    justify-self: end;
+    font-family: var(--font-display);
+    font-size: var(--step--1);
+    color: var(--c-grey);
+  }
+
+  /* The scroller, filling the middle band; the ruler runs off both edges. */
+  .bio__viewport {
+    min-height: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+  }
+  .bio__viewport::-webkit-scrollbar {
+    display: none;
+  }
+  .bio__track {
+    --slot: clamp(300px, 30vw, 480px);
+    display: flex;
+    height: 100%;
+    /* lead-in/out sized so the first and last event sit dead centre at either end */
+    padding-inline: calc(50vw - var(--slot) / 2);
+    width: max-content;
+  }
+
+  /* One event = one slot of the ruler, its own tick dead centre. */
+  .bio-event {
+    position: relative;
+    flex: 0 0 var(--slot);
+    height: 100%;
+    --baseline: 22%;
+    /* the event's own tick is taller than the ruler's; the photo/year stack clears it */
+    --event-tick: 66px;
+  }
+  .bio-event__ruler {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: var(--baseline);
+    height: 0;
+  }
+  /* Cartoon brushstroke: a tapered, slightly tilted stroke standing on the baseline. */
+  .tick {
+    position: absolute;
+    left: var(--left);
+    bottom: 0;
+    width: var(--w);
+    height: var(--h);
+    margin-left: calc(var(--w) / -2);
+    background: var(--c-black);
+    opacity: var(--fade);
+    rotate: var(--tilt);
+    transform-origin: 50% 100%;
+    clip-path: polygon(var(--taper) 0, calc(100% - var(--taper)) 0, 100% 100%, 0 100%);
+  }
+  .tick[data-event] {
+    height: var(--event-tick);
+    background: var(--tint);
+    clip-path: polygon(22% 0, 78% 0, 100% 100%, 0 100%);
+  }
+
+  /* Photo + year, stacked above the event's own tick. */
+  .bio-event__stack {
+    position: absolute;
+    left: 50%;
+    bottom: var(--baseline);
+    translate: -50% 0;
+    display: grid;
+    justify-items: center;
+    gap: 0.55rem;
+    padding-bottom: calc(var(--event-tick) + 0.5rem);
+  }
+  .bio-event__year {
+    font-family: var(--font-futura);
+    font-size: var(--step-1);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+  }
+  .bio-event__card {
+    position: relative;
+    margin: 0;
+    /* height-aware so the 4:5 photo, its year and the tick always fit the band */
+    width: clamp(110px, min(14vw, 24svh), 210px);
+    /* --near is written by bio.ts (1 at viewport centre), --hover by the rules below:
+       the photo swells as it reaches the middle, and a little more under the pointer. */
+    scale: calc(1 + 0.09 * var(--near, 0) + 0.1 * var(--hover, 0));
+    transform-origin: 50% 100%;
+    transition: scale 0.35s var(--ease-out);
+  }
+  .bio-event__card:hover,
+  .bio-event__card:focus-visible {
+    --hover: 1;
+  }
+  .bio-event__photo {
+    aspect-ratio: 4 / 5;
+    border-radius: 0.4rem;
+    background: var(--tint);
+    box-shadow: 0 14px 34px rgb(0 0 0 / 0.18);
+  }
+  .bio-event__desc {
+    position: absolute;
+    inset: 0;
+    border-radius: 0.4rem;
+    padding: 0.7rem;
+    display: grid;
+    align-content: center;
+    gap: 0.35em;
+    background: rgb(20 20 20 / 0.82);
+    color: var(--c-white);
+    font-size: clamp(0.62rem, 0.75vw, 0.8rem);
+    line-height: 1.35;
+    opacity: var(--hover, 0);
+    transition: opacity 0.3s var(--ease-out);
+  }
+  .bio-event__desc strong {
+    font-family: var(--font-futura);
+    font-size: 1.15em;
+    letter-spacing: 0.02em;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bio-event__card {
+      scale: 1;
+    }
+  }
+</style>

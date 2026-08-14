@@ -2,9 +2,12 @@
 // locale must satisfy; en.ts imports and conforms to it.
 export type Dict = {
   meta: { title: string; description: string };
-  nav: { enter: string; contacts: string; back: string };
+  nav: { enter: string; contacts: string; back: string; backToWorks: string };
   slogan: { lead: string; items: string[] };
   contacts: { heading: string; intro: string; email: string; instagram: string };
+  bio: { heading: string; intro: string; hint: string };
+  works: { heading: string; hint: string };
+  darkSide: { heading: string; paragraphs: string[] };
 };
 
 export const it: Dict = {
@@ -17,6 +20,7 @@ export const it: Dict = {
     enter: 'Entra nel mood',
     contacts: 'Contatti',
     back: 'Indietro',
+    backToWorks: 'Tutte le opere',
   },
   slogan: {
     lead: 'Un progetto artistico che vuole dare nuova vita a qualcosa che non sapevi potesse essere «bello»',
@@ -27,6 +31,23 @@ export const it: Dict = {
     intro: 'Per collaborazioni, commissioni e progetti su misura.',
     email: 'ciao@decorosa.art',
     instagram: '@decorosa',
+  },
+  bio: {
+    heading: 'I AM',
+    intro: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+    hint: 'Scorri lateralmente',
+  },
+  works: {
+    heading: 'MY',
+    hint: 'Scorri lateralmente',
+  },
+  darkSide: {
+    heading: 'DARK SIDE OF THE MOOD',
+    paragraphs: [
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+      'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+      'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.',
+    ],
   },
 };
 

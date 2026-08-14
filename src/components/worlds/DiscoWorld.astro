@@ -1,21 +1,12 @@
 ---
-// "The dark side of the mood" — dark disco hall. Emoji are placeholders for the
-// client's artwork; layers carry data-depth for horizontal parallax.
-interface Props {
-  title: string;
-  subtitle?: string;
-  body: string;
-}
-const { title, subtitle, body } = Astro.props;
+// "The dark side of the mood" — dark disco hall. Pure scenery: the artifact page slots
+// its hero + caption in. Emoji are placeholders for the client's artwork; layers carry
+// data-depth for horizontal parallax.
 ---
 
 <div class="world world--disco">
   <div class="world__layer bg" data-depth="1"></div>
-  <div class="world__caption">
-    <h2>{title}</h2>
-    {subtitle && <span class="sub">{subtitle}</span>}
-    <p>{body}</p>
-  </div>
+  <slot />
   <span class="world__focal ball" data-depth="0.45" aria-hidden="true">🪩</span>
   <span class="world__focal animal" data-depth="0.85" aria-hidden="true">🦫</span>
 </div>
@@ -25,7 +16,7 @@ const { title, subtitle, body } = Astro.props;
     color: #eef1ff;
   }
   .world--disco .bg {
-    background: radial-gradient(120% 90% at 70% 10%, #2b3b6b 0%, #16203f 55%, #0a0f20 100%);
+    background: var(--disco-bg);
   }
   .world--disco .ball {
     left: 95vw;

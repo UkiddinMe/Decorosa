@@ -1,0 +1,12 @@
+---
+import ArtifactPage from '../../components/pages/ArtifactPage.astro';
+import { artifacts } from '../../data/artifacts';
+
+export function getStaticPaths() {
+  return artifacts.map((artifact) => ({ params: { id: artifact.id }, props: { artifact } }));
+}
+
+const { artifact } = Astro.props;
+---
+
+<ArtifactPage artifact={artifact} lang="it" />

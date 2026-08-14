@@ -1,21 +1,12 @@
 ---
-// "Domestic jungle" — tropical plants overrunning a domestic scene. Emoji are
-// placeholders for the client's artwork.
-interface Props {
-  title: string;
-  subtitle?: string;
-  body: string;
-}
-const { title, subtitle, body } = Astro.props;
+// "Domestic jungle" — tropical plants overrunning a domestic scene. Pure scenery: the
+// artifact page slots its hero + caption in. Emoji are placeholders for the client's
+// artwork.
 ---
 
 <div class="world world--jungle">
   <div class="world__layer bg" data-depth="1"></div>
-  <div class="world__caption">
-    <h2>{title}</h2>
-    {subtitle && <span class="sub">{subtitle}</span>}
-    <p>{body}</p>
-  </div>
+  <slot />
   <span class="world__focal palm" data-depth="0.35" aria-hidden="true">🌴</span>
   <span class="world__focal leaf" data-depth="0.6" aria-hidden="true">🌿</span>
   <span class="world__focal pot" data-depth="0.9" aria-hidden="true">🪴</span>
@@ -23,7 +14,7 @@ const { title, subtitle, body } = Astro.props;
 
 <style>
   .world--jungle {
-    color: #0e2417;
+    color: #eaf6ee;
   }
   .world--jungle .bg {
     background: radial-gradient(120% 90% at 30% 10%, #4aa063 0%, #277445 55%, #123a25 100%);

@@ -1,0 +1,95 @@
+---
+// Detail page of one artifact: a horizontal parallax world that develops to the right,
+// entered by the card flying in from the "MY" carousel (view-transition-name: artifact-hero).
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BackLink from '../BackLink.astro';
+import DiscoWorld from '../worlds/DiscoWorld.astro';
+import JungleWorld from '../worlds/JungleWorld.astro';
+import DesertWorld from '../worlds/DesertWorld.astro';
+import { artifactMedia, type Artifact } from '../../data/artifacts';
+import { t } from '../../data/i18n';
+
+interface Props {
+  artifact: Artifact;
+  lang: 'it' | 'en';
+}
+const { artifact, lang } = Astro.props;
+const dict = t(lang);
+const txt = artifact.i18n[lang];
+const worlds = { disco: DiscoWorld, jungle: JungleWorld, desert: DesertWorld } as const;
+const World = worlds[artifact.world];
+const tone = artifact.world === 'desert' ? 'light' : 'dark';
+---
+
+<BaseLayout lang={lang} title={`${txt.title} — DECOROSA`}>
+  <BackLink
+    href={lang === 'it' ? '/opere' : '/en/works'}
+    label={dict.nav.backToWorks}
+    tone={tone}
+  />
+
+  <main class="artifact">
+    <div class="artifact__viewport" data-artifact tabindex="0" aria-label={txt.title}>
+      <World>
+        <div class="artifact__intro">
+          <div class="artifact__hero" style={`--media:${artifactMedia(artifact)}`}></div>
+          <div class="world__caption">
+            <h1>{txt.title}</h1>
+            {txt.subtitle && <span class="sub">{txt.subtitle}</span>}
+            <p>{txt.body}</p>
+          </div>
+        </div>
+      </World>
+    </div>
+  </main>
+
+  <script>
+    import '../../scripts/artifact.ts';
+  </script>
+</BaseLayout>
+
+<style is:global>
+  /* The hero is slotted into the world component, so it can't be scoped-styled here. */
+  .artifact__intro {
+    position: absolute;
+    left: 6vw;
+    top: 50%;
+    translate: 0 -50%;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: clamp(1.5rem, 4vw, 4rem);
+  }
+  .artifact__hero {
+    flex: 0 0 auto;
+    width: clamp(180px, 17vw, 290px);
+    aspect-ratio: 2 / 3;
+    border-radius: 0.4rem;
+    background: var(--media, var(--c-grey));
+    box-shadow: 0 16px 40px rgb(0 0 0 / 0.35);
+    /* the carousel card stamps the same name on itself on click, so it morphs into this */
+    view-transition-name: artifact-hero;
+  }
+  .artifact__intro .world__caption {
+    position: static;
+    translate: none;
+  }
+</style>
+
+<style>
+  .artifact {
+    height: 100svh;
+    overflow: hidden;
+    background: var(--c-black);
+  }
+  .artifact__viewport {
+    width: 100%;
+    height: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+  }
+  .artifact__viewport::-webkit-scrollbar {
+    display: none;
+  }
+</style>

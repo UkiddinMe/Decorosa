@@ -1,0 +1,79 @@
+---
+import type { Panel } from '../../data/panels';
+import { withBase } from '../../data/routes';
+
+interface Props {
+  panel: Panel;
+  lang: 'it' | 'en';
+}
+const { panel, lang } = Astro.props;
+const { angleDeg, radius, dropY } = panel.spiral;
+// Placement of this panel within the spiral (rotated/offset inside the spinning group).
+const style = `--angle:${angleDeg}deg;--radius:${radius}px;--drop:${dropY}px;--media:${panel.media}`;
+---
+
+<a
+  class="card"
+  href={withBase(panel.href[lang])}
+  style={style}
+  data-panel={panel.id}
+  data-angle={angleDeg}
+  data-radius={radius}
+>
+  <!-- Placeholder media (tinted per panel) until client artwork lands -->
+  <span class="card__media"></span>
+  <!-- Revealed by showcase.ts (.is-near) only while the panel sits in the closer half
+       of its apparent-size range — i.e. while it reads as "near the viewer". -->
+  <span class="card__title">{panel.title}</span>
+</a>
+
+<style>
+  .card {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--card-w);
+    height: var(--card-h);
+    margin-left: calc(var(--card-w) / -2);
+    margin-top: calc(var(--card-h) / -2);
+    /* Place on the spiral, then counter-rotate by (spin + angle) so the card always
+       faces the viewer (billboard) — keeps artwork readable as the spiral turns. */
+    transform: rotateY(var(--angle)) translateZ(var(--radius)) translateY(var(--drop))
+      rotateY(calc((var(--spin, 0deg) + var(--angle)) * -1));
+    transform-style: preserve-3d;
+    /* the .scene layers are pointer-events: none; clicks land here */
+    pointer-events: auto;
+    text-decoration: none;
+    color: var(--c-white);
+  }
+  .card__media {
+    position: absolute;
+    inset: 0;
+    border-radius: 0.5rem;
+    box-shadow: 0 12px 30px rgb(0 0 0 / 0.18);
+    background: var(--media, var(--c-grey));
+  }
+  .card__title {
+    position: absolute;
+    left: calc(100% + 22px);
+    top: 50%;
+    width: 5.4em;
+    /* px (not rem): the title lives in the scene's own coordinate space, so perspective
+       — not the browser font size — is what makes it grow as the panel approaches. */
+    font-family: var(--font-futura);
+    font-size: 44px;
+    font-weight: 500;
+    line-height: 0.95;
+    letter-spacing: 0.01em;
+    text-shadow: 0 2px 18px rgb(0 0 0 / 0.35);
+    opacity: 0;
+    translate: -0.4em -50%;
+    transition:
+      opacity 0.5s var(--ease-out),
+      translate 0.5s var(--ease-out);
+  }
+  .card.is-near .card__title {
+    opacity: 1;
+    translate: 0 -50%;
+  }
+</style>

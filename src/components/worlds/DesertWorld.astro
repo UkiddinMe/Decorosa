@@ -1,12 +1,7 @@
 ---
-// "DESSERT" — a sweet on top of a dune in a pastel desert. Emoji + CSS dune are
-// placeholders for the client's artwork.
-interface Props {
-  title: string;
-  subtitle?: string;
-  body: string;
-}
-const { title, subtitle, body } = Astro.props;
+// "DESSERT" — a sweet on top of a dune in a pastel desert. Pure scenery: the artifact
+// page slots its hero + caption in. Emoji + CSS dune are placeholders for the client's
+// artwork.
 ---
 
 <div class="world world--desert">
@@ -14,11 +9,7 @@ const { title, subtitle, body } = Astro.props;
   <span class="world__big" data-depth="0.5" aria-hidden="true">DESSERT</span>
   <div class="world__layer dune" data-depth="0.8"></div>
   <span class="world__focal sweet" data-depth="0.95" aria-hidden="true">🍰</span>
-  <div class="world__caption">
-    <h2>{title}</h2>
-    {subtitle && <span class="sub">{subtitle}</span>}
-    <p>{body}</p>
-  </div>
+  <slot />
 </div>
 
 <style>

@@ -1,21 +1,21 @@
 ---
-import PieceCard from './PieceCard.astro';
+import PanelCard from './PanelCard.astro';
 import Ladder3D from './Ladder3D.astro';
-import DetailPanel from './DetailPanel.astro';
-import { pieces, type Piece } from '../../data/pieces';
+import { panels, type Panel } from '../../data/panels';
+import { withBase } from '../../data/routes';
 
 interface Props {
   lang: 'it' | 'en';
 }
 const { lang } = Astro.props;
 
-// Scroll length = one viewport per piece (+1 lead-in); descent spans the lowest card.
-const travel = Math.max(0, ...pieces.map((p) => p.spiral.dropY));
-const driverVh = (pieces.length + 1) * 130;
+// Scroll length = one viewport per panel (+1 lead-in); descent spans the lowest panel.
+const travel = Math.max(0, ...panels.map((p) => p.spiral.dropY));
+const driverVh = (panels.length + 1) * 130;
 
 // Server-side layer assignment at spin = 0 (front of orbit = positive z);
-// showcase.ts re-sorts cards between the layers as the spiral turns.
-const isFront = (p: Piece) => Math.cos((p.spiral.angleDeg * Math.PI) / 180) >= 0;
+// showcase.ts re-sorts panels between the layers as the spiral turns.
+const isFront = (p: Panel) => Math.cos((p.spiral.angleDeg * Math.PI) / 180) >= 0;
 ---
 
 <!-- 3D experience: a sticky scene inside a tall scroll driver -->
@@ -24,14 +24,14 @@ const isFront = (p: Piece) => Math.cos((p.spiral.angleDeg * Math.PI) / 180) >= 0
        WebKit/Safari doesn't flatten the 3D (overflow + perspective on one node is buggy) -->
   <div class="scene-clip" data-scene>
     <div class="sky" data-sky aria-hidden="true"></div>
-    <!-- Occlusion sandwich: cards behind the ladder / the ladder / cards in front.
-         Each .scene is its own 3D context (own perspective), so card and ladder planes
-         can never slice through each other; showcase.ts moves each card between the two
-         card layers as it orbits, so cards still read as going *around* the ladder. -->
+    <!-- Occlusion sandwich: panels behind the ladder / the ladder / panels in front.
+         Each .scene is its own 3D context (own perspective), so panel and ladder planes
+         can never slice through each other; showcase.ts moves each panel between the two
+         card layers as it orbits, so they still read as going *around* the ladder. -->
     <div class="scene">
       <div class="stage">
         <div class="spiral" data-spiral>
-          {pieces.filter((p) => !isFront(p)).map((p) => <PieceCard piece={p} lang={lang} />)}
+          {panels.filter((p) => !isFront(p)).map((p) => <PanelCard panel={p} lang={lang} />)}
         </div>
       </div>
     </div>
@@ -43,7 +43,7 @@ const isFront = (p: Piece) => Math.cos((p.spiral.angleDeg * Math.PI) / 180) >= 0
     <div class="scene">
       <div class="stage">
         <div class="spiral" data-spiral>
-          {pieces.filter(isFront).map((p) => <PieceCard piece={p} lang={lang} />)}
+          {panels.filter(isFront).map((p) => <PanelCard panel={p} lang={lang} />)}
         </div>
       </div>
     </div>
@@ -52,7 +52,7 @@ const isFront = (p: Piece) => Math.cos((p.spiral.angleDeg * Math.PI) / 180) >= 0
 
 <!-- Pre-paint: when arriving via the entry transition, park the spirals one scroll slot
      back (same start pose as playIntro in showcase.ts) BEFORE first paint, so the first
-     card never flashes at its resting spot. Runs inline (and re-runs on SPA swaps) since
+     panel never flashes at its resting spot. Runs inline (and re-runs on SPA swaps) since
      astro:page-load fires only after the page is already visible. -->
 <script is:inline data-astro-rerun>
   if (sessionStorage.getItem('decorosa:enter-intro')) {
@@ -63,25 +63,17 @@ const isFront = (p: Piece) => Math.cos((p.spiral.angleDeg * Math.PI) / 180) >= 0
   }
 </script>
 
-<!-- Bespoke world detail panels (opened by clicking a card) -->
-{pieces.map((p) => <DetailPanel piece={p} lang={lang} />)}
-
-<!-- Reduced-motion / no-3D fallback: a plain vertical list -->
+<!-- Reduced-motion / no-3D fallback: a plain vertical list of the same three doorways -->
 <ul class="fallback">
   {
-    pieces.map((p) => {
-      const t = p.i18n[lang];
-      return (
-        <li class="fallback__item" data-world={p.world}>
-          <div class="fallback__media" />
-          <div>
-            <h2>{t.title}</h2>
-            {t.subtitle && <p class="fallback__subtitle">{t.subtitle}</p>}
-            <p>{t.body}</p>
-          </div>
-        </li>
-      );
-    })
+    panels.map((p) => (
+      <li class="fallback__item">
+        <a href={withBase(p.href[lang])}>
+          <span class="fallback__media" style={`--media:${p.media}`} />
+          <h2>{p.title}</h2>
+        </a>
+      </li>
+    ))
   }
 </ul>
 
@@ -134,7 +126,7 @@ const isFront = (p: Piece) => Math.cos((p.spiral.angleDeg * Math.PI) / 180) >= 0
     left: 0;
     transform-style: preserve-3d;
   }
-  /* --rise lets the entrance intro offset the cards (not the ladder) one scroll slot down */
+  /* --rise lets the entrance intro offset the panels (not the ladder) one scroll slot down */
   .spiral {
     transform: translateY(var(--rise, 0px)) rotateY(var(--spin, 0deg));
   }
@@ -148,7 +140,7 @@ const isFront = (p: Piece) => Math.cos((p.spiral.angleDeg * Math.PI) / 180) >= 0
   .fallback {
     display: none;
   }
-  .fallback__item {
+  .fallback__item a {
     display: grid;
     grid-template-columns: minmax(8rem, 14rem) 1fr;
     gap: var(--space-m);
@@ -156,24 +148,16 @@ const isFront = (p: Piece) => Math.cos((p.spiral.angleDeg * Math.PI) / 180) >= 0
     max-width: var(--maxw);
     margin: 0 auto var(--space-l);
     padding-inline: var(--space-m);
+    text-decoration: none;
   }
   .fallback__media {
     aspect-ratio: 4 / 5;
     border-radius: 0.5rem;
-    background: var(--c-grey);
+    background: var(--media, var(--c-grey));
   }
-  .fallback__item[data-world='disco'] .fallback__media {
-    background: var(--world-disco-bg);
-  }
-  .fallback__item[data-world='jungle'] .fallback__media {
-    background: var(--world-jungle-bg);
-  }
-  .fallback__item[data-world='desert'] .fallback__media {
-    background: var(--world-desert-bg);
-  }
-  .fallback__subtitle {
-    color: var(--c-grey);
-    font-family: var(--font-display);
+  .fallback__item h2 {
+    font-family: var(--font-futura);
+    font-size: var(--step-2);
   }
 
   @media (prefers-reduced-motion: reduce) {
