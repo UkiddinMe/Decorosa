@@ -26,7 +26,7 @@ const txt = artifact.i18n[lang];
   .artifact-card {
     flex: 0 0 auto;
     /* height-aware: a 2:3 card must leave room for its title *and* its centre swell */
-    width: clamp(140px, min(15vw, 26svh), 260px);
+    width: clamp(170px, min(19vw, 34svh), 340px);
     text-decoration: none;
     color: var(--fg);
     display: grid;
@@ -40,7 +40,11 @@ const txt = artifact.i18n[lang];
     aspect-ratio: 2 / 3;
     border-radius: 0.4rem;
     background: var(--media, var(--c-grey));
-    box-shadow: 0 16px 40px rgb(0 0 0 / 0.2);
+    box-shadow: 0 16px 40px -12px rgb(0 0 0 / 0.28);
+    /* the blur spreads in every direction, so it always haloes over the top edge (and
+       the halo slides as the card scales). Clip the paint at that edge: the shadow only
+       ever shows below and beside the card. */
+    clip-path: inset(0 -80px -80px -80px);
   }
   .artifact-card__title {
     font-family: var(--font-futura);
@@ -52,6 +56,10 @@ const txt = artifact.i18n[lang];
     min-height: 2.4em;
     text-align: center;
     text-transform: uppercase;
+  }
+  /* works.ts sets this while it teleports the loop: the swell must jump, not ease */
+  :global([data-works].is-jumping) .artifact-card {
+    transition: none;
   }
   .artifact-card:hover .artifact-card__title {
     color: var(--accent);

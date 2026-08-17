@@ -22,8 +22,12 @@
      machine (macOS/Adobe); Jost is the loaded web stand-in — same geometric skeleton. */
   --font-futura: 'Futura', 'Futura PT', 'Jost', 'Century Gothic', 'Space Grotesk', sans-serif;
   /* Placeholder artwork is emoji; the body stack has no emoji face, so Chrome/Windows
-     draws tofu boxes unless the colour-emoji font is named explicitly. */
-  --font-emoji: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+     draws tofu boxes unless the colour-emoji font is named explicitly. The *installed*
+     system faces are versioned with the OS, so recent glyphs (mirror ball U+1FAA9,
+     beaver U+1F9AB, potted plant U+1FAB4) are simply missing on Windows 10 and render
+     as tofu. Noto Color Emoji is therefore loaded as a webfont (BaseLayout) and put
+     first, so the artwork is identical — and present — on every platform. */
+  --font-emoji: 'Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
   --step--1: clamp(0.83rem, 0.78rem + 0.25vw, 0.95rem);
   --step-0: clamp(1rem, 0.92rem + 0.4vw, 1.2rem);
   --step-1: clamp(1.33rem, 1.1rem + 1.1vw, 2rem);

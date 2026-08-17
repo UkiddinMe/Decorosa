@@ -114,7 +114,10 @@ All artwork is currently a placeholder gradient/tint (tokens `--world-*-bg`,
 
 - `tokens.css` — brand palette (from the wordmark), fluid type scale (`--step-*`),
   `--font-futura` (the big section/panel titles; Jost is the loaded stand-in for real
-  Futura), the shared `--disco-bg` backdrop,
+  Futura), `--font-emoji` for the placeholder artwork (Noto Color Emoji is loaded as a
+  webfont by `BaseLayout` and listed *first*: the installed system emoji faces are
+  versioned with the OS, so recent glyphs — mirror ball, beaver, potted plant — render
+  as tofu on Windows 10), the shared `--disco-bg` backdrop,
   spacing (`--space-*`), the shared `--sky-bg` (its `--sky-url` image is injected on
   `<html>` by `BaseLayout` so it respects the deploy base) and per-world gradients, motion tokens,
   and the showcase-3D scene tokens (perspective, stage offset/tilt/scale, ladder

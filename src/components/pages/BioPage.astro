@@ -11,11 +11,10 @@ interface Props {
 const { lang } = Astro.props;
 const dict = t(lang);
 
-// Ruler ticks: one group per event column, the middle tick being the event's own.
-// Heights/tilts/tapers come from a seeded RNG so the "hand-drawn" jitter is stable
-// between server render and client (no hydration flicker) and stable between builds.
-const TICKS_PER_EVENT = 9;
-const EVENT_TICK = (TICKS_PER_EVENT - 1) / 2;
+// Every event is laid out from a seeded RNG, so the irregularity (slot width, card size,
+// tick jitter) is stable between server render and client (no hydration flicker) and
+// stable between builds.
+const TICKS_PER_SLOT = 9; // at slot scale 1; the count follows the slot so density stays even
 function mulberry32(seed: number): () => number {
   let a = seed;
   return () => {
@@ -26,41 +25,69 @@ function mulberry32(seed: number): () => number {
   };
 }
 
-const ticksFor = (index: number) => {
+const layout = bioEvents.map((_, index) => {
   const rand = mulberry32(index * 7919 + 13);
-  return Array.from({ length: TICKS_PER_EVENT }, (_, i) => {
-    const isEvent = i === EVENT_TICK;
+  // years land at uneven distances from one another
+  const slot = 0.72 + rand() * 0.75;
+  // odd tick count keeps the event's own tick dead centre of its slot
+  const count = Math.max(5, Math.round(TICKS_PER_SLOT * slot) | 1);
+  const middle = (count - 1) / 2;
+  const ticks = Array.from({ length: count }, (_, i) => {
+    const isEvent = i === middle;
     const major = i % 3 === 0;
     return {
       isEvent,
-      left: ((i + 0.5) / TICKS_PER_EVENT) * 100,
+      left: ((i + 0.5) / count) * 100 + (isEvent ? 0 : (rand() - 0.5) * 2.5),
       // the event tick's own height comes from --event-tick in CSS
-      height: (major ? 44 : 22) + rand() * 16,
-      width: isEvent ? 8 : 4 + rand() * 2.5,
-      tilt: (rand() - 0.5) * 6,
-      taper: 14 + rand() * 26, // % the stroke narrows toward its top
-      fade: isEvent ? 1 : 0.35 + rand() * 0.4,
+      height: (major ? 46 : 20) + rand() * 14,
+      width: isEvent ? 10 : 5 + rand() * 3,
+      tilt: (rand() - 0.5) * 7,
+      fade: isEvent ? 1 : 0.55 + rand() * 0.35,
     };
   });
-};
+  return {
+    slot,
+    ticks,
+    card: { width: 0.86 + rand() * 0.45, ratio: 0.88 + rand() * 0.32 },
+  };
+});
 ---
 
 <BaseLayout lang={lang} title={`${dict.bio.heading} — DECOROSA`}>
   <BackLink href={lang === 'it' ? '/showcase' : '/en/showcase'} label={dict.nav.back} />
 
   <main class="bio">
-    <header class="bio__head">
-      <h1>{dict.bio.heading}</h1>
-      <p>{dict.bio.intro}</p>
-    </header>
+    <!-- Spray-can edge for the ruler strokes: a slow displacement bends them off-straight
+         (hand-drawn), the blur is the overspray, the fast displacement the paint dust. -->
+    <svg class="bio__defs" aria-hidden="true" focusable="false">
+      <filter id="spray" x="-30%" y="-20%" width="160%" height="140%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.007 0.016" numOctaves="3" seed="9" result="wobble" />
+        <feDisplacementMap in="SourceGraphic" in2="wobble" scale="8" xChannelSelector="R" yChannelSelector="G" result="drawn" />
+        <feGaussianBlur in="drawn" stdDeviation="1" result="soft" />
+        <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="3" result="grain" />
+        <feDisplacementMap in="soft" in2="grain" scale="3" xChannelSelector="R" yChannelSelector="G" result="dusty" />
+        <!-- the blur costs the stroke its body; win it back without hardening the edge -->
+        <feComponentTransfer in="dusty">
+          <feFuncA type="linear" slope="1.7" intercept="-0.08" />
+        </feComponentTransfer>
+      </filter>
+    </svg>
 
     <div class="bio__viewport" data-bio tabindex="0" aria-label={dict.bio.heading}>
-      <ol class="bio__track">
+      <ol
+        class="bio__track"
+        style={`--first-slot:${layout[0].slot};--last-slot:${layout[layout.length - 1].slot}`}
+      >
         {
           bioEvents.map((event, index) => {
             const txt = event.i18n[lang];
+            const { slot, ticks, card } = layout[index];
             return (
-              <li class="bio-event" data-bio-event style={`--tint:${event.tint}`}>
+              <li
+                class="bio-event"
+                data-bio-event
+                style={`--tint:${event.tint};--slot-scale:${slot};--card-w:${card.width};--card-ar:${card.ratio}`}
+              >
                 <div class="bio-event__stack">
                   <figure class="bio-event__card" tabindex="0">
                     <div class="bio-event__photo" />
@@ -72,11 +99,11 @@ const ticksFor = (index: number) => {
                   <span class="bio-event__year">{event.year}</span>
                 </div>
                 <div class="bio-event__ruler" aria-hidden="true">
-                  {ticksFor(index).map((tick) => (
+                  {ticks.map((tick) => (
                     <span
                       class="tick"
                       data-event={tick.isEvent ? '' : undefined}
-                      style={`--left:${tick.left}%;--h:${tick.height}px;--w:${tick.width}px;--tilt:${tick.tilt}deg;--taper:${tick.taper}%;--fade:${tick.fade}`}
+                      style={`--left:${tick.left}%;--h:${tick.height}px;--w:${tick.width}px;--tilt:${tick.tilt}deg;--fade:${tick.fade}`}
                     />
                   ))}
                 </div>
@@ -96,27 +123,18 @@ const ticksFor = (index: number) => {
 </BaseLayout>
 
 <style>
-  /* header band / ruler / hint band — the ruler gets whatever is left, so the heading
-     can never sit on top of a photo */
+  /* ruler band / hint band */
   .bio {
     height: 100svh;
     overflow: hidden;
     display: grid;
-    grid-template-rows: auto 1fr auto;
+    grid-template-rows: 1fr auto;
   }
-  .bio__head {
-    padding: calc(var(--space-l) + 1rem) var(--space-m) 0;
-    max-width: 24ch;
-  }
-  .bio__head h1 {
-    font-family: var(--font-futura);
-    font-size: var(--step-2);
-    letter-spacing: 0.02em;
-  }
-  .bio__head p {
-    margin: 0.4em 0 0;
-    color: var(--c-grey);
-    font-size: var(--step--1);
+  /* filter definition only — never painted */
+  .bio__defs {
+    position: absolute;
+    width: 0;
+    height: 0;
   }
   .bio__hint {
     margin: 0;
@@ -141,28 +159,36 @@ const ticksFor = (index: number) => {
     --slot: clamp(300px, 30vw, 480px);
     display: flex;
     height: 100%;
-    /* lead-in/out sized so the first and last event sit dead centre at either end */
-    padding-inline: calc(50vw - var(--slot) / 2);
+    /* Lead-in is half of what would centre the first event: the timeline opens left of
+       centre so the next events peek in from the right and read as "scroll this way".
+       Lead-out still centres the last event, so the scroll ends on it. */
+    padding-left: calc(25vw - var(--slot) * var(--first-slot) / 4);
+    padding-right: calc(50vw - var(--slot) * var(--last-slot) / 2);
     width: max-content;
   }
 
-  /* One event = one slot of the ruler, its own tick dead centre. */
+  /* One event = one slot of the ruler, its own tick dead centre; --slot-scale spaces the
+     years unevenly. */
   .bio-event {
     position: relative;
-    flex: 0 0 var(--slot);
+    flex: 0 0 calc(var(--slot) * var(--slot-scale, 1));
     height: 100%;
     --baseline: 22%;
     /* the event's own tick is taller than the ruler's; the photo/year stack clears it */
     --event-tick: 66px;
   }
+  /* The whole group is sprayed at once, so neighbouring strokes bend together. The box
+     stands on the baseline and is tall enough to hold the longest stroke. */
   .bio-event__ruler {
     position: absolute;
     left: 0;
     right: 0;
     bottom: var(--baseline);
-    height: 0;
+    height: calc(var(--event-tick) + 20px);
+    filter: url(#spray);
   }
-  /* Cartoon brushstroke: a tapered, slightly tilted stroke standing on the baseline. */
+  /* Spray line: a rounded, slightly tilted stroke standing on the baseline, thinning as
+     it lifts off — the filter does the wobble and the dusty edge. */
   .tick {
     position: absolute;
     left: var(--left);
@@ -171,15 +197,15 @@ const ticksFor = (index: number) => {
     height: var(--h);
     margin-left: calc(var(--w) / -2);
     background: var(--c-black);
+    border-radius: var(--w);
     opacity: var(--fade);
     rotate: var(--tilt);
     transform-origin: 50% 100%;
-    clip-path: polygon(var(--taper) 0, calc(100% - var(--taper)) 0, 100% 100%, 0 100%);
+    mask-image: linear-gradient(to top, #000 60%, rgb(0 0 0 / 0.72));
   }
   .tick[data-event] {
     height: var(--event-tick);
     background: var(--tint);
-    clip-path: polygon(22% 0, 78% 0, 100% 100%, 0 100%);
   }
 
   /* Photo + year, stacked above the event's own tick. */
@@ -202,8 +228,9 @@ const ticksFor = (index: number) => {
   .bio-event__card {
     position: relative;
     margin: 0;
-    /* height-aware so the 4:5 photo, its year and the tick always fit the band */
-    width: clamp(110px, min(14vw, 24svh), 210px);
+    /* height-aware so the photo, its year and the tick always fit the band; --card-w and
+       --card-ar (near-square, both sides of 1) make no two cards the same size */
+    width: calc(clamp(110px, min(13vw, 21svh), 200px) * var(--card-w, 1));
     /* --near is written by bio.ts (1 at viewport centre), --hover by the rules below:
        the photo swells as it reaches the middle, and a little more under the pointer. */
     scale: calc(1 + 0.09 * var(--near, 0) + 0.1 * var(--hover, 0));
@@ -215,7 +242,7 @@ const ticksFor = (index: number) => {
     --hover: 1;
   }
   .bio-event__photo {
-    aspect-ratio: 4 / 5;
+    aspect-ratio: var(--card-ar, 1);
     border-radius: 0.4rem;
     background: var(--tint);
     box-shadow: 0 14px 34px rgb(0 0 0 / 0.18);

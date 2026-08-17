@@ -49,6 +49,17 @@ function init(): void {
   const period = (): number => set.offsetWidth;
   viewport.scrollLeft = period() * 2;
 
+  // A teleport moves the whole strip by one set, so every card inherits the proximity of
+  // its neighbour a set away — a discontinuity the CSS would otherwise ease into over
+  // 0.3s, reading as the carousel re-entering. Rewrite the swell with transitions off.
+  const teleport = (to: number): void => {
+    viewport.classList.add('is-jumping');
+    viewport.scrollLeft = to;
+    writeCentreProximity(cards);
+    void viewport.offsetWidth; // flush the untransitioned scales before re-enabling
+    viewport.classList.remove('is-jumping');
+  };
+
   cleanup.push(wheelToHorizontal(viewport));
   cleanup.push(
     onScrollFrame(viewport, () => {
@@ -58,9 +69,9 @@ function init(): void {
       const p = period();
       const max = viewport.scrollWidth - viewport.clientWidth;
       const x = viewport.scrollLeft;
-      if (x >= p * 3 && x - p >= 0) viewport.scrollLeft = x - p;
-      else if (x < p * 2 && x + p <= max) viewport.scrollLeft = x + p;
-      writeCentreProximity(cards);
+      if (x >= p * 3 && x - p >= 0) teleport(x - p);
+      else if (x < p * 2 && x + p <= max) teleport(x + p);
+      else writeCentreProximity(cards);
     }),
   );
 }

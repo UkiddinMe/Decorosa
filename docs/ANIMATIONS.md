@@ -183,11 +183,18 @@ and Lenis is not involved — these pages don't scroll vertically at all.
   `translateX(scrollLeft × (1 − depth))`: depth 1 moves with the content (reads as fixed
   to the world), depth ≈ 0 stays with the viewport.
 
-**Bio timeline** (`bio.ts`, `BioPage.astro`). A ruler of brushstroke ticks, one group per
-event with the event's own (taller, tinted) tick dead centre of its slot; the track's
-lead-in/out is `50vw − slot/2` so the first and last event land exactly at centre. The
-tick jitter (height, tilt, taper, opacity) comes from a seeded RNG in the frontmatter, so
-it is identical on server and client and stable across builds. `--near` swells each photo
+**Bio timeline** (`bio.ts`, `BioPage.astro`). A ruler of spray-can strokes, one group per
+event with the event's own (taller, tinted) stroke dead centre of its slot; the track's
+lead-out is `50vw − (last slot)/2` so the scroll ends with the last event dead centre,
+while the lead-in is half of the same figure (`25vw − (first slot)/4`) — the page opens
+with the first event left of centre so the following events peek in from the right and
+signal the scroll direction. A seeded RNG in the frontmatter lays every event out — slot width (years sit at
+uneven distances, tick count follows so density stays even), near-square photo size and
+aspect ratio, and the per-tick jitter (height, tilt, opacity) — so the irregularity is
+identical on server and client and stable across builds. The spray look is one SVG filter
+(`#spray`) applied to each ruler group: a slow displacement bends the strokes off-straight,
+a blur is the overspray, a fast displacement the paint dust, and an alpha ramp gives back
+the body the blur cost. `--near` swells each photo
 as it crosses the middle; hover/focus adds `--hover`, which swells it a little further and
 fades in the description over it.
 
@@ -195,7 +202,9 @@ fades in the description over it.
 script clones it to five and parks `scrollLeft` inside the middle copy, teleporting back
 by whole sets whenever it leaves that band — the strip is identical every `period` px
 (the set's own width, trailing gap included), so the jump is invisible. `--near` swells
-the card crossing the centre. On click the clicked card's media is stamped with
+the card crossing the centre; since a teleport hands every card its neighbour's proximity
+in one step, the viewport wears `.is-jumping` for that frame so the swell snaps instead of
+easing (otherwise the whole row visibly re-animates each lap). On click the clicked card's media is stamped with
 `view-transition-name: artifact-hero`; naming it only at click time keeps the identical
 loop clones from colliding over the name, and the artifact page's hero carries the same
 name in CSS, so Astro's View Transition morphs the card into the page.

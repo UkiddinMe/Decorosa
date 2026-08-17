@@ -54,12 +54,15 @@ const dict = t(lang);
     opacity: 0.5;
     filter: drop-shadow(0 0 40px rgb(180 200 255 / 0.5));
   }
-  /* A quarter smaller, lower-right — intentionally not the mirror of the ball's offsets. */
+  /* Small, tucked into the bottom-right corner — intentionally not the mirror of the
+     ball's offsets. */
   .dark-side__animal {
-    right: 8%;
-    bottom: 2%;
+    right: 2%;
+    /* not 0: with line-height 1 the glyph's ink descends ~2% of its font-size below the
+       box, and `overflow: hidden` would shave the feet off. */
+    bottom: 1%;
     z-index: 2;
-    font-size: clamp(8.8rem, 24vw, 24rem);
+    font-size: clamp(4.4rem, 12vw, 12rem);
     opacity: 0.6;
   }
   .dark-side__text {

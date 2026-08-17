@@ -24,7 +24,6 @@ export const en: Dict = {
   },
   bio: {
     heading: 'I AM',
-    intro: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
     hint: 'Scroll sideways',
   },
   works: {

@@ -5,7 +5,7 @@ export type Dict = {
   nav: { enter: string; contacts: string; back: string; backToWorks: string };
   slogan: { lead: string; items: string[] };
   contacts: { heading: string; intro: string; email: string; instagram: string };
-  bio: { heading: string; intro: string; hint: string };
+  bio: { heading: string; hint: string };
   works: { heading: string; hint: string };
   darkSide: { heading: string; paragraphs: string[] };
 };
@@ -34,7 +34,6 @@ export const it: Dict = {
   },
   bio: {
     heading: 'I AM',
-    intro: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
     hint: 'Scorri lateralmente',
   },
   works: {
