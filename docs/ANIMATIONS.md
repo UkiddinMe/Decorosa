@@ -201,7 +201,9 @@ fades in the description over it.
 **Works carousel** (`works.ts`, `WorksPage.astro`). One set of cards is rendered; the
 script clones it to five and parks `scrollLeft` inside the middle copy, teleporting back
 by whole sets whenever it leaves that band — the strip is identical every `period` px
-(the set's own width, trailing gap included), so the jump is invisible. `--near` swells
+(the set's own width, trailing gap included), so the jump is invisible. The initial
+`scrollLeft` is offset so a card sits dead centre on open (then shifted by whole sets to
+land inside the middle copy). `--near` swells
 the card crossing the centre; since a teleport hands every card its neighbour's proximity
 in one step, the viewport wears `.is-jumping` for that frame so the swell snaps instead of
 easing (otherwise the whole row visibly re-animates each lap). On click the clicked card's media is stamped with

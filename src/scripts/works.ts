@@ -47,7 +47,14 @@ function init(): void {
 
   const cards = Array.from(viewport.querySelectorAll<HTMLElement>('[data-artifact]'));
   const period = (): number => set.offsetWidth;
-  viewport.scrollLeft = period() * 2;
+
+  // Open on a card dead centre rather than on the seam between two of them. The strip
+  // repeats every `period`, so shifting by whole sets keeps the alignment while landing
+  // inside the middle copy, where the teleport logic wants us.
+  const first = cards[0];
+  let start = period() * 2 + first.offsetWidth / 2 - viewport.clientWidth / 2;
+  while (start < period() * 2) start += period();
+  viewport.scrollLeft = start;
 
   // A teleport moves the whole strip by one set, so every card inherits the proximity of
   // its neighbour a set away — a discontinuity the CSS would otherwise ease into over
