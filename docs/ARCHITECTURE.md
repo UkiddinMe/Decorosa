@@ -38,7 +38,7 @@ src/
       BioPage.astro       WorksPage.astro      DarkSidePage.astro   ArtifactPage.astro
     Ladder.astro          The vector ladder SVG (shared by landing + showcase)
     LadderEntry.astro     Landing "Entra nel mood": ladder + hole + rim composition
-    Logo.astro            Wordmark rebuilt from per-glyph PNGs (starburst = Contacts link)
+    Logo.astro            Wordmark rebuilt from per-glyph PNGs (starburst = labelled Contacts link)
     Slogan.astro          Lead sentence + separated word list
     LangToggle.astro      Fixed IT/EN pill (top right)
     BackLink.astro        Fixed "back" pill (light/dark tone), used by every section
@@ -52,6 +52,7 @@ src/
                           pure scenery, the artifact page slots its hero + caption in
   scripts/                Client-side TS (see ANIMATIONS.md)
     lenis.ts  motion.ts  showcase.ts  transition.ts
+    logo.ts               Hands the starburst label from its peek animation to CSS hover
     hscroll.ts            Shared sideways-scroll plumbing
     bio.ts  works.ts  artifact.ts    One controller per horizontal section
   data/
@@ -69,7 +70,7 @@ src/
 public/
   assets/logo/            Per-glyph PNGs (slicer bootstrap; replace with hand exports)
   assets/sky.jpg          The shared sky (hole, showcase backdrop, transition covers)
-scripts/slice-logo.mjs    One-off glyph slicer (see below)
+scripts/slice-logo.mjs    One-off glyph slicer (see below); splits the starburst in two
 ```
 
 ## i18n
@@ -134,8 +135,23 @@ All artwork is currently a placeholder gradient/tint (tokens `--world-*-bg`,
 crops one PNG per glyph into `public/assets/logo/`, and writes `logo-layout.json`
 (positions in % of the original image). `Logo.astro` rebuilds the wordmark from that
 manifest with absolutely-positioned glyphs so each one can be animated/linked
-independently. The slicer is a **bootstrap**: the intended flow is to replace the PNGs
-with hand-exported transparent versions (same filenames) and *not* re-run it.
+independently. The starburst-TM glyph is the Contacts link; because a lone glyph reads
+as decoration, it is labelled and slowly spins (see ANIMATIONS.md).
+
+The starburst is the one glyph the slicer does not emit as a plain crop: because it spins,
+an opaque white background would sweep over its neighbours and the TM would turn with it.
+`sliceStarburst()` writes it as two transparent layers — `starburst.png` (the black star,
+its TM counters filled in) and `starburst-tm.png` (the white TM alone) — which
+`Logo.astro` stacks, rotating only the first.
+
+It is also cropped to its own **connected component** rather than to its column band: the
+band cuts the outermost spike off, which both blunts the star and leaves the severed tip
+baked into `r.png` as a speck that sits still while the star turns. For the same reason
+every other crop is scrubbed of any starburst pixels that fall inside its rectangle.
+
+The slicer is still a **bootstrap**: the intended flow is to replace the PNGs with
+hand-exported transparent versions (same filenames). Re-running it is safe — it rebuilds
+every glyph, starburst layers included, from `logo-original.png`.
 
 ## Build & deploy
 

@@ -6,6 +6,7 @@ Map of the moving parts, in the order a visitor meets them.
 |---|---|
 | Smooth scrolling | `src/scripts/lenis.ts` |
 | The ladder drawing | `src/components/Ladder.astro` |
+| Landing wordmark (starburst → Contacts) | `src/components/Logo.astro`, `src/scripts/logo.ts` |
 | Landing entry composition | `src/components/LadderEntry.astro` |
 | Entry transition (landing → showcase) | `src/scripts/transition.ts`, `.sky-cover` in `global.css` |
 | Showcase spiral | `src/scripts/showcase.ts`, `showcase/Scene.astro`, `PanelCard.astro`, `Ladder3D.astro` |
@@ -41,6 +42,43 @@ side) extruded up-and-right; rungs are round-capped rects. Depth comes purely fr
 paint order: left rail → rungs → right rail, so rung ends sit visibly *on* the left
 rail but tuck *behind* the right one. `rungs` sets the length (landing/showcase use 95);
 the viewBox is computed so the SVG scales to any size.
+
+## Landing wordmark — `Logo.astro`
+
+The starburst-TM is the only clickable glyph, so it advertises itself two ways: a **slow
+idle spin** (20s linear) catches the eye, and the **`nav.contacts` label** centred above
+it, in the ladder label's type treatment, names the destination.
+
+The label is invisible at rest. It **peeks once** when the page appears
+(`starburst-label-peek`, 2.8s): 0.6em below its place at opacity 0, it slides up and
+fades to the resting 0.5, holds ~1s, then sinks back down and out over ~1.2s. The peek is
+suppressed while `html.is-loading` is set, so it starts when the first-paint gate lifts
+rather than playing to a hidden page. **Hover/focus** brings it back — 0.45s up to full
+opacity, against a slower 1.1s fall on the way out (the two halves live on the `:hover`
+and base `transition` respectively) — freezes the spin (`animation-play-state: paused`)
+and pops the star to `rotate(-18deg) scale(1.1)`, a counter-turn against the direction it
+was spinning.
+
+The peek lives on an `.is-peeking` class, and `logo.ts` strips that class the moment the
+animation ends **or** the pointer/focus arrives — a one-way handoff from animation to
+transitions. That is what lets a hover *during* the peek take the label over mid-flight;
+expressing it in CSS alone does not work, because a running animation outranks the
+transition, and cancelling it from inside the `:hover` rule would restart it on the way
+out. The handoff also has to freeze the peek's current `opacity`/`translate` inline,
+flush, then release them: Chrome does not interpolate out of a *cancelled* animation, so
+without that pin the label snaps to the hover pose instead of rising into it.
+
+One last detail: the label's `padding-bottom` bridges the gap down to the star, so a
+pointer travelling from glyph to label never leaves the link.
+
+The glyph is **two transparent layers on one crop**: `starburst.png` is the star
+silhouette with its TM counters filled in, `starburst-tm.png` the white TM alone, laid
+over it and left out of the rotation — so the badge spins while its lettering stays
+upright. Only the star's `<img>` and its `.starburst__spin` wrapper move; the `<a>` and
+the label must stay untransformed, or the label would ride along.
+
+Under reduced motion the spin and the pop are dropped and the label sits at 0.75 opacity,
+carrying the affordance alone.
 
 ## Landing entry composition — `LadderEntry.astro`
 

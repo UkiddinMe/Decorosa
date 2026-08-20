@@ -1,7 +1,8 @@
 ---
 // Reconstructs the DECOROSA wordmark from per-letter PNGs using the slicer's layout
 // manifest. Every glyph is an independent, absolutely-positioned element so any of them
-// can be linked/animated. The starburst-TM glyph is the Contacts link.
+// can be linked/animated. The starburst-TM glyph is the Contacts link, and is the only
+// one split into two transparent layers — a spinning star and a static TM (see below).
 import layout from '../data/logo-layout.json';
 import { withBase } from '../data/routes';
 
@@ -16,6 +17,8 @@ const { width, height, glyphs } = layout;
 const pct = (n: number, total: number) => `${(n / total) * 100}%`;
 const boxStyle = (g: (typeof glyphs)[number]) =>
   `left:${pct(g.x, width)};top:${pct(g.y, height)};width:${pct(g.w, width)}`;
+// Same crop as the star, holding only the white TM counter-glyphs.
+const TM_SRC = '/assets/logo/starburst-tm.png';
 ---
 
 <div class="logo" style={`aspect-ratio:${width} / ${height}`}>
@@ -29,7 +32,13 @@ const boxStyle = (g: (typeof glyphs)[number]) =>
           aria-label={contactsLabel}
           data-glyph="starburst"
         >
-          <img src={withBase(g.src)} alt="" />
+          <span class="starburst__spin">
+            <img src={withBase(g.src)} alt="" />
+          </span>
+          <img class="starburst__tm" src={withBase(TM_SRC)} alt="" />
+          <span class="starburst__label is-peeking" aria-hidden="true" data-starburst-label>
+            {contactsLabel}
+          </span>
         </a>
       ) : (
         <span class="glyph" style={boxStyle(g)} data-glyph={g.key}>
@@ -53,24 +62,124 @@ const boxStyle = (g: (typeof glyphs)[number]) =>
   .glyph img {
     width: 100%;
     height: auto;
+    display: block;
   }
-  /* The starburst-TM is the only interactive glyph: links to Contacts, spins on hover. */
+  /* The starburst-TM is the only interactive glyph: it links to Contacts. Two cues make
+     that readable without hovering — a slow idle spin, and the label sitting above it.
+     The <a> itself must stay untransformed (the label would otherwise ride along), so the
+     spin lives on .starburst__spin and the hover pop on the <img> inside it. */
   .glyph--starburst {
     cursor: pointer;
+  }
+  /* starburst.png is the star silhouette ALONE (its TM counters filled in, transparent
+     background); starburst-tm.png is the white TM on the same crop, laid over it and left
+     out of the rotation — so the badge spins while its lettering stays upright. */
+  .starburst__spin {
+    display: block;
+    animation: starburst-spin 20s linear infinite;
+  }
+  .starburst__tm {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .starburst__spin img {
     transform-origin: 50% 50%;
     transition: transform var(--dur-med) var(--ease-out);
   }
-  .glyph--starburst:hover,
-  .glyph--starburst:focus-visible {
-    transform: rotate(18deg) scale(1.08);
+  @keyframes starburst-spin {
+    to {
+      rotate: 360deg;
+    }
+  }
+  /* Hover/focus: the idle spin freezes where it is and the star pops — bigger, with a
+     short counter-rotation against the direction it was turning. */
+  .glyph--starburst:hover .starburst__spin,
+  .glyph--starburst:focus-visible .starburst__spin {
+    animation-play-state: paused;
+  }
+  .glyph--starburst:hover .starburst__spin img,
+  .glyph--starburst:focus-visible .starburst__spin img {
+    transform: rotate(-18deg) scale(1.1);
+  }
+  /* Names the destination, in the ladder label's type treatment: centred over the star,
+     and normally INVISIBLE. It peeks once when the page appears — sliding up into place
+     as it fades to the faint resting opacity, holding a beat, then sinking back out —
+     and comes back on hover/focus. Its bottom padding bridges the gap down to the star,
+     so the pointer can travel from one to the other without dropping the hover. */
+  .starburst__label {
+    position: absolute;
+    left: 50%;
+    bottom: 100%;
+    padding-bottom: 1em;
+    transform: translateX(-50%);
+    translate: 0 0.6em;
+    opacity: 0;
+    font-size: var(--step--1);
+    font-family: var(--font-display);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    /* Leaving is the slow half; :hover below overrides it for the quicker arrival. */
+    transition: opacity 1.1s ease-in-out, translate 1.1s ease-in-out;
+  }
+  /* The one-off reveal. src/scripts/logo.ts strips .is-peeking the moment the animation
+     ends or the pointer arrives, which hands the label to the transitions above — that is
+     what lets a hover *during* the peek take it over mid-flight. */
+  .starburst__label.is-peeking {
+    animation: starburst-label-peek 2.8s var(--ease-out) 0.15s backwards;
+  }
+  /* Hold the peek back until the first-paint gate lifts, or it plays to an invisible page.
+     Removing .is-loading is what starts it. */
+  :global(html.is-loading) .starburst__label.is-peeking {
+    animation: none;
+  }
+  @keyframes starburst-label-peek {
+    0% {
+      opacity: 0;
+      translate: 0 0.6em;
+      animation-timing-function: var(--ease-out);
+    }
+    22% {
+      opacity: 0.5;
+      translate: 0 0;
+      animation-timing-function: linear;
+    }
+    58% {
+      opacity: 0.5;
+      translate: 0 0;
+      animation-timing-function: ease-in-out;
+    }
+    100% {
+      opacity: 0;
+      translate: 0 0.6em;
+    }
+  }
+  .glyph--starburst:hover .starburst__label,
+  .glyph--starburst:focus-visible .starburst__label {
+    opacity: 1;
+    translate: 0 0;
+    transition: opacity 0.45s var(--ease-out), translate 0.45s var(--ease-out);
   }
   @media (prefers-reduced-motion: reduce) {
-    .glyph--starburst {
+    .starburst__spin {
+      animation: none;
+    }
+    .starburst__spin img {
       transition: none;
     }
-    .glyph--starburst:hover,
-    .glyph--starburst:focus-visible {
+    .glyph--starburst:hover .starburst__spin img,
+    .glyph--starburst:focus-visible .starburst__spin img {
       transform: none;
+    }
+    /* No motion cue left, so the label just stays put and carries the affordance alone.
+       Listed with .is-peeking too, or that class would out-specify the reset. */
+    .starburst__label,
+    .starburst__label.is-peeking {
+      opacity: 0.75;
+      translate: none;
+      animation: none;
+      transition: none;
     }
   }
 </style>
