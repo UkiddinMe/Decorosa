@@ -1,0 +1,67 @@
+---
+// The two cards that close the "MY" run: one opens the tiles page, one climbs back to
+// the showcase. Drawn exactly like an ArtifactCard — same plate, same swell — so the
+// row reads as one strip. `media` is the plate's fill: a placeholder tint until the
+// real artwork (a picture for the showcase card, an animation for the tiles one) lands.
+import { withBase } from '../../data/routes';
+
+interface Props {
+  href: string;
+  title: string;
+  /** any CSS <image> or <color> for the plate */
+  media: string;
+}
+const { href, title, media } = Astro.props;
+---
+
+<a class="end-card" href={withBase(href)} data-card style={`--media:${media}`}>
+  <span class="end-card__media"></span>
+  <span class="end-card__title">{title}</span>
+</a>
+
+<style>
+  .end-card {
+    flex: 0 0 auto;
+    width: var(--artifact-w);
+    text-decoration: none;
+    color: var(--fg);
+    display: grid;
+    gap: 0.9rem;
+    /* --near is written by works.ts (1 at viewport centre) — same swell as the artifacts */
+    scale: calc(1 + 0.2 * var(--near, 0));
+    transform-origin: 50% 50%;
+    transition: scale 0.3s var(--ease-out);
+  }
+  .end-card__media {
+    aspect-ratio: 2 / 3;
+    border-radius: 0.4rem;
+    background: var(--media, var(--c-grey));
+    box-shadow: 0 16px 40px -12px rgb(0 0 0 / 0.28);
+    /* clip the halo at the top edge, exactly as the artifact plates do */
+    clip-path: inset(0 -80px -80px -80px);
+  }
+  .end-card__title {
+    font-family: var(--font-futura);
+    font-size: var(--step-0);
+    letter-spacing: 0.04em;
+    line-height: 1.2;
+    /* same fixed two-line box as the artifacts: these labels are sentences, so they may
+       overflow it — they must never change the card's height and break the row */
+    height: 2.4em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    text-transform: uppercase;
+    text-wrap: balance;
+  }
+  .end-card:hover .end-card__title {
+    color: var(--accent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .end-card {
+      scale: 1;
+    }
+  }
+</style>

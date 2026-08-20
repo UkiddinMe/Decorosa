@@ -1,5 +1,5 @@
 // DECOROSA — the single source of truth for the artist's artifacts ("MY" section).
-// They are shown as a looping lateral carousel on /opere (/en/works) and each one gets
+// They are shown as a finite lateral run on /opere (/en/works) and each one gets
 // its own horizontal-parallax detail page at /opere/<id> (/en/works/<id>).
 // Adding an artifact = append here + drop assets in public/assets/artifacts/<id>/ +
 // (only if it needs a new aesthetic) a worlds/* component registered in ArtifactPage.

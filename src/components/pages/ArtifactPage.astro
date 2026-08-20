@@ -1,6 +1,6 @@
 ---
 // Detail page of one artifact: a horizontal parallax world that develops to the right,
-// entered by the card flying in from the "MY" carousel (view-transition-name: artifact-hero).
+// entered by the card flying in from the "MY" run (view-transition-name: artifact-hero).
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import BackLink from '../BackLink.astro';
 import DiscoWorld from '../worlds/DiscoWorld.astro';
@@ -67,7 +67,7 @@ const tone = artifact.world === 'desert' ? 'light' : 'dark';
     border-radius: 0.4rem;
     background: var(--media, var(--c-grey));
     box-shadow: 0 16px 40px rgb(0 0 0 / 0.35);
-    /* the carousel card stamps the same name on itself on click, so it morphs into this */
+    /* the run's card stamps the same name on itself on click, so it morphs into this */
     view-transition-name: artifact-hero;
   }
   .artifact__intro .world__caption {

@@ -52,7 +52,7 @@ const TM_SRC = '/assets/logo/starburst-tm.png';
 <style>
   .logo {
     position: relative;
-    width: min(60vw, 37rem);
+    width: var(--logo-w);
     margin-inline: auto;
   }
   .glyph {
@@ -103,8 +103,8 @@ const TM_SRC = '/assets/logo/starburst-tm.png';
     transform: rotate(-18deg) scale(1.1);
   }
   /* Names the destination, in the ladder label's type treatment: centred over the star,
-     and normally INVISIBLE. It peeks once when the page appears — sliding up into place
-     as it fades to the faint resting opacity, holding a beat, then sinking back out —
+     and normally INVISIBLE. It peeks once when the page appears — rising briskly into
+     place, holding for a beat, then sinking back out over a slower fall —
      and comes back on hover/focus. Its bottom padding bridges the gap down to the star,
      so the pointer can travel from one to the other without dropping the hover. */
   .starburst__label {
@@ -127,7 +127,7 @@ const TM_SRC = '/assets/logo/starburst-tm.png';
      ends or the pointer arrives, which hands the label to the transitions above — that is
      what lets a hover *during* the peek take it over mid-flight. */
   .starburst__label.is-peeking {
-    animation: starburst-label-peek 2.8s var(--ease-out) 0.15s backwards;
+    animation: starburst-label-peek 4.4s var(--ease-out) 0.6s backwards;
   }
   /* Hold the peek back until the first-paint gate lifts, or it plays to an invisible page.
      Removing .is-loading is what starts it. */
@@ -138,15 +138,18 @@ const TM_SRC = '/assets/logo/starburst-tm.png';
     0% {
       opacity: 0;
       translate: 0 0.6em;
-      animation-timing-function: var(--ease-out);
+      /* NOT --ease-out: that curve is expo-like and lands ~90% of the way in its first
+         second, so the tail of the rise crawls and reads as a hold. A gentle symmetric
+         curve keeps the whole rise legible as motion. */
+      animation-timing-function: cubic-bezier(0.42, 0, 0.58, 1);
     }
-    22% {
-      opacity: 0.5;
+    50% {
+      opacity: 1;
       translate: 0 0;
       animation-timing-function: linear;
     }
-    58% {
-      opacity: 0.5;
+    61% {
+      opacity: 1;
       translate: 0 0;
       animation-timing-function: ease-in-out;
     }

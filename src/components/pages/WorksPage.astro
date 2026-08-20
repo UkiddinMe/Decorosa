@@ -1,8 +1,9 @@
 ---
-// "MY" — the artifacts as an endlessly looping lateral carousel. Shared by both locales.
+// "MY" — the artifacts as a finite lateral run, closed by two cards that leave the
+// section (the tiles page, and back up to the showcase). Shared by both locales.
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import BackLink from '../BackLink.astro';
 import ArtifactCard from '../works/ArtifactCard.astro';
+import EndCard from '../works/EndCard.astro';
 import { artifacts } from '../../data/artifacts';
 import { t } from '../../data/i18n';
 
@@ -11,18 +12,24 @@ interface Props {
 }
 const { lang } = Astro.props;
 const dict = t(lang);
+const isIt = lang === 'it';
 ---
 
 <BaseLayout lang={lang} title={`${dict.works.heading} — DECOROSA`}>
-  <BackLink href={lang === 'it' ? '/showcase' : '/en/showcase'} label={dict.nav.back} />
-
   <main class="works">
     <div class="works__viewport" data-works tabindex="0" aria-label={dict.works.heading}>
-      <!-- One set is rendered; works.ts clones it a few times to make the loop seamless. -->
-      <div class="works__track" data-works-track>
-        <div class="works__set" data-works-set>
-          {artifacts.map((a) => <ArtifactCard artifact={a} lang={lang} />)}
-        </div>
+      <div class="works__track">
+        {artifacts.map((a) => <ArtifactCard artifact={a} lang={lang} />)}
+        <EndCard
+          href={isIt ? '/mosaico' : '/en/mosaic'}
+          title={dict.works.tiles}
+          media="var(--world-disco-bg)"
+        />
+        <EndCard
+          href={isIt ? '/showcase' : '/en/showcase'}
+          title={dict.works.backToShowcase}
+          media="var(--world-jungle-bg)"
+        />
       </div>
     </div>
 
@@ -35,7 +42,7 @@ const dict = t(lang);
 </BaseLayout>
 
 <style>
-  /* The carousel centres on the screen itself — the hint floats over the bottom corner
+  /* The run centres on the screen itself — the hint floats over the bottom corner
      rather than taking a band, which would push the cards above the true centre. */
   .works {
     position: relative;
@@ -43,6 +50,8 @@ const dict = t(lang);
     overflow: hidden;
     display: grid;
     align-content: center;
+    /* height-aware: a 2:3 card must leave room for its title *and* its centre swell */
+    --artifact-w: clamp(170px, min(19vw, 34svh), 340px);
   }
   .works__hint {
     position: absolute;
@@ -64,19 +73,16 @@ const dict = t(lang);
   .works__viewport::-webkit-scrollbar {
     display: none;
   }
+  /* Half a viewport of runway at each end: the run is finite now, so the first and the
+     last card must still be able to reach the centre, where the swell is. */
   .works__track {
-    display: flex;
-    width: max-content;
-  }
-  /* Gap lives inside the set (with a trailing one) so the loop period is exactly the
-     set's own width — works.ts wraps scrollLeft by that number. */
-  .works__set {
     --gap: clamp(4.5rem, 11vw, 13rem);
     display: flex;
+    width: max-content;
     /* start, not center: a two-line title must not push its card up relative to the
        others — every card hangs from the same top edge */
     align-items: start;
     gap: var(--gap);
-    padding-right: var(--gap);
+    padding-inline: calc(50vw - var(--artifact-w) / 2);
   }
 </style>

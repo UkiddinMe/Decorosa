@@ -1,0 +1,69 @@
+---
+// "MOSAICO" — the grid the "MY" run ends on. Placeholder for now: the tiles are empty
+// brand-tinted plates, waiting for the real content (what each tile is and where it
+// leads is still to be defined). Shared by both locales.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BackLink from '../BackLink.astro';
+import { t } from '../../data/i18n';
+
+interface Props {
+  lang: 'it' | 'en';
+}
+const { lang } = Astro.props;
+const dict = t(lang);
+
+const tints = [
+  '--c-green',
+  '--c-orange',
+  '--c-purple',
+  '--c-yellow',
+  '--c-red',
+  '--c-grey',
+  '--c-purple',
+  '--c-green',
+];
+---
+
+<BaseLayout lang={lang} title={`${dict.tiles.heading} — DECOROSA`}>
+  <BackLink href={lang === 'it' ? '/opere' : '/en/works'} label={dict.nav.mainWorks} />
+
+  <main class="tiles">
+    <div class="tiles__grid">
+      {tints.map((tint) => <span class="tiles__tile" style={`--tint:var(${tint})`} />)}
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  .tiles {
+    min-height: 100svh;
+    /* deliberately wider than --space-l: the field wants a broad margin of page
+       around it, tighter spacing inside it */
+    padding: clamp(3rem, 1.8rem + 4.5vw, 7rem);
+    display: grid;
+    align-content: center;
+    justify-items: center;
+  }
+  /* Fixed-width tiles (not 1fr) so the gap can stay a true fraction of the tile:
+     the mosaic reads as separate plates, not a contact sheet. */
+  .tiles__grid {
+    --tile-w: clamp(9.2rem, 16.1vw, 17.25rem);
+    /* wider than the text --maxw, but capped short of the padding box so a fourth
+       column can never squeeze in at the widest sizes */
+    width: min(100%, 88rem);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, var(--tile-w));
+    justify-content: center;
+    /* the same fraction of a tile of air between plates in both directions (rows
+       measure the 4/3 height): reads as separate plates, and holds three columns
+       per row on a desktop screen */
+    column-gap: calc(var(--tile-w) * 0.7);
+    row-gap: calc(var(--tile-w) * 0.75 * 0.7);
+  }
+  .tiles__tile {
+    aspect-ratio: 4 / 3;
+    border-radius: 0.4rem;
+    background: var(--tint);
+    opacity: 0.55;
+  }
+</style>

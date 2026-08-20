@@ -35,9 +35,20 @@ const showcaseHref = withBase(lang === 'it' ? '/showcase' : '/en/showcase');
   .landing {
     min-height: 100svh;
     display: grid;
-    grid-template-rows: 1fr auto;
-    gap: var(--space-m);
-    padding: var(--space-m) var(--space-m) var(--space-l);
+    /* Wordmark+slogan and ladder are ONE block, centred as a whole: with a 1fr hero row the
+       leftover height was split between the hero's own centring and the bottom padding, so
+       zooming grew the gap under the ladder without growing the one above the logo. */
+    grid-template-rows: auto auto;
+    align-content: center;
+    /* Past the wordmark's minimum size the scene can still outgrow a very small viewport;
+       `safe` then falls back to top-aligned so nothing is centred out of reach of the clip. */
+    align-content: safe center;
+    justify-items: center;
+    gap: var(--landing-gap);
+    /* Double the drop on top only: the scene is centred inside the padding box, so the
+       extra top padding pushes it down by half of it — one --landing-drop. That clears
+       the Contacts label peeking above the wordmark from the top edge. */
+    padding: calc(var(--space-m) + 2 * var(--landing-drop)) var(--space-m) var(--space-m);
     /* The 95-rung entry ladder is absolutely positioned and its long tail hangs far below
        the hole; clip-path only hides it visually, so without this it inflates the page's
        scroll height. Clip it away (as the showcase clips its ladder to the viewport). */
@@ -45,8 +56,9 @@ const showcaseHref = withBase(lang === 'it' ? '/showcase' : '/en/showcase');
   }
   .landing__hero {
     display: grid;
-    align-content: center;
     justify-items: center;
-    gap: var(--space-m);
+    /* Tight on purpose: the scene is centred as a whole, so closing the wordmark/slogan
+       gap pulls the logo down towards the block's middle. */
+    gap: var(--space-s);
   }
 </style>

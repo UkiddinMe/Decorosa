@@ -50,10 +50,11 @@ idle spin** (20s linear) catches the eye, and the **`nav.contacts` label** centr
 it, in the ladder label's type treatment, names the destination.
 
 The label is invisible at rest. It **peeks once** when the page appears
-(`starburst-label-peek`, 2.8s): 0.6em below its place at opacity 0, it slides up and
-fades to the resting 0.5, holds ~1s, then sinks back down and out over ~1.2s. The peek is
-suppressed while `html.is-loading` is set, so it starts when the first-paint gate lifts
-rather than playing to a hidden page. **Hover/focus** brings it back — 0.45s up to full
+(`starburst-label-peek`, 4.4s after a 0.6s delay): 0.6em below its place at opacity 0, it
+slides up and fades to full opacity (the same as hover) over ~2.2s on a symmetric `cubic-bezier(0.42, 0, 0.58, 1)`
+(deliberately not `--ease-out` — that expo curve front-loads the rise, so its tail crawls
+and reads as extra hold), holds ~0.5s, then sinks back down and out over ~1.7s. The peek is suppressed while `html.is-loading` is set, so its delay starts
+when the first-paint gate lifts rather than playing to a hidden page. **Hover/focus** brings it back — 0.45s up to full
 opacity, against a slower 1.1s fall on the way out (the two halves live on the `:hover`
 and base `transition` respectively) — freezes the spin (`animation-play-state: paused`)
 and pops the star to `rotate(-18deg) scale(1.1)`, a counter-turn against the direction it
@@ -236,18 +237,16 @@ the body the blur cost. `--near` swells each photo
 as it crosses the middle; hover/focus adds `--hover`, which swells it a little further and
 fades in the description over it.
 
-**Works carousel** (`works.ts`, `WorksPage.astro`). One set of cards is rendered; the
-script clones it to five and parks `scrollLeft` inside the middle copy, teleporting back
-by whole sets whenever it leaves that band — the strip is identical every `period` px
-(the set's own width, trailing gap included), so the jump is invisible. The initial
-`scrollLeft` is offset so a card sits dead centre on open (then shifted by whole sets to
-land inside the middle copy). `--near` swells
-the card crossing the centre; since a teleport hands every card its neighbour's proximity
-in one step, the viewport wears `.is-jumping` for that frame so the swell snaps instead of
-easing (otherwise the whole row visibly re-animates each lap). On click the clicked card's media is stamped with
-`view-transition-name: artifact-hero`; naming it only at click time keeps the identical
-loop clones from colliding over the name, and the artifact page's hero carries the same
-name in CSS, so Astro's View Transition morphs the card into the page.
+**Works run** (`works.ts`, `WorksPage.astro`). A finite strip: the artifact cards, then
+the two `EndCard`s that leave the section (tiles page, back to the showcase). The track
+carries half a viewport of padding at each end, so the first and the last card can each
+be brought to the centre — no JS start offset, `scrollLeft: 0` already opens on the first
+card dead centre. `--near` swells the card crossing the centre — every title sits in a
+fixed two-line box (a long label overflows it instead of growing the card), so all the
+cards keep the same height and stay aligned as they scale. On click the clicked
+card's media is stamped with `view-transition-name: artifact-hero`; the artifact page's
+hero carries the same name in CSS, so Astro's View Transition morphs the card into the
+page.
 
 **Artifact pages** (`artifact.ts`, `ArtifactPage.astro`, `worlds/*`). The world is a 300vw
 track scrolled sideways with `wheelToHorizontal` + `applyDepthParallax`. `.world` has

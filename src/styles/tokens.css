@@ -38,6 +38,28 @@
   --space-m: clamp(1.25rem, 1rem + 1.25vw, 2.5rem);
   --space-l: clamp(2.5rem, 1.8rem + 3.5vw, 6rem);
   --maxw: 72rem;
+  /* The landing ladder's stage box (LadderEntry.astro) — here because the wordmark's
+     height cap below has to know how much room the ladder takes. */
+  --entry-stage-w: clamp(5.5rem, 13.5vw, 8rem);
+  --entry-stage-h: calc(var(--entry-stage-w) * 4 / 3);
+  /* Gap between the wordmark+slogan block and the ladder below it. Deliberately tighter
+     than --space-l so the two read as one scene (LandingPage.astro). */
+  --landing-gap: clamp(1.75rem, 1.25rem + 2.5vw, 4.25rem);
+  /* How far below the viewport's centre the whole landing scene sits, so the Contacts
+     label that peeks out above the wordmark isn't pressed against the top edge. The page
+     doubles it as extra top padding — centring inside the padding box halves it again. */
+  --landing-drop: clamp(1rem, 3vh, 2.5rem);
+  /* Everything in the landing scene that is NOT the wordmark+slogan block: the page's
+     own padding (top side carries the drop), the two hero gaps, the gap above the ladder,
+     and the ladder itself. */
+  --landing-chrome: calc(2 * var(--space-m) + 2 * var(--landing-drop) + 2 * var(--space-s) + var(--landing-gap) + var(--entry-stage-h));
+  /* Width of the DECOROSA wordmark. Shared so the slogan block underneath can be
+     justified to exactly the logo's lateral boundaries (Logo.astro / Slogan.astro).
+     The third term keeps the whole landing scene inside the viewport as the page is
+     zoomed: wordmark + slogan is ~0.46 x --logo-w tall, so the height the chrome leaves
+     over is worth ~2.1x as much width. Without it the rem cap holds the wordmark at full
+     size while zooming shrinks the viewport, and the scene starts to scroll. */
+  --logo-w: min(60vw, 37rem, max(14rem, (100svh - var(--landing-chrome)) * 2.1));
 
   /* Showcase 3D. Also consumed by the entry transition's flight replica
      (src/scripts/transition.ts → buildFlight), so the flight's end pose

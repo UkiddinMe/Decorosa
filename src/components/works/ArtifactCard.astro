@@ -1,5 +1,5 @@
 ---
-// One card of the "MY" carousel. The media element is what flies into the detail page:
+// One card of the "MY" run. The media element is what flies into the detail page:
 // works.ts stamps `view-transition-name: artifact-hero` on it just before navigating.
 import { artifactMedia, artifactPath, type Artifact } from '../../data/artifacts';
 import { withBase } from '../../data/routes';
@@ -16,6 +16,7 @@ const txt = artifact.i18n[lang];
   class="artifact-card"
   href={withBase(artifactPath(artifact.id, lang))}
   data-artifact={artifact.id}
+  data-card
   style={`--media:${artifactMedia(artifact)}`}
 >
   <span class="artifact-card__media" data-hero></span>
@@ -25,8 +26,7 @@ const txt = artifact.i18n[lang];
 <style>
   .artifact-card {
     flex: 0 0 auto;
-    /* height-aware: a 2:3 card must leave room for its title *and* its centre swell */
-    width: clamp(170px, min(19vw, 34svh), 340px);
+    width: var(--artifact-w);
     text-decoration: none;
     color: var(--fg);
     display: grid;
@@ -51,15 +51,16 @@ const txt = artifact.i18n[lang];
     font-size: var(--step-0);
     letter-spacing: 0.04em;
     line-height: 1.2;
-    /* reserve two lines so a wrapping title can't make its card taller than the rest —
-       with equal heights every card sits on the same line, scaled or not */
-    min-height: 2.4em;
+    /* a fixed two-line box, not a minimum: every card is exactly as tall as every other,
+       so the plates line up and the centre swell (origin 50% 50%) keeps them lined up.
+       A longer label wraps past the box and simply overflows, centred. */
+    height: 2.4em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     text-align: center;
     text-transform: uppercase;
-  }
-  /* works.ts sets this while it teleports the loop: the swell must jump, not ease */
-  :global([data-works].is-jumping) .artifact-card {
-    transition: none;
+    text-wrap: balance;
   }
   .artifact-card:hover .artifact-card__title {
     color: var(--accent);

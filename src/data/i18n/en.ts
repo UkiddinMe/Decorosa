@@ -11,6 +11,7 @@ export const en: Dict = {
     contacts: 'Contact',
     back: 'Back',
     backToWorks: 'All works',
+    mainWorks: 'Main works',
   },
   slogan: {
     lead: 'An artistic project that gives new life to something you never knew could be «beautiful»',
@@ -29,6 +30,11 @@ export const en: Dict = {
   works: {
     heading: 'MY',
     hint: 'Scroll sideways',
+    tiles: 'Would you like something else?',
+    backToShowcase: 'Back to the menu',
+  },
+  tiles: {
+    heading: 'Mosaic',
   },
   darkSide: {
     heading: 'DARK SIDE OF THE MOOD',

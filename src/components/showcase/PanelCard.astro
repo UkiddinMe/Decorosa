@@ -44,7 +44,7 @@ const style = `--angle:${angleDeg}deg;--radius:${radius}px;--drop:${dropY}px;--m
     /* the .scene layers are pointer-events: none; clicks land here */
     pointer-events: auto;
     text-decoration: none;
-    color: var(--c-white);
+    color: var(--c-black);
   }
   .card__media {
     position: absolute;
@@ -65,7 +65,9 @@ const style = `--angle:${angleDeg}deg;--radius:${radius}px;--drop:${dropY}px;--m
     font-weight: 500;
     line-height: 0.95;
     letter-spacing: 0.01em;
-    text-shadow: 0 2px 18px rgb(0 0 0 / 0.35);
+    /* Light halo (not a dark drop shadow): the titles are black, so they need to be
+       lifted off the sky, not weighted down. */
+    text-shadow: 0 2px 18px rgb(255 255 255 / 0.55);
     opacity: 0;
     translate: -0.4em -50%;
     transition:

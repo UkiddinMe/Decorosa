@@ -1,5 +1,5 @@
 // Shared plumbing for the three horizontally-developing sections (bio timeline, works
-// carousel, artifact detail pages). Each of them is one element that scrolls sideways;
+// run, artifact detail pages). Each of them is one element that scrolls sideways;
 // what differs is only what they do with the scroll position.
 
 /** Vertical wheel input drives the horizontal scroll (trackpad deltaX passes through). */
@@ -39,7 +39,7 @@ export function onScrollFrame(el: HTMLElement, fn: () => void): () => void {
  * "closer" looks like (swell, opacity, …).
  *
  * All measuring happens before any writing — interleaving the two would force a reflow
- * per item — and unchanged values are skipped, so a still carousel costs nothing.
+ * per item — and unchanged values are skipped, so a still row costs nothing.
  */
 export function writeCentreProximity(items: HTMLElement[]): void {
   const centre = window.innerWidth / 2;

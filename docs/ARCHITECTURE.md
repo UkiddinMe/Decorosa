@@ -2,9 +2,10 @@
 
 Scenographic portfolio site: a collage-wordmark landing, a "ladder into a hole" entry
 that opens a 3D spiral showcase whose three panels are doorways into the three sections
-of the site — **I AM** (horizontal bio timeline), **MY** (looping artifact carousel, each
-artifact opening a bespoke horizontal-parallax "world" page) and **DARK SIDE OF THE
-MOOD** (a single text page on the disco backdrop). Static site, bilingual IT/EN.
+of the site — **I AM** (horizontal bio timeline), **MY** (a finite lateral run of
+artifacts, each opening a bespoke horizontal-parallax "world" page, closed by two cards
+that leave the section) and **DARK SIDE OF THE MOOD** (a single text page on the disco
+backdrop). Static site, bilingual IT/EN.
 
 > Animations have their own document: **[ANIMATIONS.md](./ANIMATIONS.md)**.
 
@@ -28,18 +29,29 @@ src/
     contatti.astro        /contatti
     bio.astro             /bio                  ("I AM")
     dark-side.astro       /dark-side            ("DARK SIDE OF THE MOOD")
-    opere/index.astro     /opere                ("MY" — artifact carousel)
+    opere/index.astro     /opere                ("MY" — the artifact run)
     opere/[id].astro      /opere/<id>           (one artifact detail page each)
+    mosaico.astro         /mosaico              (tile grid the "MY" run ends on)
     en/                   EN twins: /en, /en/showcase, /en/contact, /en/bio,
-                          /en/dark-side, /en/works, /en/works/<id>
+                          /en/dark-side, /en/works, /en/works/<id>, /en/mosaic
   components/
     pages/                Shared per-page components (all real page markup/CSS lives here)
       LandingPage.astro   ShowcasePage.astro   ContactsPage.astro
       BioPage.astro       WorksPage.astro      DarkSidePage.astro   ArtifactPage.astro
+      TilesPage.astro     (untitled placeholder grid: tiles 0.7 tile-widths apart
+                          inside a broad page margin, three per row on desktop —
+                          real tile content still to be defined)
     Ladder.astro          The vector ladder SVG (shared by landing + showcase)
     LadderEntry.astro     Landing "Entra nel mood": ladder + hole + rim composition
     Logo.astro            Wordmark rebuilt from per-glyph PNGs (starburst = labelled Contacts link)
-    Slogan.astro          Lead sentence + separated word list
+    Slogan.astro          Uppercase Futura caption, coloured one hue per row (green,
+                          orange, purple, yellow, then the whole items row red), justified to
+                          just inside the wordmark's width (--logo-w * 0.96); the lead is
+                          split into four rows, each scaled (cqw) to fill that width.
+                          Sizes come from a fixed per-row character budget, not from the
+                          words a row holds, and the rows are broken to fit those budgets
+                          — so the block is the same height (and never wraps) in every
+                          locale
     LangToggle.astro      Fixed IT/EN pill (top right)
     BackLink.astro        Fixed "back" pill (light/dark tone), used by every section
     showcase/
@@ -47,7 +59,11 @@ src/
       Ladder3D.astro      The ladder as the spiral's central axis
       PanelCard.astro     One panel on the spiral (billboard transform + big side title)
     works/
-      ArtifactCard.astro  One card of the "MY" carousel (links to its detail page)
+      ArtifactCard.astro  One card of the "MY" run (links to its detail page)
+      EndCard.astro       The two cards that close the run: the tiles page, and back
+                          up to the showcase. Same plate as an ArtifactCard; `media`
+                          is a placeholder tint until real artwork lands (a picture
+                          for the showcase card, an animation for the tiles one)
     worlds/               One component per artifact aesthetic (Disco / Jungle / Desert);
                           pure scenery, the artifact page slots its hero + caption in
   scripts/                Client-side TS (see ANIMATIONS.md)
@@ -114,8 +130,14 @@ All artwork is currently a placeholder gradient/tint (tokens `--world-*-bg`,
 ## Styling
 
 - `tokens.css` — brand palette (from the wordmark), fluid type scale (`--step-*`),
-  `--font-futura` (the big section/panel titles; Jost is the loaded stand-in for real
-  Futura), `--font-emoji` for the placeholder artwork (Noto Color Emoji is loaded as a
+  `--font-futura` (the big section/panel titles and the landing slogan; Jost is the loaded
+  stand-in for real Futura), `--logo-w` (the wordmark's width, shared by `Logo.astro` and
+  `Slogan.astro` so the caption justifies to the logo's lateral boundaries — also capped
+  against `100svh` via `--landing-chrome` so the whole landing scene keeps fitting the
+  viewport as the page is zoomed), the landing scene's own `--landing-gap` (wordmark+slogan
+  to ladder) and `--landing-drop` (how far below the viewport's centre the scene sits, so
+  the Contacts label peeking above the wordmark clears the top edge),
+  `--font-emoji` for the placeholder artwork (Noto Color Emoji is loaded as a
   webfont by `BaseLayout` and listed *first*: the installed system emoji faces are
   versioned with the OS, so recent glyphs — mirror ball, beaver, potted plant — render
   as tofu on Windows 10), the shared `--disco-bg` backdrop,

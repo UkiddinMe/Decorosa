@@ -13,6 +13,7 @@ export const routePairs: RoutePair[] = [
   { it: '/contatti', en: '/en/contact' },
   { it: '/bio', en: '/en/bio' },
   { it: '/opere', en: '/en/works' },
+  { it: '/mosaico', en: '/en/mosaic' },
   { it: '/dark-side', en: '/en/dark-side' },
   // one pair per artifact detail page
   ...artifacts.map((a) => ({ it: artifactPath(a.id, 'it'), en: artifactPath(a.id, 'en') })),

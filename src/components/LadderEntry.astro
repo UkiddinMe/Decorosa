@@ -32,8 +32,6 @@ const { showcaseHref, enterLabel } = Astro.props;
 
 <style>
   .entry {
-    /* Stage width shared by the stage box and the label offset. */
-    --entry-stage-w: clamp(5.5rem, 13.5vw, 8rem);
     position: relative;
     display: grid;
     justify-items: center;
@@ -52,10 +50,12 @@ const { showcaseHref, enterLabel } = Astro.props;
     letter-spacing: 0.04em;
     text-transform: uppercase;
   }
+  /* Sized from the tokens the landing's wordmark cap is computed against, so the two
+     can't drift apart (src/styles/tokens.css). */
   .entry__stage {
     position: relative;
     width: var(--entry-stage-w);
-    aspect-ratio: 3 / 4;
+    height: var(--entry-stage-h);
   }
   /* The hole the ladder descends into: an ellipse opening onto the sky, thin dark rim. */
   .entry__hole {
