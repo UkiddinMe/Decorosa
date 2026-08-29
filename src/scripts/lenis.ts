@@ -26,6 +26,12 @@ export function destroyLenis(): void {
   lenis = null;
 }
 
+/** Jump page + smooth-scroll instance to `y` with no animation (scroll restoration). */
+export function jumpTo(y: number): void {
+  window.scrollTo(0, y);
+  lenis?.scrollTo(y, { immediate: true, force: true });
+}
+
 /** Pause/resume smooth scroll (e.g. while a detail panel is open). */
 export function stopLenis(): void {
   lenis?.stop();

@@ -9,11 +9,14 @@
 import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
 import { prefersReduced } from './motion';
-import { initLenis, destroyLenis, stopLenis, startLenis } from './lenis';
+import { initLenis, destroyLenis, stopLenis, startLenis, jumpTo } from './lenis';
 
 gsap.registerPlugin(ScrollTrigger);
 
 const INTRO_KEY = 'decorosa:enter-intro';
+// Last scroll offset on this page, so coming back (link, back button, reload) resumes at
+// the same height instead of at the top of the spiral.
+const SCROLL_KEY = 'decorosa:showcase-scroll';
 let trigger: ScrollTrigger | null = null;
 // While the entrance intro tweens the spiral, scroll must not drive it too (the two
 // writers fight over --spin): lenis is stopped and the ScrollTrigger update is ignored.
@@ -55,6 +58,24 @@ function playIntro(spirals: HTMLElement[], onSpin: (spin: number) => void): void
   });
 }
 
+// `trigger` doubles as "the showcase is the live page": these document listeners survive
+// SPA swaps, so without it another page's scroll offset would be stored here.
+function saveScroll(): void {
+  if (trigger) sessionStorage.setItem(SCROLL_KEY, String(window.scrollY));
+}
+
+// Restore before the ScrollTrigger is created so its first progress (and the initial panel
+// sort) already match the resumed height. Arriving from the landing always starts at the
+// top: the intro replays there, so any stored offset is stale.
+function restoreScroll(): void {
+  if (sessionStorage.getItem(INTRO_KEY)) {
+    sessionStorage.removeItem(SCROLL_KEY);
+    return;
+  }
+  const saved = Number(sessionStorage.getItem(SCROLL_KEY) ?? 0);
+  if (saved > 0) jumpTo(saved);
+}
+
 function init(): void {
   const driver = document.querySelector<HTMLElement>('[data-driver]');
   const scene = document.querySelector<HTMLElement>('[data-scene]');
@@ -65,6 +86,8 @@ function init(): void {
   if (!driver || !scene || !ladder || spirals.length !== 2 || prefersReduced()) return;
 
   initLenis();
+  restoreScroll();
+  window.addEventListener('pagehide', saveScroll);
 
   const [backSpiral, frontSpiral] = spirals;
   const perspective =
@@ -116,6 +139,8 @@ function init(): void {
 }
 
 function teardown(): void {
+  saveScroll();
+  window.removeEventListener('pagehide', saveScroll);
   trigger?.kill();
   trigger = null;
   introPlaying = false;

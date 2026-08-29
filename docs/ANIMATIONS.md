@@ -11,7 +11,9 @@ Map of the moving parts, in the order a visitor meets them.
 | Entry transition (landing → showcase) | `src/scripts/transition.ts`, `.sky-cover` in `global.css` |
 | Showcase spiral | `src/scripts/showcase.ts`, `showcase/Scene.astro`, `PanelCard.astro`, `Ladder3D.astro` |
 | Sideways sections (bio / works / artifact) | `src/scripts/hscroll.ts` + `bio.ts`, `works.ts`, `artifact.ts` |
+| Works end-card dune (falling cherry) | `src/components/works/DuneScene.astro` |
 | Artifact-page parallax | `src/scripts/artifact.ts`, `worlds/*`, `.world` in `global.css` |
+| Contacts micro-motion (floating labels, sweeping rules) | `src/components/pages/ContactsPage.astro` |
 
 **Reduced motion:** everything below is skipped when `prefers-reduced-motion` is on
 (`motion.ts → prefersReduced()`), and the showcase swaps to a plain list via CSS.
@@ -31,8 +33,9 @@ Lenis intercepts the wheel and eases the real scroll position toward it (lerp 0.
 It is driven by GSAP's ticker and pings `ScrollTrigger.update` on every scroll, so the
 spiral animation stays in sync. `initLenis`/`destroyLenis` are idempotent because View
 Transitions re-run page scripts; `stopLenis`/`startLenis` pause it while a detail panel
-is open. The HMR `dispose` hook exists because two live Lenis instances fight over the
-wheel and scrolling freezes in dev.
+is open; `jumpTo` moves page and Lenis together for scroll restoration. The HMR
+`dispose` hook exists because two live Lenis instances fight over the wheel and
+scrolling freezes in dev.
 
 ## The ladder drawing — `Ladder.astro`
 
@@ -87,7 +90,11 @@ Three stacked layers recreate the brand image "ladder into a hole":
 
 1. `[data-hole]` (z1) — the sky ellipse. Its background uses `background-attachment:
    fixed`, so the ellipse is a *window* onto a viewport-sized sky — the exact framing
-   the showcase uses. That's why the hole can "grow" seamlessly later.
+   the showcase uses. That's why the hole can "grow" seamlessly later. It must therefore
+   carry **no transform** (it is centred with `left: 4%`, not `translate: -50% 0`): a
+   transform re-anchors a fixed background to the element's own box, which showed a
+   blown-up crop of the image centre and made the sky jump the instant the transition's
+   viewport-framed cover took over.
 2. `[data-ladder-clip]` (z2) → `[data-entry-ladder]` → incline wrapper → the SVG.
    The ladder has 95 rungs but only the top shows; `clip-path: inset(...)` hides the
    long tail hanging below the stage. Outer element = position/size only (the
@@ -205,6 +212,14 @@ scroll is locked for the duration (`stopLenis` + the ScrollTrigger update ignore
 an `introPlaying` flag), with any leaked scroll (scrollbar/keyboard) reset to 0 on
 completion before control is handed back.
 
+**Scroll memory.** Leaving the showcase stores `window.scrollY` in `sessionStorage`
+(`decorosa:showcase-scroll`, written on `astro:before-swap` and `pagehide`, only while
+the showcase is the live page), and `restoreScroll()` re-applies it via `jumpTo` on
+`astro:page-load` — before the ScrollTrigger is created, so the first spin/panel sort
+already matches the resumed height. Coming back by link, back button or reload lands
+where the visitor left. Arriving from the landing is the exception: the intro replays,
+so the stored offset is dropped and the page starts at the top.
+
 ## Sideways sections — `hscroll.ts`
 
 The three horizontal sections are plain overflow-x containers, not panels: `hscroll.ts`
@@ -246,13 +261,54 @@ fixed two-line box (a long label overflows it instead of growing the card), so a
 cards keep the same height and stay aligned as they scale. On click the clicked
 card's media is stamped with `view-transition-name: artifact-hero`; the artifact page's
 hero carries the same name in CSS, so Astro's View Transition morphs the card into the
-page.
+page. The tiles `EndCard` is filled by `works/DuneScene.astro` instead of a tint: a flat
+SVG dune (blue sky, two yellow wedges cut by three diagonals meeting at the centre, the
+narrow one shaded) with a cherry on a single 7.5s CSS keyframe loop — gravity fall,
+squash-and-bounce jiggle on contact (`transform-origin` at the point that touches the
+sand), a few seconds at rest, a fade out, then it waits offstage before falling again.
+The berry is a single biconcave silhouette (dimpled top and bottom, lobes of unequal
+width); it rests below the ridge apex, drawn after the sand so it overlaps it rather than
+floating on it. "DESSERT" is set across the sky in the plate's upper third, black and
+uppercase in the display face, matching `DesertWorld`'s big word, and is drawn last so it
+always sits in front of the sun and the cherry; a yellow sun peeks out of the top-right
+corner, with three round-capped rays fanned 35° apart and kept short enough to stop clear
+of the word. Each ray is a dash sliding out and back along its line on a staggered
+`stroke-dashoffset` loop that never runs off either end, so they pulse without vanishing.
 
 **Artifact pages** (`artifact.ts`, `ArtifactPage.astro`, `worlds/*`). The world is a 300vw
 track scrolled sideways with `wheelToHorizontal` + `applyDepthParallax`. `.world` has
 `overflow: hidden` so translated layers can't extend the scroll range past 300vw (would
 expose the black page background). The world components are pure scenery; the page slots
 its hero + caption into them.
+
+## Dark-side accordion — `DarkSidePage.astro`
+
+No script: three `<details>` sharing one `name`, which is what makes them mutually
+exclusive. The glide is CSS only — `::details-content` animates `block-size` from `0` to
+`auto` (unlocked by `interpolate-size: allow-keywords` on the wrapper) with
+`content-visibility` in `transition-behavior: allow-discrete`. Browsers without
+`::details-content` simply snap open, which is the correct fallback. The summary marker is
+a hairline cross whose vertical stroke collapses (`background-size` → `0`) as the panel
+opens.
+
+The backdrop (gradient + mirrorball + animal) is a `position: fixed` layer, so it holds
+still while the column scrolls over it.
+
+Rows of the "Prodotti disponibili" list don't fade their wash in, they *open it from the
+middle*: a `::before` with feathered gradient ends goes `scale: 0 1` → `1 1` about its own
+centre over 2.5s — far slower than the usual hover, because the spread is the whole
+gesture. Text and icon are untouched; the row still nudges 0.3rem right.
+
+## Contacts micro-motion — `ContactsPage.astro`
+
+No script either. The fields carry `placeholder=" "`, so `:placeholder-shown` (plus
+`:focus`) tells CSS whether the floating label sits on the baseline or has ridden up into
+its uppercase micro-label position. Focus is drawn by a red rule scaled from `0 1` to
+`1 1` (`transform-origin: left`) over the field's resting hairline — which is why the
+inputs turn the global focus outline off. The Email / Instagram values underline
+themselves the same way, animating a `background-size` from `0` to `100%`, and the submit
+pill grows its arrow out of zero width so its box never changes size (same trick as the
+dark-side call to action).
 
 ---
 *Keep this file and ARCHITECTURE.md up to date with every significant change.*

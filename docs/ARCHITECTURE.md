@@ -4,8 +4,8 @@ Scenographic portfolio site: a collage-wordmark landing, a "ladder into a hole" 
 that opens a 3D spiral showcase whose three panels are doorways into the three sections
 of the site — **I AM** (horizontal bio timeline), **MY** (a finite lateral run of
 artifacts, each opening a bespoke horizontal-parallax "world" page, closed by two cards
-that leave the section) and **DARK SIDE OF THE MOOD** (a single text page on the disco
-backdrop). Static site, bilingual IT/EN.
+that leave the section) and **DARK SIDE OF THE MOOD** (a text page scrolling over a
+fixed disco backdrop, its copy folded into an accordion). Static site, bilingual IT/EN.
 
 > Animations have their own document: **[ANIMATIONS.md](./ANIMATIONS.md)**.
 
@@ -36,8 +36,19 @@ src/
                           /en/dark-side, /en/works, /en/works/<id>, /en/mosaic
   components/
     pages/                Shared per-page components (all real page markup/CSS lives here)
-      LandingPage.astro   ShowcasePage.astro   ContactsPage.astro
-      BioPage.astro       WorksPage.astro      DarkSidePage.astro   ArtifactPage.astro
+      LandingPage.astro   ShowcasePage.astro
+      ContactsPage.astro  Editorial two-column spread, split by a hairline: address
+                          column (title, italic standfirst, Email + Instagram rows whose
+                          rule sweeps in on hover) and the mail form — underline-only
+                          fields with floating labels and a pill submit (see Contact form)
+      BioPage.astro       WorksPage.astro      ArtifactPage.astro
+      DarkSidePage.astro  Title + a two-row italic standfirst (rows stepped right of
+                          each other) over a fixed backdrop layer, then a native
+                          <details name> accordion: Commissioni, Collaborazioni and
+                          Prodotti disponibili — the last one a list of every artifact
+                          as icon + title (hover spreads the row's wash from its centre
+                          outwards), linking to the same detail pages the "MY"
+                          cards open. A centred pill link to Contacts closes the column
       TilesPage.astro     (untitled placeholder grid: tiles 0.7 tile-widths apart
                           inside a broad page margin, three per row on desktop —
                           real tile content still to be defined)
@@ -52,7 +63,7 @@ src/
                           words a row holds, and the rows are broken to fit those budgets
                           — so the block is the same height (and never wraps) in every
                           locale
-    LangToggle.astro      Fixed IT/EN pill (top right)
+    LangToggle.astro      Fixed IT/EN pill (top right, light/dark tone)
     BackLink.astro        Fixed "back" pill (light/dark tone), used by every section
     showcase/
       Scene.astro         The 3D scene: scroll driver, sky, layer sandwich, fallback list
@@ -61,9 +72,10 @@ src/
     works/
       ArtifactCard.astro  One card of the "MY" run (links to its detail page)
       EndCard.astro       The two cards that close the run: the tiles page, and back
-                          up to the showcase. Same plate as an ArtifactCard; `media`
-                          is a placeholder tint until real artwork lands (a picture
-                          for the showcase card, an animation for the tiles one)
+                          up to the showcase. Same plate as an ArtifactCard; the plate
+                          is filled by the `media` tint (showcase card — placeholder
+                          until real artwork lands) or by slotted markup
+      DuneScene.astro     The tiles card's artwork: flat SVG dune + falling cherry
     worlds/               One component per artifact aesthetic (Disco / Jungle / Desert);
                           pure scenery, the artifact page slots its hero + caption in
   scripts/                Client-side TS (see ANIMATIONS.md)
@@ -71,6 +83,7 @@ src/
     logo.ts               Hands the starburst label from its peek animation to CSS hover
     hscroll.ts            Shared sideways-scroll plumbing
     bio.ts  works.ts  artifact.ts    One controller per horizontal section
+    contacts.ts           Contacts form submit (relay POST, or mailto: fallback)
   data/
     panels.ts             The three showcase panels (title + spiral pose + target section)
     artifacts.ts          SINGLE SOURCE OF TRUTH for the artist's artifacts
@@ -82,7 +95,7 @@ src/
     tokens.css            Design tokens: palette, type scale, spacing, shared backgrounds
     global.css            Reset, base type, .world panel structure, .sky-cover, reduced motion
   layouts/
-    BaseLayout.astro      <head> (SEO/hreflang/OG/fonts), first-paint gate, LangToggle, loads transition.ts
+    BaseLayout.astro      <head> (SEO/hreflang/OG/fonts), first-paint gate, LangToggle (`tone` prop), loads transition.ts
 public/
   assets/logo/            Per-glyph PNGs (slicer bootstrap; replace with hand exports)
   assets/sky.jpg          The shared sky (hole, showcase backdrop, transition covers)
@@ -115,7 +128,9 @@ scripts/slice-logo.mjs    One-off glyph slicer (see below); splits the starburst
 
 **`src/data/artifacts.ts`** — one entry per artwork: `id` (slug, also the asset folder
 name under `public/assets/artifacts/<id>/`), `world` (which `worlds/*` component renders
-its detail scenery) and IT/EN `i18n` title/subtitle/body. `artifactPath(id, lang)` is the
+its detail scenery), an optional `sold` flag (sold pieces keep their page but drop out of
+`availableArtifacts`, the list the dark-side page shows) and IT/EN `i18n`
+title/subtitle/body. `artifactPath(id, lang)` is the
 canonical URL builder — `routes.ts` derives its IT↔EN pairs from it. Adding an artifact =
 append an entry + drop assets + (only for a new aesthetic) create a `worlds/*` component
 and register it in the `worlds` map in `ArtifactPage.astro`.
@@ -134,9 +149,12 @@ All artwork is currently a placeholder gradient/tint (tokens `--world-*-bg`,
   stand-in for real Futura), `--logo-w` (the wordmark's width, shared by `Logo.astro` and
   `Slogan.astro` so the caption justifies to the logo's lateral boundaries — also capped
   against `100svh` via `--landing-chrome` so the whole landing scene keeps fitting the
-  viewport as the page is zoomed), the landing scene's own `--landing-gap` (wordmark+slogan
-  to ladder) and `--landing-drop` (how far below the viewport's centre the scene sits, so
-  the Contacts label peeking above the wordmark clears the top edge),
+  viewport as the page is zoomed; its viewport share rises from 60vw towards ~92vw as the
+  viewport narrows, so phone margins shrink in proportion), the landing scene's own
+  `--landing-gap` (wordmark+slogan to ladder), `--landing-drop` (how far below the
+  viewport's centre the scene sits, so the Contacts label peeking above the wordmark
+  clears the top edge) and `--landing-pad-x` (its side padding — tracks `--space-m` when
+  there is room, thins out faster below ~900px),
   `--font-emoji` for the placeholder artwork (Noto Color Emoji is loaded as a
   webfont by `BaseLayout` and listed *first*: the installed system emoji faces are
   versioned with the OS, so recent glyphs — mirror ball, beaver, potted plant — render
@@ -174,6 +192,23 @@ every other crop is scrubbed of any starburst pixels that fall inside its rectan
 The slicer is still a **bootstrap**: the intended flow is to replace the PNGs with
 hand-exported transparent versions (same filenames). Re-running it is safe — it rebuilds
 every glyph, starburst layers included, from `logo-original.png`.
+
+## Contact form
+
+`ContactsPage.astro` renders a name / email / message form; `src/scripts/contacts.ts`
+handles the submit. The site is static, so delivery goes one of two ways:
+
+- **`PUBLIC_CONTACT_ENDPOINT` set at build time** — the script POSTs
+  `{ name, email, message }` as JSON to that URL and reports success/failure inline.
+  Any mail relay taking a JSON POST works (Formspree, Web3Forms, Basin). Set it in
+  `.env` locally and as a repository variable/secret in the deploy workflow.
+- **unset (current default)** — submitting opens a bare `mailto:` link to
+  `dict.contacts.email` in the visitor's mail client, with no subject or body; they
+  write the message there themselves, so the typed fields are not carried over.
+
+An off-screen `_gotcha` honeypot field is dropped silently when filled. All form copy
+and status messages live in `i18n` under `contacts.form`; the recipient address is
+`contacts.email` in the same dictionaries.
 
 ## Build & deploy
 

@@ -1,0 +1,173 @@
+---
+// Artwork for the "Ne vuoi ancora?" end card: a flat dune (two yellow wedges cut out of
+// a blue sky by three diagonals meeting near the centre) with a cherry that drops onto
+// the ridge, jiggles, rests, fades out and falls again — one looping CSS animation.
+// The cherry is drawn after the slopes, so it rests in front of the sand while its
+// resting point sits below the ridge apex — it overlaps the dune instead of floating.
+// The viewBox is 2:3, exactly the plate's aspect ratio, so nothing is cropped.
+---
+
+<svg class="dune" viewBox="0 0 200 300" role="img" aria-hidden="true">
+  <rect class="dune__sky" x="0" y="0" width="200" height="300" />
+
+  <!-- sun peeking out of the top-right corner, with three rays shooting out of it -->
+  <g class="sun">
+    <circle class="sun__disc" cx="188" cy="16" r="22" />
+    <g class="sun__rays">
+      <line class="sun__ray" x1="158.5" y1="21.2" x2="153.5" y2="22.1" />
+      <line class="sun__ray" x1="166.8" y1="37.2" x2="163.3" y2="40.7" />
+      <line class="sun__ray" x1="182.8" y1="45.5" x2="181.9" y2="50.5" />
+    </g>
+  </g>
+
+  <!-- the three diagonals: apex (105,180) → left edge, → bottom (the ridge), → right edge -->
+  <path class="dune__slope" d="M105 180 L0 240 L0 300 L155 300 Z" />
+  <path class="dune__crest" d="M105 180 L155 300 L200 300 L200 230 Z" />
+
+  <!-- rests below the ridge apex so it sinks into the dune, drawn after the sand -->
+  <g transform="translate(105 194)">
+    <g class="cherry">
+      <path class="cherry__stem" d="M-1 -22 C-2 -34 4 -44 10 -50" />
+      <path class="cherry__leaf" d="M10 -50 C19 -60 32 -58 37 -52 C30 -43 16 -43 10 -50 Z" />
+      <!-- biconcave berry: dimpled top and bottom, left lobe wider than the right -->
+      <path
+        class="cherry__berry"
+        d="M-0.5 -22
+           C4 -25.5 10 -22.5 12 -15
+           C13.5 -8 11 -3 7 -2
+           C4.5 -1.2 1.2 -2.8 -1 -5
+           C-3.5 -2.9 -6 -0.6 -9 -1
+           C-13 -1.6 -15 -7.5 -14.5 -14
+           C-14 -20 -8 -24 -0.5 -22 Z"
+      />
+    </g>
+  </g>
+
+  <!-- drawn last: the word always sits in front of the sun rays and the cherry -->
+  <text class="dune__word" x="100" y="68" text-anchor="middle">DESSERT</text>
+</svg>
+
+<style>
+  .dune {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .dune__sky {
+    fill: #6ea8e0;
+  }
+  .dune__word {
+    fill: #000;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 30px;
+    letter-spacing: 0.02em;
+  }
+  .sun__disc {
+    fill: #ffd23f;
+  }
+  .sun__ray {
+    stroke: #ffd23f;
+    stroke-width: 5;
+    stroke-linecap: round;
+    /* every ray is 5 units long — short enough that no ray (round cap included) reaches
+       the "DESSERT" cap line at y=47. The dash slides out and back along the line, but
+       the offset never reaches ±5, so a chunk of the ray is always on screen */
+    stroke-dasharray: 5 5;
+    animation: sun-ray 2.6s ease-in-out infinite;
+  }
+  .sun__ray:nth-child(2) {
+    animation-delay: 0.35s;
+  }
+  .sun__ray:nth-child(3) {
+    animation-delay: 0.7s;
+  }
+  .dune__slope {
+    fill: var(--c-yellow);
+  }
+  /* the narrower wedge is the shaded face of the dune */
+  .dune__crest {
+    fill: #c8952f;
+  }
+  .cherry__berry {
+    fill: var(--c-red);
+  }
+  .cherry__stem {
+    fill: none;
+    stroke: #5c7a3f;
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+  .cherry__leaf {
+    fill: var(--c-green);
+  }
+
+  .cherry {
+    /* squash pivots on the point that touches the sand */
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+    animation: cherry-drop 7.5s linear infinite;
+  }
+
+  @keyframes sun-ray {
+    0%,
+    100% {
+      stroke-dashoffset: 2;
+    }
+    50% {
+      stroke-dashoffset: -2;
+    }
+  }
+
+  /* fall (gravity), land, jiggle out, rest, fade, then wait offstage for the next loop */
+  @keyframes cherry-drop {
+    0% {
+      opacity: 1;
+      transform: translateY(-229px);
+      animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.5);
+    }
+    12% {
+      transform: translateY(0) scale(1, 1);
+      animation-timing-function: ease-out;
+    }
+    14% {
+      transform: translateY(0) scale(1.16, 0.8);
+    }
+    18% {
+      transform: translateY(-13px) scale(0.95, 1.06);
+    }
+    22% {
+      transform: translateY(0) scale(1.09, 0.92);
+    }
+    25% {
+      transform: translateY(-5px) scale(0.98, 1.02);
+    }
+    28% {
+      transform: translateY(0) scale(1.04, 0.97);
+    }
+    32%,
+    70% {
+      opacity: 1;
+      transform: translateY(0) scale(1, 1);
+    }
+    80% {
+      opacity: 0;
+      transform: translateY(-8px) scale(0.94, 0.94);
+    }
+    81%,
+    100% {
+      opacity: 0;
+      transform: translateY(-229px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cherry,
+    .sun__ray {
+      animation: none;
+    }
+    .sun__ray {
+      stroke-dashoffset: 0;
+    }
+  }
+</style>

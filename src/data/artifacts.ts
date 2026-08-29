@@ -11,6 +11,8 @@ export interface Artifact {
   id: string;
   /** which worlds/* component renders the scenery of its detail page */
   world: WorldKind;
+  /** already sold: still has its own page, but is left out of the dark-side list */
+  sold?: boolean;
   /** localized text */
   i18n: Record<'it' | 'en', { title: string; subtitle?: string; body: string }>;
 }
@@ -66,6 +68,7 @@ export const artifacts: Artifact[] = [
   },
   {
     id: 'item-4',
+    sold: true,
     world: 'disco',
     i18n: {
       it: {
@@ -82,6 +85,7 @@ export const artifacts: Artifact[] = [
   },
   {
     id: 'item-5',
+    sold: true,
     world: 'jungle',
     i18n: {
       it: {
@@ -98,6 +102,7 @@ export const artifacts: Artifact[] = [
   },
   {
     id: 'item-6',
+    sold: true,
     world: 'desert',
     i18n: {
       it: {
@@ -116,6 +121,13 @@ export const artifacts: Artifact[] = [
 
 /** Placeholder gradient for an artifact's card/hero until real artwork lands. */
 export const artifactMedia = (a: Artifact): string => `var(--world-${a.world}-bg)`;
+
+/** The ones still up for grabs — the dark-side page lists only these. */
+export const availableArtifacts = artifacts.filter((a) => !a.sold);
+
+/** Placeholder icon (the world's own focal glyph) for compact lists — dark-side page. */
+const worldIcon: Record<WorldKind, string> = { disco: '🪩', jungle: '🌴', desert: '🍰' };
+export const artifactIcon = (a: Artifact): string => worldIcon[a.world];
 
 export const artifactPath = (id: string, lang: 'it' | 'en'): string =>
   lang === 'it' ? `/opere/${id}` : `/en/works/${id}`;

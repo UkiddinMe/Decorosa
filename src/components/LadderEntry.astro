@@ -60,9 +60,12 @@ const { showcaseHref, enterLabel } = Astro.props;
   /* The hole the ladder descends into: an ellipse opening onto the sky, thin dark rim. */
   .entry__hole {
     position: absolute;
-    left: 50%;
+    /* Centred by inset, NOT by a translate: any transform on the element would re-anchor
+       its `background-attachment: fixed` sky to the element's own box (showing a blown-up
+       crop of the image centre) instead of the viewport — the framing would then jump the
+       moment the transition's viewport-framed sky cover takes over. left = (100% - 92%)/2. */
+    left: 4%;
     bottom: 4%;
-    translate: -50% 0;
     width: 92%;
     aspect-ratio: 2 / 1;
     border-radius: 50%;

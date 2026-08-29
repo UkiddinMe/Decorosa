@@ -4,8 +4,10 @@ import { pairFor, withBase } from '../data/routes';
 
 interface Props {
   lang: 'it' | 'en';
+  /** light pill on dark backgrounds */
+  tone?: 'light' | 'dark';
 }
-const { lang } = Astro.props;
+const { lang, tone = 'light' } = Astro.props;
 
 const pair = pairFor(Astro.url.pathname);
 let target = lang === 'it' ? '/en' : '/';
@@ -15,7 +17,7 @@ target = withBase(target);
 const label = lang === 'it' ? 'EN' : 'IT';
 ---
 
-<a class="lang-toggle" href={target} aria-label={`Switch language to ${label}`}>{label}</a>
+<a class="lang-toggle" data-tone={tone} href={target} aria-label={`Switch language to ${label}`}>{label}</a>
 
 <style>
   /* Fixed, unobtrusive pill in the top-right corner */
@@ -32,6 +34,13 @@ const label = lang === 'it' ? 'EN' : 'IT';
     border: 1.5px solid currentColor;
     border-radius: 999px;
     background: var(--bg);
+    color: var(--fg);
     mix-blend-mode: multiply;
+  }
+  .lang-toggle[data-tone='dark'] {
+    background: transparent;
+    color: #eef1ff;
+    /* multiply would sink light text into a dark backdrop until it disappears */
+    mix-blend-mode: normal;
   }
 </style>

@@ -47,8 +47,10 @@ const showcaseHref = withBase(lang === 'it' ? '/showcase' : '/en/showcase');
     gap: var(--landing-gap);
     /* Double the drop on top only: the scene is centred inside the padding box, so the
        extra top padding pushes it down by half of it — one --landing-drop. That clears
-       the Contacts label peeking above the wordmark from the top edge. */
-    padding: calc(var(--space-m) + 2 * var(--landing-drop)) var(--space-m) var(--space-m);
+       the Contacts label peeking above the wordmark from the top edge.
+       The sides use --landing-pad-x instead, which thins out faster than --space-m on a
+       narrow viewport so the scene keeps its share of the width (tokens.css). */
+    padding: calc(var(--space-m) + 2 * var(--landing-drop)) var(--landing-pad-x) var(--space-m);
     /* The 95-rung entry ladder is absolutely positioned and its long tail hangs far below
        the hole; clip-path only hides it visually, so without this it inflates the page's
        scroll height. Clip it away (as the showcase clips its ladder to the viewport). */

@@ -4,6 +4,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArtifactCard from '../works/ArtifactCard.astro';
 import EndCard from '../works/EndCard.astro';
+import DuneScene from '../works/DuneScene.astro';
 import { artifacts } from '../../data/artifacts';
 import { t } from '../../data/i18n';
 
@@ -20,11 +21,9 @@ const isIt = lang === 'it';
     <div class="works__viewport" data-works tabindex="0" aria-label={dict.works.heading}>
       <div class="works__track">
         {artifacts.map((a) => <ArtifactCard artifact={a} lang={lang} />)}
-        <EndCard
-          href={isIt ? '/mosaico' : '/en/mosaic'}
-          title={dict.works.tiles}
-          media="var(--world-disco-bg)"
-        />
+        <EndCard href={isIt ? '/mosaico' : '/en/mosaic'} title={dict.works.tiles}>
+          <DuneScene />
+        </EndCard>
         <EndCard
           href={isIt ? '/showcase' : '/en/showcase'}
           title={dict.works.backToShowcase}

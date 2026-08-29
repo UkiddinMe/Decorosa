@@ -1,45 +1,92 @@
 ---
-// "DARK SIDE OF THE MOOD" — the one section that doesn't develop sideways: a single
-// screen of text on the disco hall's backdrop, with the same mirrorball and animal as
-// DiscoWorld standing in the corners. Shared by both locales.
+// "DARK SIDE OF THE MOOD" — the one section that doesn't develop sideways: a scrolling
+// column of text over a *fixed* disco-hall backdrop, with the same mirrorball and animal
+// as DiscoWorld standing in the corners. Shared by both locales.
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import BackLink from '../BackLink.astro';
 import { t } from '../../data/i18n';
+import { availableArtifacts, artifactIcon, artifactPath } from '../../data/artifacts';
+import { withBase } from '../../data/routes';
 
 interface Props {
   lang: 'it' | 'en';
 }
 const { lang } = Astro.props;
 const dict = t(lang);
+const d = dict.darkSide;
+const panels = [d.commissioni, d.collaborazioni] as const;
 ---
 
-<BaseLayout lang={lang} title={`${dict.darkSide.heading} — DECOROSA`}>
+<BaseLayout lang={lang} title={`${d.heading} — DECOROSA`} tone="dark">
   <BackLink href={lang === 'it' ? '/showcase' : '/en/showcase'} label={dict.nav.back} tone="dark" />
 
-  <main class="dark-side">
-    <!-- The very same placeholders as DiscoWorld — same glyphs, same .world__focal
-         rendering path — only resized and repositioned. Deliberately off-diagonal so the
-         pair reads as found rather than composed. -->
-    <span class="world__focal dark-side__ball" aria-hidden="true">🪩</span>
-    <span class="world__focal dark-side__animal" aria-hidden="true">🦫</span>
+  <!-- The backdrop is a viewport-fixed layer, so the gradient and both glyphs stay put
+       while the column scrolls over them. The very same placeholders as DiscoWorld —
+       same glyphs, same .world__focal rendering path — only resized and repositioned.
+       Deliberately off-diagonal so the pair reads as found rather than composed. -->
+  <div class="dark-side__bg" aria-hidden="true">
+    <span class="world__focal dark-side__ball">🪩</span>
+    <span class="world__focal dark-side__animal">🦫</span>
+  </div>
 
+  <main class="dark-side">
     <article class="dark-side__text">
-      <h1>{dict.darkSide.heading}</h1>
-      {dict.darkSide.paragraphs.map((p) => <p>{p}</p>)}
+      <h1>{d.heading}</h1>
+
+      <!-- Two rows, the second stepped further right than the first, so the sentence
+           reads as a handwritten aside rather than a centred standfirst. -->
+      <p class="dark-side__intro">
+        <span>{d.intro[0]}</span>
+        <span>{d.intro[1]}</span>
+      </p>
+
+      <div class="accordion">
+        {
+          panels.map((p) => (
+            <details name="dark-side">
+              <summary>{p.title}</summary>
+              <div class="accordion__body">
+                <p>{p.body}</p>
+              </div>
+            </details>
+          ))
+        }
+
+        <details name="dark-side">
+          <summary>{d.prodotti.title}</summary>
+          <div class="accordion__body">
+            <ul class="products">
+              {
+                availableArtifacts.map((a) => (
+                  <li>
+                    <a href={withBase(artifactPath(a.id, lang))}>
+                      <span class="products__icon">{artifactIcon(a)}</span>
+                      <span>{a.i18n[lang].title}</span>
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+        </details>
+      </div>
+
+      <!-- Closes the column: the one way out of the page that isn't "back". -->
+      <a class="dark-side__contact" href={withBase(lang === 'it' ? '/contatti' : '/en/contact')}>
+        <span>{dict.nav.contacts}</span>
+      </a>
     </article>
   </main>
 </BaseLayout>
 
 <style>
-  .dark-side {
-    position: relative;
-    min-height: 100svh;
+  .dark-side__bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
     overflow: hidden;
-    display: grid;
-    place-items: center;
-    padding: var(--space-l) var(--space-m);
+    pointer-events: none;
     background: var(--disco-bg);
-    color: #eef1ff;
   }
   .dark-side__ball,
   .dark-side__animal {
@@ -49,7 +96,6 @@ const dict = t(lang);
   .dark-side__ball {
     left: -2%;
     top: -4%;
-    z-index: 0;
     font-size: clamp(11rem, 30vw, 30rem);
     opacity: 0.5;
     filter: drop-shadow(0 0 40px rgb(180 200 255 / 0.5));
@@ -61,18 +107,21 @@ const dict = t(lang);
     /* not 0: with line-height 1 the glyph's ink descends ~2% of its font-size below the
        box, and `overflow: hidden` would shave the feet off. */
     bottom: 1%;
-    z-index: 2;
     font-size: clamp(4.4rem, 12vw, 12rem);
     opacity: 0.6;
   }
-  .dark-side__text {
+
+  .dark-side {
     position: relative;
     z-index: 1;
-    max-width: 62ch;
+    min-height: 100svh;
     display: grid;
-    gap: var(--space-s);
-    text-align: justify;
-    hyphens: auto;
+    place-items: center;
+    padding: var(--space-l) var(--space-m);
+    color: #eef1ff;
+  }
+  .dark-side__text {
+    width: min(62ch, 100%);
     text-shadow: 0 2px 14px rgb(0 0 0 / 0.55);
   }
   .dark-side__text h1 {
@@ -80,9 +129,211 @@ const dict = t(lang);
     font-size: var(--step-2);
     letter-spacing: 0.02em;
     text-align: center;
-    margin-bottom: var(--space-s);
+    margin: 0 0 var(--space-s);
   }
-  .dark-side__text p {
+  .dark-side__intro {
+    display: grid;
+    justify-items: start;
+    gap: 0.15em;
+    margin: 0 0 var(--space-l);
+    font-style: italic;
+    font-size: var(--step-0);
+    line-height: 1.35;
+    text-wrap: balance;
+  }
+  .dark-side__intro span:first-child {
+    margin-left: 4%;
+  }
+  .dark-side__intro span:last-child {
+    margin-left: 16%;
+  }
+
+  /* --- Accordion ------------------------------------------------------------------
+     Native <details name> — the shared name is what makes it an accordion (opening one
+     closes the others), no script involved. The open/close glide is ::details-content +
+     interpolate-size; where either is missing the panel simply snaps. */
+  .accordion {
+    display: grid;
+    interpolate-size: allow-keywords;
+    border-top: 1px solid rgb(238 241 255 / 0.25);
+  }
+  .accordion details {
+    border-bottom: 1px solid rgb(238 241 255 / 0.25);
+  }
+  .accordion summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-s);
+    padding: 0.9em 0.2em;
+    cursor: pointer;
+    list-style: none;
+    font-family: var(--font-futura);
+    font-size: var(--step-1);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    transition: color 0.25s var(--ease-out);
+  }
+  .accordion summary::-webkit-details-marker {
+    display: none;
+  }
+  /* The marker: a hairline cross whose vertical stroke retracts when the panel opens. */
+  .accordion summary::after {
+    content: '';
+    flex: none;
+    width: 0.7em;
+    height: 0.7em;
+    background:
+      linear-gradient(currentColor, currentColor) center / 100% 1.5px no-repeat,
+      linear-gradient(currentColor, currentColor) center / 1.5px 100% no-repeat;
+    transition: rotate var(--dur-med) var(--ease-out);
+  }
+  .accordion details[open] summary::after {
+    background-size:
+      100% 1.5px,
+      1.5px 0;
+    rotate: 180deg;
+  }
+  .accordion summary:hover {
+    color: var(--c-yellow);
+  }
+  .accordion__body {
+    padding: 0 0.2em 1.4em;
+  }
+  .accordion__body p {
     margin: 0;
+    text-align: justify;
+    hyphens: auto;
+  }
+  .accordion details::details-content {
+    block-size: 0;
+    overflow: hidden;
+    transition:
+      block-size var(--dur-med) var(--ease-out),
+      content-visibility var(--dur-med) allow-discrete;
+  }
+  .accordion details[open]::details-content {
+    block-size: auto;
+  }
+
+  /* --- Product list ---------------------------------------------------------------
+     One row per *unsold* artifact: the world's focal glyph as a placeholder icon (swap
+     for a real thumbnail with the rest of the artwork) plus its title, the whole row
+     linking to the same detail page the "MY" cards open. */
+  .products {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.6rem;
+  }
+  .products a {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.9em;
+    padding: 0.7em 0.6em;
+    border-radius: 0.6rem;
+    color: inherit;
+    text-decoration: none;
+    font-family: var(--font-futura);
+    font-size: var(--step-0);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: translate 0.25s var(--ease-out);
+  }
+  .products a:hover,
+  .products a:focus-visible {
+    translate: 0.3rem 0;
+  }
+  /* The row's wash doesn't fade in — it opens outwards from the middle of the row,
+     scaled about its own centre, its ends feathered so it reads as light spreading
+     rather than a bar sliding into place. Deliberately unhurried: the spread is the
+     whole gesture, so it gets far more time than the usual 0.25s hover. */
+  .products a::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgb(238 241 255 / 0.13) 28%,
+      rgb(238 241 255 / 0.13) 72%,
+      transparent
+    );
+    scale: 0 1;
+    opacity: 0;
+    transition:
+      scale 2.5s var(--ease-out),
+      opacity 2.5s var(--ease-out);
+  }
+  .products a:hover::before,
+  .products a:focus-visible::before {
+    scale: 1 1;
+    opacity: 1;
+  }
+  .products__icon {
+    font-family: var(--font-emoji);
+    font-size: 2.4em;
+    line-height: 1;
+  }
+
+  /* --- Contacts call-to-action ----------------------------------------------------- */
+  .dark-side__contact {
+    margin: var(--space-l) auto 0;
+    width: fit-content;
+    display: block;
+    padding: 0.7em 1.6em;
+    border: 1.5px solid rgb(238 241 255 / 0.5);
+    border-radius: 999px;
+    font-family: var(--font-futura);
+    font-size: var(--step-0);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: inherit;
+    transition:
+      border-color 0.25s var(--ease-out),
+      color 0.25s var(--ease-out),
+      background 0.25s var(--ease-out);
+  }
+  /* The label slides left to make room for an arrow that grows out of nothing, so the
+     pill's width never changes on hover. */
+  .dark-side__contact span::after {
+    content: '→';
+    display: inline-block;
+    width: 0;
+    opacity: 0;
+    translate: -0.4em 0;
+    transition:
+      width 0.25s var(--ease-out),
+      opacity 0.25s var(--ease-out),
+      translate 0.25s var(--ease-out);
+  }
+  .dark-side__contact:hover,
+  .dark-side__contact:focus-visible {
+    color: #0a0f20;
+    background: var(--c-yellow);
+    border-color: var(--c-yellow);
+    text-shadow: none;
+  }
+  .dark-side__contact:hover span::after,
+  .dark-side__contact:focus-visible span::after {
+    width: 1.1em;
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .accordion details::details-content,
+    .accordion summary::after,
+    .products a,
+    .products a::before,
+    .dark-side__contact,
+    .dark-side__contact span::after {
+      transition: none;
+    }
   }
 </style>

@@ -10,9 +10,11 @@ interface Props {
   lang?: 'it' | 'en';
   title?: string;
   description?: string;
+  /** light pills on dark backgrounds */
+  tone?: 'light' | 'dark';
 }
 
-const { lang = 'it', title, description } = Astro.props;
+const { lang = 'it', title, description, tone = 'light' } = Astro.props;
 const dict = t(lang);
 const pageTitle = title ?? dict.meta.title;
 const pageDescription = description ?? dict.meta.description;
@@ -91,7 +93,7 @@ const alternates = pair
   </head>
   <body>
     <slot />
-    <LangToggle lang={lang} />
+    <LangToggle lang={lang} tone={tone} />
     <script>
       import '../scripts/transition.ts';
     </script>

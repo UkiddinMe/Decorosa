@@ -22,3 +22,10 @@ After each request, if any parts of code happen not to be necessary anymore, get
 ## Keep answers concise
 
 Please keep your answers more concise than you normally would. Don't be as verbose as you normally would be.
+
+## IMPORTANT: Never invent copy
+
+All user-facing text on the site is the owner's to write. Never invent headings,
+intros, taglines or body copy — use Lorem Ipsum / obviously generic placeholders in
+`src/data/i18n/{it,en}.ts`, keeping the shape (line count, length) the layout expects.
+Functional UI labels (buttons, form fields, nav) are fine as plain words.

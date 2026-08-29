@@ -1,64 +1,347 @@
 ---
 // Shared contacts page for both locales — the thin files in src/pages/ only pick `lang`.
+// Editorial two-column spread: the address column on the left, the letter on the right,
+// separated by a hairline. Same vocabulary as the other sections — Futura headings,
+// uppercase letterspaced micro-labels, hairline rules, pill CTA with a growing arrow.
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import BackLink from '../BackLink.astro';
 import { t } from '../../data/i18n';
-import { withBase } from '../../data/routes';
 
 interface Props {
   lang: 'it' | 'en';
 }
 const { lang } = Astro.props;
 const dict = t(lang);
-const backHref = withBase(lang === 'it' ? '/' : '/en');
 const ig = dict.contacts.instagram.replace('@', '');
+// The site is fully static, so the form needs an external mail relay (Formspree,
+// Web3Forms, Basin — anything that accepts a JSON POST). Set PUBLIC_CONTACT_ENDPOINT
+// at build time to enable it; without it submitting simply opens a blank message to
+// the address in the visitor's own mail client (see src/scripts/contacts.ts).
+const endpoint = import.meta.env.PUBLIC_CONTACT_ENDPOINT ?? '';
 ---
 
 <BaseLayout lang={lang} title={`${dict.contacts.heading} — DECOROSA`}>
+  <BackLink href={lang === 'it' ? '/' : '/en'} label={dict.nav.back} />
+
+  <!-- Two barely-there washes in brand colours, fixed so the page keeps its white-paper
+       feel without being a flat white field. -->
+  <div class="contacts__wash" aria-hidden="true"></div>
+
   <main class="contacts">
-    <a class="contacts__back" href={backHref}>← {dict.nav.back}</a>
-    <h1 class="contacts__title">{dict.contacts.heading}</h1>
-    <p class="contacts__intro">{dict.contacts.intro}</p>
-    <ul class="contacts__list">
-      <li><a href={`mailto:${dict.contacts.email}`}>{dict.contacts.email}</a></li>
-      <li>
-        <a href={`https://instagram.com/${ig}`} target="_blank" rel="noopener">
-          {dict.contacts.instagram}
-        </a>
-      </li>
-    </ul>
+    <section class="contacts__aside">
+      <h1 class="contacts__title">{dict.contacts.heading}</h1>
+      <p class="contacts__intro">{dict.contacts.intro}</p>
+
+      <ul class="contacts__list">
+        <li>
+          <a class="row" href={`mailto:${dict.contacts.email}`}>
+            <span class="row__label">Email</span>
+            <span class="row__value">{dict.contacts.email}</span>
+          </a>
+        </li>
+        <li>
+          <a class="row" href={`https://instagram.com/${ig}`} target="_blank" rel="noopener">
+            <span class="row__label">Instagram</span>
+            <span class="row__value">{dict.contacts.instagram}</span>
+          </a>
+        </li>
+      </ul>
+    </section>
+
+    <form
+      class="contacts__form"
+      data-contact-form
+      data-endpoint={endpoint}
+      data-to={dict.contacts.email}
+      data-sending={dict.contacts.form.sending}
+      data-sent={dict.contacts.form.sent}
+      data-error={dict.contacts.form.error}
+      data-fallback={dict.contacts.form.fallback}
+      method="post"
+      action={endpoint || `mailto:${dict.contacts.email}`}
+    >
+      <h2 class="contacts__form-title">{dict.contacts.form.title}</h2>
+
+      {/* placeholder=" " is what drives the floating labels (:placeholder-shown) */}
+      <label class="field">
+        <input
+          class="field__input"
+          type="text"
+          name="name"
+          autocomplete="name"
+          placeholder=" "
+          required
+        />
+        <span class="field__label">{dict.contacts.form.name}</span>
+      </label>
+      <label class="field">
+        <input
+          class="field__input"
+          type="email"
+          name="email"
+          autocomplete="email"
+          placeholder=" "
+          required
+        />
+        <span class="field__label">{dict.contacts.form.email}</span>
+      </label>
+      <label class="field">
+        <textarea class="field__input" name="message" rows="5" placeholder=" " required></textarea>
+        <span class="field__label">{dict.contacts.form.message}</span>
+      </label>
+
+      {/* honeypot: bots fill it, humans never see it */}
+      <label class="contacts__trap" aria-hidden="true">
+        <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" />
+      </label>
+
+      <div class="contacts__actions">
+        <button class="contacts__submit" type="submit">
+          <span>{dict.contacts.form.submit}</span>
+        </button>
+        <p class="contacts__status" data-contact-status role="status" aria-live="polite"></p>
+      </div>
+    </form>
   </main>
+
+  <script>
+    import '../../scripts/contacts.ts';
+  </script>
 </BaseLayout>
 
 <style>
+  .contacts__wash {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(58% 52% at 86% 10%, rgb(244 196 86 / 0.2), transparent 70%),
+      radial-gradient(52% 48% at 4% 94%, rgb(154 131 198 / 0.16), transparent 70%);
+  }
+
   .contacts {
+    position: relative;
+    z-index: 1;
     min-height: 100svh;
     max-width: var(--maxw);
     margin-inline: auto;
     padding: var(--space-l) var(--space-m);
     display: grid;
     align-content: center;
-    gap: var(--space-m);
+    gap: var(--space-l);
   }
-  .contacts__back {
-    font-family: var(--font-display);
-    font-size: var(--step--1);
-    text-decoration: none;
-    justify-self: start;
+  /* The spread only opens up when there is room for two comfortable columns. */
+  @media (min-width: 900px) {
+    .contacts {
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      gap: calc(var(--space-l) * 1.2);
+    }
+    .contacts__form {
+      padding-left: calc(var(--space-l) * 1.2);
+      border-left: 1px solid rgb(20 20 20 / 0.14);
+    }
   }
+
+  /* --- Address column --------------------------------------------------------------- */
   .contacts__title {
+    font-family: var(--font-futura);
     font-size: var(--step-2);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .contacts__intro {
+    margin: var(--space-s) 0 var(--space-m);
+    max-width: 30ch;
+    font-style: italic;
+    color: var(--c-grey);
+    text-wrap: balance;
   }
   .contacts__list {
     display: grid;
     gap: var(--space-s);
-    font-size: var(--step-1);
-    font-family: var(--font-display);
   }
-  .contacts__list a {
+  .row {
+    display: grid;
+    gap: 0.2em;
+    width: fit-content;
     text-decoration: none;
-    border-bottom: 3px solid var(--c-yellow);
   }
-  .contacts__list a:hover {
-    border-color: var(--accent);
+  .row__label {
+    font-family: var(--font-display);
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--c-grey);
+  }
+  /* The rule under the value is a background, so it can sweep in from the left on hover
+     instead of simply switching on; the inset shadow is the resting hairline. */
+  .row__value {
+    font-family: var(--font-futura);
+    font-size: var(--step-1);
+    letter-spacing: 0.02em;
+    padding-bottom: 0.12em;
+    background: linear-gradient(var(--accent), var(--accent)) left bottom / 0 1.5px no-repeat;
+    box-shadow: inset 0 -1px 0 rgb(20 20 20 / 0.25);
+    transition: background-size var(--dur-med) var(--ease-out);
+  }
+  .row:hover .row__value,
+  .row:focus-visible .row__value {
+    background-size: 100% 1.5px;
+  }
+
+  /* --- Letter column ---------------------------------------------------------------- */
+  .contacts__form {
+    display: grid;
+    gap: var(--space-s);
+    max-width: 34rem;
+    width: 100%;
+  }
+  .contacts__form-title {
+    font-family: var(--font-display);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--c-grey);
+    margin-bottom: var(--space-s);
+  }
+
+  /* Underline-only fields: no boxes, and the label rides up out of the way once the field
+     has focus or content. */
+  .field {
+    position: relative;
+    display: block;
+  }
+  .field__input {
+    display: block;
+    width: 100%;
+    font: inherit;
+    color: inherit;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid rgb(20 20 20 / 0.25);
+    border-radius: 0;
+    padding: 1.5rem 0 0.55rem;
+  }
+  /* the sweeping rule below is the focus indicator */
+  .field__input:focus,
+  .field__input:focus-visible {
+    outline: none;
+  }
+  textarea.field__input {
+    resize: vertical;
+    min-height: 6rem;
+  }
+  .field__label {
+    position: absolute;
+    left: 0;
+    top: 1.5rem;
+    font-family: var(--font-display);
+    color: var(--c-grey);
+    pointer-events: none;
+    transition:
+      translate var(--dur-med) var(--ease-out),
+      font-size var(--dur-med) var(--ease-out),
+      letter-spacing var(--dur-med) var(--ease-out),
+      color var(--dur-med) var(--ease-out);
+  }
+  .field__input:focus + .field__label,
+  .field__input:not(:placeholder-shown) + .field__label {
+    translate: 0 -1.5rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--c-black);
+  }
+  /* Accent rule drawn over the hairline, growing from the left on focus. */
+  .field::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1.5px;
+    background: var(--accent);
+    scale: 0 1;
+    transform-origin: left;
+    transition: scale var(--dur-med) var(--ease-out);
+  }
+  .field:focus-within::after {
+    scale: 1 1;
+  }
+
+  /* honeypot — off-screen rather than display:none so bots still see it */
+  .contacts__trap {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .contacts__actions {
+    margin-top: var(--space-s);
+    display: flex;
+    align-items: center;
+    gap: var(--space-s);
+    flex-wrap: wrap;
+  }
+  /* Same pill as the dark-side call to action: a hairline outline that fills on hover,
+     the label sliding left to make room for an arrow, so the width never changes. */
+  .contacts__submit {
+    font-family: var(--font-futura);
+    font-size: var(--step-0);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.7em 1.6em;
+    border: 1.5px solid rgb(20 20 20 / 0.5);
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    transition:
+      background 0.25s var(--ease-out),
+      border-color 0.25s var(--ease-out),
+      color 0.25s var(--ease-out);
+  }
+  .contacts__submit span::after {
+    content: '→';
+    display: inline-block;
+    width: 0;
+    opacity: 0;
+    translate: -0.4em 0;
+    transition:
+      width 0.25s var(--ease-out),
+      opacity 0.25s var(--ease-out),
+      translate 0.25s var(--ease-out);
+  }
+  .contacts__submit:hover,
+  .contacts__submit:focus-visible {
+    background: var(--c-black);
+    border-color: var(--c-black);
+    color: var(--c-white);
+  }
+  .contacts__submit:hover span::after,
+  .contacts__submit:focus-visible span::after {
+    width: 1.1em;
+    opacity: 1;
+    translate: 0 0;
+  }
+  .contacts__submit[disabled] {
+    cursor: progress;
+    opacity: 0.5;
+  }
+  .contacts__status {
+    margin: 0;
+    font-size: var(--step--1);
+    font-style: italic;
+    color: var(--c-grey);
+  }
+  .contacts__status[data-state='error'] {
+    color: var(--accent);
+    font-style: normal;
   }
 </style>
