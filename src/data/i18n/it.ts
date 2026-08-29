@@ -57,7 +57,7 @@ export const it: Dict = {
     heading: 'Contatti',
     intro: 'Per collaborazioni, commissioni e progetti su misura.',
     email: 'ciao@decorosa.art',
-    instagram: '@decorosa',
+    instagram: '@decor.osa',
     form: {
       title: 'Scrivimi',
       name: 'Nome',

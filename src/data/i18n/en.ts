@@ -21,7 +21,7 @@ export const en: Dict = {
     heading: 'Contact',
     intro: 'For collaborations, commissions and bespoke projects.',
     email: 'ciao@decorosa.art',
-    instagram: '@decorosa',
+    instagram: '@decor.osa',
     form: {
       title: 'Write to me',
       name: 'Name',
