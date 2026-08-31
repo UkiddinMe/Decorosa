@@ -270,9 +270,9 @@ The berry is a single biconcave silhouette (dimpled top and bottom, lobes of une
 width); it rests below the ridge apex, drawn after the sand so it overlaps it rather than
 floating on it. "DESSERT" is set across the sky in the plate's upper third, black and
 uppercase in the display face, matching `DesertWorld`'s big word, and is drawn last so it
-always sits in front of the sun and the cherry; a yellow sun peeks out of the top-right
-corner, with three round-capped rays fanned 35° apart and kept short enough to stop clear
-of the word. Each ray is a dash sliding out and back along its line on a staggered
+always sits in front of the sun and the cherry; a yellow sun peeks out of the top-left
+corner (drawn at the right corner and mirrored about the vertical centre), with three
+round-capped rays fanned 35° apart and kept short enough to stop clear of the word. Each ray is a dash sliding out and back along its line on a staggered
 `stroke-dashoffset` loop that never runs off either end, so they pulse without vanishing.
 
 **Artifact pages** (`artifact.ts`, `ArtifactPage.astro`, `worlds/*`). The world is a 300vw

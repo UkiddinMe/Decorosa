@@ -10,8 +10,9 @@
 <svg class="dune" viewBox="0 0 200 300" role="img" aria-hidden="true">
   <rect class="dune__sky" x="0" y="0" width="200" height="300" />
 
-  <!-- sun peeking out of the top-right corner, with three rays shooting out of it -->
-  <g class="sun">
+  <!-- sun peeking out of the top-left corner, with three rays shooting out of it —
+       drawn at the right corner and mirrored about the vertical centre -->
+  <g class="sun" transform="translate(200 0) scale(-1 1)">
     <circle class="sun__disc" cx="188" cy="16" r="22" />
     <g class="sun__rays">
       <line class="sun__ray" x1="158.5" y1="21.2" x2="153.5" y2="22.1" />
