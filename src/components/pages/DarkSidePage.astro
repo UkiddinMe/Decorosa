@@ -20,13 +20,14 @@ const panels = [d.commissioni, d.collaborazioni] as const;
 <BaseLayout lang={lang} title={`${d.heading} — DECOROSA`} tone="dark">
   <BackLink href={lang === 'it' ? '/showcase' : '/en/showcase'} label={dict.nav.back} tone="dark" />
 
-  <!-- The backdrop is a viewport-fixed layer, so the gradient and both glyphs stay put
-       while the column scrolls over them. The very same placeholders as DiscoWorld —
-       same glyphs, same .world__focal rendering path — only resized and repositioned.
+  <!-- The backdrop is a viewport-fixed layer, so the gradient and both drawings stay put
+       while the column scrolls over them. Both are cut-outs on transparency (see the
+       DSOTM block in scripts/build-image-assets.py): the navy inside the ball's tiles and
+       the cat's body is *not* painted, so the page gradient reads straight through them.
        Deliberately off-diagonal so the pair reads as found rather than composed. -->
   <div class="dark-side__bg" aria-hidden="true">
-    <span class="world__focal dark-side__ball">🪩</span>
-    <span class="world__focal dark-side__animal">🦫</span>
+    <img class="dark-side__ball" src={withBase('/assets/dark-side/ball.webp')} alt="" width="960" height="1884" />
+    <img class="dark-side__animal" src={withBase('/assets/dark-side/animal.webp')} alt="" width="660" height="1017" />
   </div>
 
   <main class="dark-side">
@@ -90,24 +91,28 @@ const panels = [d.commissioni, d.collaborazioni] as const;
   }
   .dark-side__ball,
   .dark-side__animal {
+    position: absolute;
+    height: auto;
     user-select: none;
   }
-  /* Big, behind the text, tucked into the upper-left corner. */
+  /* Hangs from the upper left. The width sizes the ball itself; the cord drawn above it
+     is as long again, and the negative top pulls most of that cord off the top edge — in
+     terms of the same variable, so the ball keeps its height in the corner at every size
+     rather than sliding down as the drawing grows. */
   .dark-side__ball {
-    left: -2%;
-    top: -4%;
-    font-size: clamp(11rem, 30vw, 30rem);
+    --ball-w: clamp(7.5rem, 20vw, 17.5rem);
+    left: 4%;
+    top: calc(var(--ball-w) * -0.45);
+    width: var(--ball-w);
     opacity: 0.5;
-    filter: drop-shadow(0 0 40px rgb(180 200 255 / 0.5));
+    filter: drop-shadow(0 0 40px rgb(203 46 112 / 0.35));
   }
   /* Small, tucked into the bottom-right corner — intentionally not the mirror of the
      ball's offsets. */
   .dark-side__animal {
-    right: 2%;
-    /* not 0: with line-height 1 the glyph's ink descends ~2% of its font-size below the
-       box, and `overflow: hidden` would shave the feet off. */
+    right: 5%;
     bottom: 1%;
-    font-size: clamp(4.4rem, 12vw, 12rem);
+    width: clamp(5.5rem, 13vw, 11rem);
     opacity: 0.6;
   }
 

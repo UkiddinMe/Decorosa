@@ -130,3 +130,28 @@ plate_h = round(deco.width * 3 / 2)
 deco = deco.crop((0, 160, deco.width, 160 + plate_h))
 lifted = np.power(np.asarray(deco).astype(np.float32) / 255.0, 0.82) * 255
 save(Image.fromarray(lifted.astype(np.uint8), 'RGB'), 'works/back-to-showcase', quality=90)
+
+
+# DARK SIDE OF THE MOOD — the mirrorball and the cat that stand in the page's corners.
+# Both are flat two-tone drawings: one pink on one navy, nothing else in the file. So the
+# cut-out is an exact unmix rather than a segmentation — project each pixel onto the
+# navy→pink axis and that scalar *is* the coverage, which keeps the anti-aliased edges
+# and, just as importantly, leaves the navy inside the ball (its mirror tiles, the cat's
+# body) transparent, so the page's own gradient shows through the drawing as it does in
+# the artwork.
+DSOTM = os.path.join(DATA, 'DSOTM')
+NAVY, PINK = np.array([35, 45, 95], np.float32), np.array([203, 46, 112], np.float32)
+
+
+def unmix(name, width):
+    rgb = np.asarray(Image.open(os.path.join(DSOTM, name + '.png')).convert('RGB')).astype(np.float32)
+    axis = PINK - NAVY
+    a = np.clip(((rgb - NAVY) @ axis) / (axis @ axis), 0, 1)
+    flat = np.broadcast_to(PINK.astype(np.uint8), a.shape + (3,))
+    return resize(trim(Image.fromarray(np.dstack([flat, (a * 255).astype(np.uint8)]), 'RGBA')), width)
+
+
+# Twice the largest size each is rendered at (see DarkSidePage.astro), no more: flat art,
+# so lossless keeps the lines crisp at a fraction of a photo's weight.
+save(unmix('strobo 1', 960), 'dark-side/ball', lossless=True)
+save(unmix('animaletto 1', 660), 'dark-side/animal', lossless=True)

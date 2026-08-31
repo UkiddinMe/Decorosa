@@ -63,7 +63,7 @@ export const panels: Panel[] = [
     spiral: { angleDeg: 120, radius: 360, dropY: 700 },
     href: { it: "/opere", en: "/en/works" },
     form: "object",
-    image: { src: "/assets/showcase/my.webp", w: 1500, h: 1221 },
+    image: { src: "/assets/showcase/my.webp", w: 1500, h: 1188 },
     width: 340,
   },
   {

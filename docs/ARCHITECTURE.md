@@ -103,6 +103,7 @@ public/
   assets/sky.jpg          The shared sky (hole, showcase backdrop, transition covers)
   assets/showcase/        The three panel artworks (webp; `my`/`dark-side` have alpha)
   assets/works/           Artwork for the "MY" run's end cards (webp)
+  assets/dark-side/       The DSOTM backdrop pair, ball + animal (webp, alpha)
 scripts/slice-logo.mjs    One-off glyph slicer (see below); splits the starburst in two
 scripts/build-image-assets.py
                           One-off: derives the site's webps from the raw shots in the
@@ -155,9 +156,11 @@ gradient/tint (tokens `--world-*-bg`) — wire real images in `ArtifactCard.astr
 unprocessed). Only the derived files are committed under `public/assets/`.
 `scripts/build-image-assets.py` (run by hand; needs Pillow + SciPy) regenerates them from
 it: a flood-fill cut-out for the tiger chest, an ink-density alpha for the DSOTM shape,
-and hand-framed crops for the two photos ("I AM", and the works page's back-to-showcase
+hand-framed crops for the two photos ("I AM", and the works page's back-to-showcase
 card) — each cropped to its card's aspect so CSS never has to squeeze a whole frame into
-a small plate. Its numbers are tuned to *these* photos — re-tune, don't re-run blindly,
+a small plate — and, for the DSOTM backdrop pair, an exact two-tone unmix: those drawings
+are one pink on one navy, so a projection onto the navy→pink axis *is* the coverage, and
+the navy enclosed by the lines stays transparent for the page gradient to show through. Its numbers are tuned to *these* photos — re-tune, don't re-run blindly,
 when the client sends replacements.
 
 ## Styling
