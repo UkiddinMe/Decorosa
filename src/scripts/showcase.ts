@@ -8,6 +8,7 @@
 // via CSS). Lifecycle-safe for View-Transition navigation.
 import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
+import { isFrontOfLadder } from '../data/panels';
 import { prefersReduced } from './motion';
 import { initLenis, destroyLenis, stopLenis, startLenis, jumpTo } from './lenis';
 
@@ -94,17 +95,17 @@ function init(): void {
     parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--scene-perspective')) ||
     1200;
 
-  // Per orbit tick: (a) a panel is in front of the ladder when its orbit z is positive,
-  // i.e. when the cosine of its world angle (spin + own angle) is — move it to the
-  // matching layer so the ladder occludes it (or not) correctly; (b) its title shows
-  // once that same z crosses the "closer half of the size range" mark.
+  // Per orbit tick: (a) move each panel to the card layer that puts it on the right side
+  // of the ladder — the cut-off is the apparent-motion turning point, not z = 0, see
+  // isFrontOfLadder; (b) show its title once its z crosses the "closer half of the size
+  // range" mark.
   const onSpin = (spin: number): void => {
     for (const card of cards) {
       const worldAngle = ((spin + Number(card.dataset.angle ?? 0)) * Math.PI) / 180;
       const cos = Math.cos(worldAngle);
-      const layer = cos >= 0 ? frontSpiral : backSpiral;
-      if (card.parentElement !== layer) layer.appendChild(card);
       const radius = Number(card.dataset.radius ?? 0);
+      const layer = isFrontOfLadder(cos, radius, perspective) ? frontSpiral : backSpiral;
+      if (card.parentElement !== layer) layer.appendChild(card);
       card.classList.toggle('is-near', radius * cos >= nearThresholdZ(perspective, radius));
     }
   };

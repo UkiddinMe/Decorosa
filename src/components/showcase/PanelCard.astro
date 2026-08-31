@@ -9,19 +9,31 @@ interface Props {
 const { panel, lang } = Astro.props;
 const { angleDeg, radius, dropY } = panel.spiral;
 // Placement of this panel within the spiral (rotated/offset inside the spinning group).
-const style = `--angle:${angleDeg}deg;--radius:${radius}px;--drop:${dropY}px;--media:${panel.media}`;
+// `object` panels are cut-outs: they set their own box from the artwork's proportions.
+const size =
+  panel.form === 'object'
+    ? `--card-w:${panel.width}px;--card-h:${Math.round((panel.width! * panel.image.h) / panel.image.w)}px;`
+    : '';
+const style = `--angle:${angleDeg}deg;--radius:${radius}px;--drop:${dropY}px;${size}`;
 ---
 
 <a
-  class="card"
+  class:list={['card', `card--${panel.form}`]}
   href={withBase(panel.href[lang])}
   style={style}
   data-panel={panel.id}
   data-angle={angleDeg}
   data-radius={radius}
 >
-  <!-- Placeholder media (tinted per panel) until client artwork lands -->
-  <span class="card__media"></span>
+  <img
+    class="card__media"
+    src={withBase(panel.image.src)}
+    width={panel.image.w}
+    height={panel.image.h}
+    alt=""
+    loading="eager"
+    decoding="async"
+  />
   <!-- Revealed by showcase.ts (.is-near) only while the panel sits in the closer half
        of its apparent-size range — i.e. while it reads as "near the viewer". -->
   <span class="card__title">{panel.title}</span>
@@ -49,9 +61,21 @@ const style = `--angle:${angleDeg}deg;--radius:${radius}px;--drop:${dropY}px;--m
   .card__media {
     position: absolute;
     inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  /* Framed photo: cropped into the card box, and lifted off the sky by a shadow that
+     wraps the whole plate — a tight contact edge plus a wider, softer cast below. */
+  .card--card .card__media {
+    object-fit: cover;
     border-radius: 0.5rem;
-    box-shadow: 0 12px 30px rgb(0 0 0 / 0.18);
-    background: var(--media, var(--c-grey));
+    box-shadow:
+      0 1px 4px rgb(0 0 0 / 0.16),
+      0 16px 36px -8px rgb(0 0 0 / 0.38);
+  }
+  /* Cut-out: no frame, no shadow — the piece itself hangs in the sky. */
+  .card--object .card__media {
+    object-fit: contain;
   }
   .card__title {
     position: absolute;

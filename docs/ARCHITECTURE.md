@@ -68,13 +68,15 @@ src/
     showcase/
       Scene.astro         The 3D scene: scroll driver, sky, layer sandwich, fallback list
       Ladder3D.astro      The ladder as the spiral's central axis
-      PanelCard.astro     One panel on the spiral (billboard transform + big side title)
+      PanelCard.astro     One panel on the spiral (billboard transform + big side title).
+                          `form: 'card'` frames the photo in the card box; `form: 'object'`
+                          is a cut-out on transparency, floating with no frame or shadow
     works/
       ArtifactCard.astro  One card of the "MY" run (links to its detail page)
       EndCard.astro       The two cards that close the run: the tiles page, and back
                           up to the showcase. Same plate as an ArtifactCard; the plate
-                          is filled by the `media` tint (showcase card — placeholder
-                          until real artwork lands) or by slotted markup
+                          is filled by the `media` prop (the showcase card's photo,
+                          which also gets an inner vignette) or by slotted markup
       DuneScene.astro     The tiles card's artwork: flat SVG dune + falling cherry
     worlds/               One component per artifact aesthetic (Disco / Jungle / Desert);
                           pure scenery, the artifact page slots its hero + caption in
@@ -99,7 +101,12 @@ src/
 public/
   assets/logo/            Per-glyph PNGs (slicer bootstrap; replace with hand exports)
   assets/sky.jpg          The shared sky (hole, showcase backdrop, transition covers)
+  assets/showcase/        The three panel artworks (webp; `my`/`dark-side` have alpha)
+  assets/works/           Artwork for the "MY" run's end cards (webp)
 scripts/slice-logo.mjs    One-off glyph slicer (see below); splits the starburst in two
+scripts/build-image-assets.py
+                          One-off: derives the site's webps from the raw shots in the
+                          sibling `Decorosa Data/` folder (cut-outs + crops)
 ```
 
 ## i18n
@@ -123,8 +130,10 @@ scripts/slice-logo.mjs    One-off glyph slicer (see below); splits the starburst
 **`src/data/panels.ts`** — the three showcase panels. Exactly three, by design: their
 `spiral` poses (`angleDeg` 120° apart, `dropY`) are coupled with the `turns` constant in
 `showcase.ts` so each panel faces front exactly at viewport centre (ANIMATIONS.md
-§ Spiral). Each entry carries its brand-fixed `title` (identical in both locales) and the
-`href` of the section it opens, per locale.
+§ Spiral). Each entry carries its brand-fixed `title` (identical in both locales), the
+`href` of the section it opens, per locale, and its artwork: `image` (path + intrinsic
+size) plus `form` — `card` for a photo cropped into the card box, `object` for a cut-out
+that floats frameless at its own `width`.
 
 **`src/data/artifacts.ts`** — one entry per artwork: `id` (slug, also the asset folder
 name under `public/assets/artifacts/<id>/`), `world` (which `worlds/*` component renders
@@ -138,9 +147,18 @@ and register it in the `worlds` map in `ArtifactPage.astro`.
 **`src/data/bio.ts`** — the "I AM" timeline: `year`, a placeholder `tint`, IT/EN
 title/description. One ruler tick + year + photo per entry.
 
-All artwork is currently a placeholder gradient/tint (tokens `--world-*-bg`,
-`--panel-*-bg`); wire real images in `PanelCard.astro`, `ArtifactCard.astro` and
+The showcase panels carry real artwork; artifact and bio artwork is still a placeholder
+gradient/tint (tokens `--world-*-bg`) — wire real images in `ArtifactCard.astro` and
 `BioPage.astro` when they land.
+
+**Raw artwork** lives outside the repo, in the sibling `Decorosa Data/` folder (originals,
+unprocessed). Only the derived files are committed under `public/assets/`.
+`scripts/build-image-assets.py` (run by hand; needs Pillow + SciPy) regenerates them from
+it: a flood-fill cut-out for the tiger chest, an ink-density alpha for the DSOTM shape,
+and hand-framed crops for the two photos ("I AM", and the works page's back-to-showcase
+card) — each cropped to its card's aspect so CSS never has to squeeze a whole frame into
+a small plate. Its numbers are tuned to *these* photos — re-tune, don't re-run blindly,
+when the client sends replacements.
 
 ## Styling
 

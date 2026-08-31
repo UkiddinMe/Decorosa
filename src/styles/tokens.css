@@ -1,14 +1,14 @@
 /* DECOROSA design tokens — palette derived from the collage logo. */
 :root {
   /* Brand palette (from the wordmark glyphs) */
-  --c-green: #8bb6a2;   /* D — sage green triangle */
-  --c-orange: #ef6d2a;  /* E */
-  --c-purple: #9a83c6;  /* C */
-  --c-yellow: #f4c456;  /* first O — golden round */
-  --c-red: #e5331d;     /* R */
-  --c-black: #141414;   /* starburst-TM O, S */
-  --c-grey: #6f6f6f;    /* A — warm grey arch */
-  --c-white: #ffffff;   /* background */
+  --c-green: #8bb6a2; /* D — sage green triangle */
+  --c-orange: #ef6d2a; /* E */
+  --c-purple: #9a83c6; /* C */
+  --c-yellow: #f4c456; /* first O — golden round */
+  --c-red: #e5331d; /* R */
+  --c-black: #141414; /* starburst-TM O, S */
+  --c-grey: #6f6f6f; /* A — warm grey arch */
+  --c-white: #ffffff; /* background */
 
   /* Semantic */
   --bg: var(--c-white);
@@ -16,18 +16,20 @@
   --accent: var(--c-red);
 
   /* Type */
-  --font-display: 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif;
-  --font-body: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  --font-display: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Inter", "Helvetica Neue", Arial, sans-serif;
   /* Futura for the big showcase panel titles. Real Futura only exists on the user's
      machine (macOS/Adobe); Jost is the loaded web stand-in — same geometric skeleton. */
-  --font-futura: 'Futura', 'Futura PT', 'Jost', 'Century Gothic', 'Space Grotesk', sans-serif;
+  --font-futura:
+    "Futura", "Futura PT", "Jost", "Century Gothic", "Space Grotesk", sans-serif;
   /* Placeholder artwork is emoji; the body stack has no emoji face, so Chrome/Windows
      draws tofu boxes unless the colour-emoji font is named explicitly. The *installed*
      system faces are versioned with the OS, so recent glyphs (mirror ball U+1FAA9,
      beaver U+1F9AB, potted plant U+1FAB4) are simply missing on Windows 10 and render
      as tofu. Noto Color Emoji is therefore loaded as a webfont (BaseLayout) and put
      first, so the artwork is identical — and present — on every platform. */
-  --font-emoji: 'Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
+  --font-emoji:
+    "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
   --step--1: clamp(0.83rem, 0.78rem + 0.25vw, 0.95rem);
   --step-0: clamp(1rem, 0.92rem + 0.4vw, 1.2rem);
   --step-1: clamp(1.33rem, 1.1rem + 1.1vw, 2rem);
@@ -56,7 +58,10 @@
   /* Everything in the landing scene that is NOT the wordmark+slogan block: the page's
      own padding (top side carries the drop), the two hero gaps, the gap above the ladder,
      and the ladder itself. */
-  --landing-chrome: calc(2 * var(--space-m) + 2 * var(--landing-drop) + 2 * var(--space-s) + var(--landing-gap) + var(--entry-stage-h));
+  --landing-chrome: calc(
+    2 * var(--space-m) + 2 * var(--landing-drop) + 2 * var(--space-s) +
+      var(--landing-gap) + var(--entry-stage-h)
+  );
   /* Width of the DECOROSA wordmark. Shared so the slogan block underneath can be
      justified to exactly the logo's lateral boundaries (Logo.astro / Slogan.astro).
      The first term is the SHARE of the viewport the wordmark claims: 60vw once there is
@@ -66,14 +71,20 @@
      zoomed: wordmark + slogan is ~0.46 x --logo-w tall, so the height the chrome leaves
      over is worth ~2.1x as much width. Without it the rem cap holds the wordmark at full
      size while zooming shrinks the viewport, and the scene starts to scroll. */
-  --logo-w: min(clamp(60vw, 12rem + 38.7vw, 92vw), 37rem, max(14rem, (100svh - var(--landing-chrome)) * 2.1));
+  --logo-w: min(
+    clamp(60vw, 12rem + 38.7vw, 92vw),
+    37rem,
+    max(14rem, (100svh - var(--landing-chrome)) * 2.1)
+  );
 
   /* Showcase 3D. Also consumed by the entry transition's flight replica
      (src/scripts/transition.ts → buildFlight), so the flight's end pose
      can't drift from the real scene (Scene.astro / Ladder3D.astro). */
   --scene-perspective: 1200px;
   --scene-scale: 1;
-  --stage-left: calc(50% - 100vw / 10); /* stage nudged left of centre by ~1/10 viewport */
+  --stage-left: calc(
+    50% - 100vw / 10
+  ); /* stage nudged left of centre by ~1/10 viewport */
   --stage-tilt: 8deg;
   --ladder-incline: 13deg; /* shared with the landing ladder (LadderEntry.astro) */
   /* Width derived from the height so the box matches the ladder SVG's 109:5500 viewBox
@@ -93,7 +104,8 @@
      own box, so the landing hole, the transition cover and the showcase backdrop stay
      pixel-identical across the page swap — element-based `cover` would reframe when
      the showcase scrollbar changes the box width, or on the 124%-tall overscan box. */
-  --sky-bg: #8fb8e6 var(--sky-url) center / max(100vw, calc(124svh * 1280 / 2752)) no-repeat;
+  --sky-bg: #8fb8e6 var(--sky-url) center /
+    max(100vw, calc(124svh * 1280 / 2752)) no-repeat;
 
   /* Per-world placeholder gradients (artifact cards + reduced-motion fallback lists) */
   --world-disco-bg: linear-gradient(150deg, #16203f, #2b3b6b 60%, #8aa0d8);
@@ -101,12 +113,12 @@
   --world-desert-bg: linear-gradient(150deg, #e9b15a, #f4d08a 55%, #f7e7c5);
 
   /* The disco hall backdrop — shared by DiscoWorld and the "dark side" page. */
-  --disco-bg: radial-gradient(120% 90% at 70% 10%, #2b3b6b 0%, #16203f 55%, #0a0f20 100%);
-
-  /* Placeholder media for the three showcase panels */
-  --panel-iam-bg: linear-gradient(150deg, #e5331d, #ef6d2a 55%, #f4c456);
-  --panel-my-bg: linear-gradient(150deg, #9a83c6, #8bb6a2 60%, #f4c456);
-  --panel-dark-bg: linear-gradient(150deg, #0a0f20, #2b3b6b 65%, #8aa0d8);
+  --disco-bg: radial-gradient(
+    120% 90% at 70% 10%,
+    #2b3b6b 0%,
+    #16203f 55%,
+    #0a0f20 100%
+  );
 
   /* Motion */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);

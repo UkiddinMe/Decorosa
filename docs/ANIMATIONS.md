@@ -169,15 +169,23 @@ size range" is a fixed z threshold: the z at which `scale` reaches the midpoint 
 **Card placement & billboarding** (`PanelCard.astro`). Each card's transform is
 `rotateY(angle) translateZ(radius) translateY(drop) rotateY(−(spin+angle))`: the first
 three place it on the spiral (inside the spinning group), the final counter-rotation
-cancels the *total* world rotation so the card always faces the viewer.
+cancels the *total* world rotation so the card always faces the viewer. A `form: 'object'`
+panel (a cut-out with no frame) overrides `--card-w/--card-h` inline from its artwork's
+proportions, so the same billboard transform drives a box of any shape.
 
 **The occlusion sandwich** (`Scene.astro`). Three sibling `.scene` layers — cards
 behind / ladder / cards in front — each with its **own** `perspective`, i.e. its own
 flattened 3D context. Planes in separate contexts can never slice through each other
 (which real shared-context 3D would do, ugly). `sortLayers()` in `showcase.ts` moves
-each card DOM node between the back/front groups whenever its orbit z-sign changes
-(`cos(spin + angle) ≥ 0` → front), so cards still *read* as orbiting around the ladder.
-The `.scene` layers are `pointer-events: none`; clicks land on each card's `.card__hit`
+each card DOM node between the back/front groups as it orbits, so cards still *read* as
+going around the ladder. The cut-off (`isFrontOfLadder`, `panels.ts`) is **not** the
+`z = 0` crossing but `cos(spin + angle) ≥ radius / perspective`: under perspective a
+card's apparent x is `P·r·sin t / (P − r·cos t)`, which turns around ~17° later than
+z = 0 does. Swapping at z = 0 pops a card in front of the ladder while it is still
+visibly travelling outward — it reads as cutting straight through the ladder. Swapping
+at the turning point, a card stays behind for its whole outward swing and returns to the
+front only once it is genuinely on its way back.
+The `.scene` layers are `pointer-events: none`; clicks land on each card's own `<a>`
 button.
 
 **The ladder's thickness** (`Ladder3D.astro`). A single spinning plane would vanish

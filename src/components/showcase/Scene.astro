@@ -1,7 +1,7 @@
 ---
 import PanelCard from './PanelCard.astro';
 import Ladder3D from './Ladder3D.astro';
-import { panels, type Panel } from '../../data/panels';
+import { panels, isFrontOfLadder, type Panel } from '../../data/panels';
 import { withBase } from '../../data/routes';
 
 interface Props {
@@ -13,9 +13,10 @@ const { lang } = Astro.props;
 const travel = Math.max(0, ...panels.map((p) => p.spiral.dropY));
 const driverVh = (panels.length + 1) * 130;
 
-// Server-side layer assignment at spin = 0 (front of orbit = positive z);
-// showcase.ts re-sorts panels between the layers as the spiral turns.
-const isFront = (p: Panel) => Math.cos((p.spiral.angleDeg * Math.PI) / 180) >= 0;
+// Server-side layer assignment at spin = 0; showcase.ts re-sorts panels between the
+// layers as the spiral turns (isFrontOfLadder explains where the cut-off sits).
+const isFront = (p: Panel) =>
+  isFrontOfLadder(Math.cos((p.spiral.angleDeg * Math.PI) / 180), p.spiral.radius);
 ---
 
 <!-- 3D experience: a sticky scene inside a tall scroll driver -->
@@ -69,7 +70,7 @@ const isFront = (p: Panel) => Math.cos((p.spiral.angleDeg * Math.PI) / 180) >= 0
     panels.map((p) => (
       <li class="fallback__item">
         <a href={withBase(p.href[lang])}>
-          <span class="fallback__media" style={`--media:${p.media}`} />
+          <img class="fallback__media" src={withBase(p.image.src)} width={p.image.w} height={p.image.h} alt="" loading="lazy" decoding="async" />
           <h2>{p.title}</h2>
         </a>
       </li>
@@ -151,9 +152,9 @@ const isFront = (p: Panel) => Math.cos((p.spiral.angleDeg * Math.PI) / 180) >= 0
     text-decoration: none;
   }
   .fallback__media {
-    aspect-ratio: 4 / 5;
+    width: 100%;
+    height: auto;
     border-radius: 0.5rem;
-    background: var(--media, var(--c-grey));
   }
   .fallback__item h2 {
     font-family: var(--font-futura);

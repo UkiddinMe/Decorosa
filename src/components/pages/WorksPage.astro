@@ -7,6 +7,7 @@ import EndCard from '../works/EndCard.astro';
 import DuneScene from '../works/DuneScene.astro';
 import { artifacts } from '../../data/artifacts';
 import { t } from '../../data/i18n';
+import { withBase } from '../../data/routes';
 
 interface Props {
   lang: 'it' | 'en';
@@ -27,7 +28,7 @@ const isIt = lang === 'it';
         <EndCard
           href={isIt ? '/showcase' : '/en/showcase'}
           title={dict.works.backToShowcase}
-          media="var(--world-jungle-bg)"
+          media={`url("${withBase('/assets/works/back-to-showcase.webp')}") center / cover`}
         />
       </div>
     </div>

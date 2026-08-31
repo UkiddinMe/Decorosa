@@ -2,7 +2,7 @@
 // The two cards that close the "MY" run: one opens the tiles page, one climbs back to
 // the showcase. Drawn exactly like an ArtifactCard — same plate, same swell — so the
 // row reads as one strip. The plate is filled either by the `media` prop (any CSS
-// <image>/<color> — a placeholder tint until real artwork lands) or by slotted markup,
+// <image>/<color> — the showcase card passes its photo as a url()) or by slotted markup,
 // which is how the tiles card gets its animated dune (DuneScene.astro).
 import { withBase } from '../../data/routes';
 
@@ -16,7 +16,7 @@ const { href, title, media } = Astro.props;
 ---
 
 <a class="end-card" href={withBase(href)} data-card style={media && `--media:${media}`}>
-  <span class="end-card__media"><slot /></span>
+  <span class:list={['end-card__media', media && 'end-card__media--plate']}><slot /></span>
   <span class="end-card__title">{title}</span>
 </a>
 
@@ -37,11 +37,21 @@ const { href, title, media } = Astro.props;
     aspect-ratio: 2 / 3;
     border-radius: 0.4rem;
     background: var(--media, var(--c-grey));
-    box-shadow: 0 16px 40px -12px rgb(0 0 0 / 0.28);
+    --plate-shadow: 0 16px 40px -12px rgb(0 0 0 / 0.28);
+    box-shadow: var(--plate-shadow);
     /* slotted artwork fills the plate and is trimmed by its rounded corners */
     overflow: hidden;
     /* clip the halo at the top edge, exactly as the artifact plates do */
     clip-path: inset(0 -80px -80px -80px);
+  }
+  /* A `media` plate is flat artwork right up to its edge, so it also gets an inner
+     vignette — the border softens inwards instead of ending on a hard rectangle.
+     Slotted artwork (the dune) is drawn by a child, which would paint over an inset
+     shadow anyway, so it keeps the plain outer shadow. */
+  .end-card__media--plate {
+    box-shadow:
+      var(--plate-shadow),
+      inset 0 0 12px rgb(0 0 0 / 0.32);
   }
   .end-card__title {
     font-family: var(--font-futura);
