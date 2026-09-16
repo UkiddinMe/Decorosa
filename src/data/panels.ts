@@ -2,6 +2,45 @@
 // is a doorway into a section of the site. Exactly three, by design — the spiral geometry
 // (angles 120deg apart) and the `turns` constant in showcase.ts are tuned for three.
 
+/**
+ * The tiger chest's mouth, as two strips cut from one column of the artwork (`box`
+ * places that column in % of the artwork's own box): `open`, taken from a second shot
+ * of the piece with its drawer pulled out, and `shut`, taken from the artwork itself.
+ * As the mouth opens, `open` stretches down from the jaw line and `shut` is squeezed
+ * against its own floor, so one pushes the other out of the way; `open` is the taller
+ * file and ends up hanging past the bottom of the box, as the real open drawer does.
+ * `open.seam` is the row the two meet on — the drawer's last solid row, above the pull
+ * that hangs free below it, so the strips stay flush instead of parting around that
+ * overhang. Both are cut by `scripts/build-image-assets.py`, which prints these numbers.
+ */
+export interface Mouth {
+  box: { left: number; top: number; width: number };
+  open: { src: string; w: number; h: number; seam: number };
+  shut: { src: string; w: number; h: number };
+}
+
+/**
+ * The tiger chest artwork and its mouth cut, shared by the two places it appears: the
+ * "MY" panel of the showcase spiral (which opens the mouth as the panel turns to face
+ * the viewer) and the first card of the works run (which opens it on hover).
+ */
+export const tigerArt = {
+  image: { src: "/assets/showcase/my.webp", w: 1500, h: 1018 },
+  mouth: {
+    box: { left: 38.53, top: 52.06, width: 24.93 },
+    open: { src: "/assets/showcase/my-mouth.webp", w: 374, h: 667, seam: 593 },
+    shut: { src: "/assets/showcase/my-mouth-shut.webp", w: 374, h: 375 },
+  } satisfies Mouth,
+};
+
+/** The CSS custom properties that place and drive a mouth overlay (see ANIMATIONS.md). */
+export function mouthVars(mouth: Mouth): string {
+  return (
+    `--mouth-left:${mouth.box.left}%;--mouth-top:${mouth.box.top}%;` +
+    `--mouth-w:${mouth.box.width}%;--mouth-squeeze:${mouth.open.seam / mouth.shut.h};`
+  );
+}
+
 export interface Panel {
   /** slug — only used as a DOM hook */
   id: string;
@@ -19,6 +58,8 @@ export interface Panel {
   form: "card" | "object";
   /** artwork in public/assets/showcase (before withBase()) */
   image: { src: string; w: number; h: number };
+  /** mouth overlay that opens as the panel turns to face the viewer (tiger chest) */
+  mouth?: Mouth;
   /** scene-space width of an `object` panel (cards use --card-w) */
   width?: number;
 }
@@ -63,7 +104,8 @@ export const panels: Panel[] = [
     spiral: { angleDeg: 120, radius: 360, dropY: 700 },
     href: { it: "/opere", en: "/en/works" },
     form: "object",
-    image: { src: "/assets/showcase/my.webp", w: 1500, h: 1188 },
+    image: tigerArt.image,
+    mouth: tigerArt.mouth,
     width: 340,
   },
   {

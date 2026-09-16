@@ -12,6 +12,7 @@ export const en: Dict = {
     back: 'Back',
     backToWorks: 'All works',
     mainWorks: 'Main works',
+    close: 'Close',
   },
   slogan: {
     lead: 'An artistic project that gives new life to something you never knew could be «beautiful»',
@@ -40,7 +41,6 @@ export const en: Dict = {
   },
   works: {
     heading: 'MY',
-    hint: 'Scroll sideways',
     tiles: 'Would you like something else?',
     backToShowcase: 'Back to the menu',
   },

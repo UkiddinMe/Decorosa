@@ -31,6 +31,42 @@ function nearThresholdZ(perspective: number, radius: number): number {
   return perspective - perspective / mid;
 }
 
+// A panel carrying a mouth overlay (the tiger chest) opens it while it swings toward the
+// viewer and shuts it again on the way out — so the piece comes at you growing *and*
+// opening. Tied to cos(worldAngle), the same number that drives its apparent size:
+// shut while it is still side-on, fully open just before it faces front. Smoothstepped,
+// or the drawer would jerk into motion at either end of the range.
+const MOUTH_SHUT_COS = 0.1;
+const MOUTH_OPEN_COS = 0.85;
+function mouthOpen(cos: number): number {
+  const t = Math.min(1, Math.max(0, (cos - MOUTH_SHUT_COS) / (MOUTH_OPEN_COS - MOUTH_SHUT_COS)));
+  return t * t * (3 - 2 * t);
+}
+
+// The same panel also tilts, and the tilt is a function of its orbit rather than of the
+// clock: it only turns while the page is scrolling, like a thing being carried through
+// air. It is deliberately *not* periodic in the orbit — a swing that repeated every turn
+// would reverse two or three times while the panel is on screen, which reads as ticking.
+// It is spread over the panel's whole journey instead: the angle is unwrapped (`spin`
+// climbs past 360), every panel makes its one frontal pass at worldDeg 360 (that is the
+// angle/turns coupling in panels.ts), and the journey runs +-half a full spin either side
+// of it. So the piece swings one way the whole time it is coming up, turns once — 60deg
+// past facing us, a third of the way back out, so the turn lags its change of direction
+// instead of announcing it — and swings back for the rest. Smoothstepped within each leg,
+// so the one reversal eases rather than snaps.
+const GLIDE_FRONT_DEG = 360; // world angle at which a panel faces the viewer
+const GLIDE_SPAN_DEG = 240; // half a journey: 360 * turns / 2
+const GLIDE_REVERSE_DEG = 60; // past the front pass
+const GLIDE_DEG = 4.5;
+function glide(worldDeg: number): number {
+  const d = Math.min(GLIDE_SPAN_DEG, Math.max(-GLIDE_SPAN_DEG, worldDeg - GLIDE_FRONT_DEG));
+  const leg =
+    d <= GLIDE_REVERSE_DEG
+      ? (d + GLIDE_SPAN_DEG) / (GLIDE_SPAN_DEG + GLIDE_REVERSE_DEG)
+      : 1 - (d - GLIDE_REVERSE_DEG) / (GLIDE_SPAN_DEG - GLIDE_REVERSE_DEG);
+  return GLIDE_DEG * (2 * (leg * leg * (3 - 2 * leg)) - 1);
+}
+
 // When arriving from the landing (the ladder has just risen to its resting spot), the first
 // panel enters exactly like panels do on scroll: the spiral starts one scroll slot back
 // (240deg of spin, 700px lower — see the angle/drop coupling in panels.ts) and decelerates
@@ -98,15 +134,21 @@ function init(): void {
   // Per orbit tick: (a) move each panel to the card layer that puts it on the right side
   // of the ladder — the cut-off is the apparent-motion turning point, not z = 0, see
   // isFrontOfLadder; (b) show its title once its z crosses the "closer half of the size
-  // range" mark.
+  // range" mark; (c) for a panel that is alive (the tiger), open its mouth as it turns to
+  // face us, and tilt it along its orbit.
   const onSpin = (spin: number): void => {
     for (const card of cards) {
-      const worldAngle = ((spin + Number(card.dataset.angle ?? 0)) * Math.PI) / 180;
+      const worldDeg = spin + Number(card.dataset.angle ?? 0);
+      const worldAngle = (worldDeg * Math.PI) / 180;
       const cos = Math.cos(worldAngle);
       const radius = Number(card.dataset.radius ?? 0);
       const layer = isFrontOfLadder(cos, radius, perspective) ? frontSpiral : backSpiral;
       if (card.parentElement !== layer) layer.appendChild(card);
       card.classList.toggle('is-near', radius * cos >= nearThresholdZ(perspective, radius));
+      if (card.dataset.alive !== undefined) {
+        card.style.setProperty('--mouth-open', mouthOpen(cos).toFixed(3));
+        card.style.setProperty('--glide', `${glide(worldDeg).toFixed(2)}deg`);
+      }
     }
   };
 

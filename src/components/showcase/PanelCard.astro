@@ -1,5 +1,5 @@
 ---
-import type { Panel } from '../../data/panels';
+import { mouthVars, type Panel } from '../../data/panels';
 import { withBase } from '../../data/routes';
 
 interface Props {
@@ -14,7 +14,8 @@ const size =
   panel.form === 'object'
     ? `--card-w:${panel.width}px;--card-h:${Math.round((panel.width! * panel.image.h) / panel.image.w)}px;`
     : '';
-const style = `--angle:${angleDeg}deg;--radius:${radius}px;--drop:${dropY}px;${size}`;
+const mouthBox = panel.mouth ? mouthVars(panel.mouth) : '';
+const style = `--angle:${angleDeg}deg;--radius:${radius}px;--drop:${dropY}px;${size}${mouthBox}`;
 ---
 
 <a
@@ -24,16 +25,45 @@ const style = `--angle:${angleDeg}deg;--radius:${radius}px;--drop:${dropY}px;${s
   data-panel={panel.id}
   data-angle={angleDeg}
   data-radius={radius}
+  data-alive={panel.mouth ? '' : undefined}
 >
-  <img
-    class="card__media"
-    src={withBase(panel.image.src)}
-    width={panel.image.w}
-    height={panel.image.h}
-    alt=""
-    loading="eager"
-    decoding="async"
-  />
+  <!-- Wrapper, not the card itself: the card's transform is the spiral billboard, so the
+       glide needs its own box to rock inside. The mouth rides along with the artwork. -->
+  <span class="card__art">
+    <img
+      class="card__media"
+      src={withBase(panel.image.src)}
+      width={panel.image.w}
+      height={panel.image.h}
+      alt=""
+      loading="eager"
+      decoding="async"
+    />
+    {
+      panel.mouth && (
+        <>
+          <img
+            class="card__mouth card__mouth--shut"
+            src={withBase(panel.mouth.shut.src)}
+            width={panel.mouth.shut.w}
+            height={panel.mouth.shut.h}
+            alt=""
+            loading="eager"
+            decoding="async"
+          />
+          <img
+            class="card__mouth card__mouth--open"
+            src={withBase(panel.mouth.open.src)}
+            width={panel.mouth.open.w}
+            height={panel.mouth.open.h}
+            alt=""
+            loading="eager"
+            decoding="async"
+          />
+        </>
+      )
+    }
+  </span>
   <!-- Revealed by showcase.ts (.is-near) only while the panel sits in the closer half
        of its apparent-size range — i.e. while it reads as "near the viewer". -->
   <span class="card__title">{panel.title}</span>
@@ -58,11 +88,49 @@ const style = `--angle:${angleDeg}deg;--radius:${radius}px;--drop:${dropY}px;${s
     text-decoration: none;
     color: var(--c-black);
   }
+  .card__art {
+    position: absolute;
+    inset: 0;
+  }
   .card__media {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
+  }
+  /* The piece glides rather than hangs. No keyframes: `--glide` (showcase.ts) is a
+     function of where the panel is in its orbit, so the tilt only moves while the page
+     does — it turns with the scroll instead of ticking on a timer of its own. The pivot
+     sits high in the box, where a thing carried through air would swing from. */
+  .card[data-alive] .card__art {
+    transform-origin: 50% 30%;
+    rotate: var(--glide, 0deg);
+  }
+  /* The mouth: two strips of one column of the artwork (panels.ts), driven by
+     `--mouth-open` (showcase.ts) as a single moving seam between them. The open mouth
+     stretches down from the jaw line — the whole drawer is there from the first frame,
+     squashed flat against that line, and unfolds to full height rather than being
+     uncovered. The shut mouth is pinned to its floor and squeezed away at the rate the
+     open one grows, so their edges meet exactly and the drawer reads as pushing the
+     closed face down and out of sight. Both keep the file's width, so their sides stay
+     straight lines whatever the scale; at full stretch the open strip hangs past the
+     bottom of the card box, as the real drawer does. */
+  .card__mouth {
+    position: absolute;
+    left: var(--mouth-left);
+    top: var(--mouth-top);
+    width: var(--mouth-w);
+    height: auto;
+  }
+  .card__mouth--open {
+    transform-origin: 50% 0;
+    scale: 1 var(--mouth-open, 0);
+  }
+  /* The extra 0.006 is one hairline of overlap, hidden under the open strip: without it a
+     rounding difference between the two scales can open a gap on the seam. */
+  .card__mouth--shut {
+    transform-origin: 50% 100%;
+    scale: 1 clamp(0, calc(1.006 - var(--mouth-open, 0) * var(--mouth-squeeze)), 1);
   }
   /* Framed photo: cropped into the card box, and lifted off the sky by a shadow that
      wraps the whole plate — a tight contact edge plus a wider, softer cast below. */

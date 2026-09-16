@@ -3,6 +3,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import BackLink from '../BackLink.astro';
 import { bioEvents } from '../../data/bio';
+import { withBase } from '../../data/routes';
 import { t } from '../../data/i18n';
 
 interface Props {
@@ -24,6 +25,9 @@ function mulberry32(seed: number): () => number {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
+
+/** What a media entry is: the panel plays these, and a card cannot wear one as its face. */
+const isVideo = (src: string): boolean => /\.(mp4|webm)$/.test(src);
 
 const layout = bioEvents.map((_, index) => {
   const rand = mulberry32(index * 7919 + 13);
@@ -82,6 +86,14 @@ const layout = bioEvents.map((_, index) => {
           bioEvents.map((event, index) => {
             const txt = event.i18n[lang];
             const { slot, ticks, card } = layout[index];
+            const first = event.media?.[0];
+            // a card whose first item is a video has no face to show: it keeps its tint
+            const cover = first && !isVideo(first.src) ? first : undefined;
+            // an event with artwork opens its panel, a tint-only one is just a caption
+            const Card = event.media ? 'button' : 'div';
+            const cardProps = event.media
+              ? ({ type: 'button', 'data-bio-open': event.id } as const)
+              : ({ tabindex: '0' } as const);
             return (
               <li
                 class="bio-event"
@@ -89,14 +101,31 @@ const layout = bioEvents.map((_, index) => {
                 style={`--tint:${event.tint};--slot-scale:${slot};--card-w:${card.width};--card-ar:${card.ratio}`}
               >
                 <div class="bio-event__stack">
-                  <figure class="bio-event__card" tabindex="0">
-                    <div class="bio-event__photo" />
-                    <figcaption class="bio-event__desc">
+                  <Card
+                    class="bio-event__card"
+                    data-pages={event.media && event.media.length > 1 ? '' : undefined}
+                    data-play={first && isVideo(first.src) ? '' : undefined}
+                    {...cardProps}
+                  >
+                    {cover ? (
+                      <img
+                        class="bio-event__photo"
+                        src={withBase(cover.src)}
+                        width={cover.w}
+                        height={cover.h}
+                        alt={txt.title}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    ) : (
+                      <span class="bio-event__photo" />
+                    )}
+                    <span class="bio-event__desc">
                       <strong>{txt.title}</strong>
-                      <span>{txt.description}</span>
-                    </figcaption>
-                  </figure>
-                  <span class="bio-event__year">{event.year}</span>
+                      {txt.description && <span>{txt.description}</span>}
+                    </span>
+                  </Card>
+                  <span class="bio-event__year">{txt.year ?? event.year}</span>
                 </div>
                 <div class="bio-event__ruler" aria-hidden="true">
                   {ticks.map((tick) => (
@@ -115,6 +144,50 @@ const layout = bioEvents.map((_, index) => {
     </div>
 
     <p class="bio__hint" aria-hidden="true">{dict.bio.hint} →</p>
+
+    <!-- One dialog per event that has artwork, outside the scroller (so the timeline's
+         wheel-to-horizontal never fires under an open lightbox). A card is far too small
+         to read a comic page in; this is where the pages are actually looked at. -->
+    {
+      bioEvents
+        .filter((event) => event.media)
+        .map((event) => {
+          const txt = event.i18n[lang];
+          return (
+            <dialog class="bio-zoom" data-bio-zoom={event.id} aria-label={txt.title}>
+              <button class="bio-zoom__close" type="button" data-bio-close>
+                {dict.nav.close}
+              </button>
+              <div class="bio-zoom__pages" data-bio-pages>
+                {event.media!.map((item) =>
+                  isVideo(item.src) ? (
+                    <video
+                      src={withBase(item.src)}
+                      width={item.w}
+                      height={item.h}
+                      controls
+                      playsinline
+                      preload="metadata"
+                    />
+                  ) : (
+                    <img
+                      src={withBase(item.src)}
+                      width={item.w}
+                      height={item.h}
+                      alt={txt.title}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  )
+                )}
+              </div>
+              <p class="bio-zoom__caption">
+                <strong>{txt.year ?? event.year}</strong> {txt.title}
+              </p>
+            </dialog>
+          );
+        })
+    }
   </main>
 
   <script>
@@ -177,6 +250,11 @@ const layout = bioEvents.map((_, index) => {
     /* the event's own tick is taller than the ruler's; the photo/year stack clears it */
     --event-tick: 66px;
   }
+  /* the open caption overhangs its neighbours, so lift the whole slot while it shows */
+  .bio-event:has(.bio-event__card:hover),
+  .bio-event:has(.bio-event__card:focus-visible) {
+    z-index: 2;
+  }
   /* The whole group is sprayed at once, so neighbouring strokes bend together. The box
      stands on the baseline and is tall enough to hold the longest stroke. */
   .bio-event__ruler {
@@ -228,6 +306,12 @@ const layout = bioEvents.map((_, index) => {
   .bio-event__card {
     position: relative;
     margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: inherit;
+    text-align: inherit;
     /* height-aware so the photo, its year and the tick always fit the band; --card-w and
        --card-ar (near-square, both sides of 1) make no two cards the same size */
     width: calc(clamp(110px, min(13vw, 21svh), 200px) * var(--card-w, 1));
@@ -241,24 +325,80 @@ const layout = bioEvents.map((_, index) => {
   .bio-event__card:focus-visible {
     --hover: 1;
   }
+  button.bio-event__card {
+    cursor: zoom-in;
+  }
+  /* A multi-page event (the comic) is a pile: two tinted plates peeking out from under
+     the top page, fanned a little further apart on hover. */
+  .bio-event__card[data-pages]::before,
+  .bio-event__card[data-pages]::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    /* behind the top page — the card's own `scale` makes it a stacking context, so the
+       plates cannot slip behind the timeline itself */
+    z-index: -1;
+    border-radius: 0.4rem;
+    background: var(--tint);
+    box-shadow: 0 10px 22px rgb(0 0 0 / 0.14);
+    rotate: calc(var(--fan) * (1deg + 1.4deg * var(--hover, 0)));
+    translate: calc(var(--fan) * 3%) 0;
+    transition:
+      rotate 0.3s var(--ease-out),
+      translate 0.3s var(--ease-out);
+  }
+  .bio-event__card[data-pages]::before {
+    --fan: -1;
+  }
+  .bio-event__card[data-pages]::after {
+    --fan: 2;
+  }
+  /* A video event has no still to show, so the card says what it holds: a play mark on
+     its tint, swelling with the card under the pointer. */
+  .bio-event__card[data-play]::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    translate: -30% -50%;
+    border-style: solid;
+    border-width: 0.85rem 0 0.85rem 1.4rem;
+    border-color: transparent transparent transparent var(--c-white);
+    filter: drop-shadow(0 2px 6px rgb(0 0 0 / 0.35));
+    pointer-events: none;
+  }
   .bio-event__photo {
+    display: block;
+    position: relative;
+    width: 100%;
+    /* the <img> carries width/height attributes, and that presentational height would
+       beat the aspect ratio below — the card's own box must win */
+    height: auto;
     aspect-ratio: var(--card-ar, 1);
+    object-fit: cover;
     border-radius: 0.4rem;
     background: var(--tint);
     box-shadow: 0 14px 34px rgb(0 0 0 / 0.18);
   }
+  /* The copy is longer than the photo is tall, so the caption is a panel centred on the
+     photo and free to grow past it — never a text box clipped to the card. */
   .bio-event__desc {
     position: absolute;
-    inset: 0;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    width: max(100%, 15rem);
     border-radius: 0.4rem;
-    padding: 0.7rem;
+    padding: 0.7rem 0.8rem;
     display: grid;
     align-content: center;
     gap: 0.35em;
-    background: rgb(20 20 20 / 0.82);
+    background: rgb(20 20 20 / 0.88);
     color: var(--c-white);
     font-size: clamp(0.62rem, 0.75vw, 0.8rem);
     line-height: 1.35;
+    /* it overhangs the card, so it must never steal the hover from its own photo */
+    pointer-events: none;
     opacity: var(--hover, 0);
     transition: opacity 0.3s var(--ease-out);
   }
@@ -266,6 +406,82 @@ const layout = bioEvents.map((_, index) => {
     font-family: var(--font-futura);
     font-size: 1.15em;
     letter-spacing: 0.02em;
+  }
+
+  /* Lightbox: a panel standing in front of the page and taking nearly all of it, because
+     a comic page has to be *read*. Three rows — close, artwork, caption — and the artwork
+     row gets everything left over. */
+  .bio-zoom {
+    margin: auto;
+    width: 96vw;
+    max-width: none;
+    height: 94svh;
+    max-height: none;
+    padding: var(--space-s);
+    border: 0;
+    border-radius: 0.5rem;
+    background: var(--bg);
+    color: var(--fg);
+    overflow: hidden;
+    overscroll-behavior: contain;
+  }
+  /* The layout belongs to the open state only: a plain `display: grid` on the dialog
+     would beat the UA's `dialog:not([open]) { display: none }` and leave both panels
+     sitting on the page. */
+  .bio-zoom[open] {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: var(--space-s);
+  }
+  .bio-zoom::backdrop {
+    background: rgb(20 20 20 / 0.82);
+  }
+  /* The pages run sideways, like every other row on this site: each one whole and as tall
+     as the panel allows, the set scrolling horizontally when it is wider than the panel
+     (`safe center` so centring never pushes the first page out of reach). */
+  .bio-zoom__pages {
+    display: flex;
+    align-items: center;
+    justify-content: safe center;
+    gap: var(--space-s);
+    min-height: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+  }
+  .bio-zoom__pages img,
+  .bio-zoom__pages video {
+    flex: 0 0 auto;
+    display: block;
+    height: 100%;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+    border-radius: 0.3rem;
+    scroll-snap-align: center;
+  }
+  .bio-zoom__caption {
+    margin: 0;
+    font-size: var(--step--1);
+    color: var(--c-grey);
+  }
+  .bio-zoom__caption strong {
+    font-family: var(--font-futura);
+    color: var(--fg);
+    letter-spacing: 0.06em;
+  }
+  .bio-zoom__close {
+    justify-self: end;
+    padding: 0.3rem 0.8rem;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-display);
+    font-size: var(--step--1);
+    cursor: pointer;
   }
 
   @media (prefers-reduced-motion: reduce) {

@@ -21,7 +21,8 @@ const pageDescription = description ?? dict.meta.description;
 const base = Astro.site ?? Astro.url;
 const skyUrl = withBase('/assets/sky.jpg');
 const canonical = new URL(withBase(normalize(Astro.url.pathname)), base).href;
-const ogImage = new URL(withBase('/assets/logo-original.png'), base).href;
+// Social preview card (1200x630, starburst-TM on white). Built by `npm run build-og`.
+const ogImage = new URL(withBase('/assets/og-image.png'), base).href;
 
 // hreflang alternates for this route (IT default + EN)
 const pair = pairFor(Astro.url.pathname);
@@ -46,13 +47,24 @@ const alternates = pair
 
     {alternates.map((a) => <link rel="alternate" hreflang={a.hreflang} href={a.href} />)}
 
-    <!-- Open Graph -->
+    <!-- Open Graph / Twitter: the link-preview card chat apps and social sites unfurl.
+         Absolute URLs and explicit image dimensions are required — WhatsApp in particular
+         skips the large preview without them. -->
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="DECOROSA" />
+    <meta property="og:url" content={canonical} />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={pageDescription} />
     <meta property="og:image" content={ogImage} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="DECOROSA" />
     <meta property="og:locale" content={lang === 'it' ? 'it_IT' : 'en_US'} />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={pageDescription} />
+    <meta name="twitter:image" content={ogImage} />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />

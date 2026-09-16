@@ -8,7 +8,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "slice-logo": "node scripts/slice-logo.mjs"
+    "slice-logo": "node scripts/slice-logo.mjs",
+    "build-og": "node scripts/build-og-image.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",

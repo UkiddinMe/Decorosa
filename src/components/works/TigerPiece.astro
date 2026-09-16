@@ -1,0 +1,124 @@
+---
+// The tiger chest as a live piece: the artwork plus the two mouth strips over it. Same
+// artwork and the same seam mechanics as the showcase panel (tigerArt in panels.ts,
+// ANIMATIONS.md) — only the drive differs. There the orbit opens the mouth; here it is
+// hover: the drawer rolls out and the whole piece shakes itself a few times.
+// Fills its container's width; the container places it and decides how big it is.
+import { mouthVars, tigerArt } from '../../data/panels';
+import { withBase } from '../../data/routes';
+---
+
+<span class="tiger" style={mouthVars(tigerArt.mouth)}>
+  <img
+    class="tiger__media"
+    src={withBase(tigerArt.image.src)}
+    width={tigerArt.image.w}
+    height={tigerArt.image.h}
+    alt=""
+    loading="eager"
+    decoding="async"
+  />
+  <img
+    class="tiger__mouth tiger__mouth--shut"
+    src={withBase(tigerArt.mouth.shut.src)}
+    width={tigerArt.mouth.shut.w}
+    height={tigerArt.mouth.shut.h}
+    alt=""
+    loading="eager"
+    decoding="async"
+  />
+  <img
+    class="tiger__mouth tiger__mouth--open"
+    src={withBase(tigerArt.mouth.open.src)}
+    width={tigerArt.mouth.open.w}
+    height={tigerArt.mouth.open.h}
+    alt=""
+    loading="eager"
+    decoding="async"
+  />
+</span>
+
+<style>
+  /* Height comes from the artwork itself, which is also what the mouth strips measure
+     their % against — exactly as in the showcase, where the card box *is* the artwork. */
+  .tiger {
+    display: block;
+    position: relative;
+    width: 100%;
+  }
+  .tiger__media {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  /* The mouth: the same two strips of one column of the artwork as the showcase panel
+     (panels.ts), meeting on a single moving seam — the open drawer stretches down from
+     the jaw line while the shut face is squeezed against its own floor and pushed out of
+     sight. `--mouth-open` flips 0 -> 1 on hover and each strip's `scale` eases across it,
+     matching the smoothstep showcase.ts applies to the orbit. */
+  .tiger__mouth {
+    position: absolute;
+    left: var(--mouth-left);
+    top: var(--mouth-top);
+    width: var(--mouth-w);
+    height: auto;
+    transition: scale 0.55s cubic-bezier(0.45, 0, 0.55, 1);
+  }
+  .tiger__mouth--open {
+    transform-origin: 50% 0;
+    scale: 1 var(--mouth-open, 0);
+  }
+  /* The extra 0.006 is one hairline of overlap, hidden under the open strip: without it a
+     rounding difference between the two scales can open a gap on the seam. */
+  .tiger__mouth--shut {
+    transform-origin: 50% 100%;
+    scale: 1 clamp(0, calc(1.006 - var(--mouth-open, 0) * var(--mouth-squeeze)), 1);
+  }
+
+  /* The shake: three swings that die away, over in under half a second, so it reads as
+     the piece coming alive at the touch rather than as an idle loop. Small angles on
+     purpose — the piece is wide, so a couple of degrees already moves its far corners a
+     long way. It pivots high in the box, as the showcase panel's glide does: a thing
+     carried swings from above. One shot per hover: leaving and coming back plays it again. */
+  @keyframes tiger-shake {
+    0% {
+      rotate: 0deg;
+    }
+    16% {
+      rotate: -1.8deg;
+    }
+    38% {
+      rotate: 1.3deg;
+    }
+    58% {
+      rotate: -0.7deg;
+    }
+    78% {
+      rotate: 0.3deg;
+    }
+    100% {
+      rotate: 0deg;
+    }
+  }
+  .tiger {
+    transform-origin: 50% 25%;
+  }
+  /* Hover on the piece itself, not on the box around it: in the works run the tiger
+     overflows its card, so the artwork is what the pointer is aiming at. The focus rule
+     covers the card being tabbed to, since there the piece sits inside a link. */
+  .tiger:hover,
+  :global(a:focus-visible) .tiger {
+    --mouth-open: 1;
+    animation: tiger-shake 0.42s ease-in-out;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tiger__mouth {
+      transition: none;
+    }
+    .tiger:hover,
+    :global(a:focus-visible) .tiger {
+      animation: none;
+    }
+  }
+</style>

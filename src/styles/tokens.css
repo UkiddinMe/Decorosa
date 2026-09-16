@@ -8,6 +8,7 @@
   --c-red: #e5331d; /* R */
   --c-black: #141414; /* starburst-TM O, S */
   --c-grey: #6f6f6f; /* A — warm grey arch */
+  --c-grey-dark: #4f4f4f; /* mid-dark backdrop (works run) */
   --c-white: #ffffff; /* background */
 
   /* Semantic */

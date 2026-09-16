@@ -166,6 +166,48 @@ size range" is a fixed z threshold: the z at which `scale` reaches the midpoint 
 `.is-near`, and CSS fades/slides the title in. Because the title lives inside the card's
 3D box and is sized in px, perspective grows it with the panel as it approaches.
 
+**The tiger's mouth** (`PanelCard.astro` + `mouthOpen` in `showcase.ts`). The "MY" artwork is
+the chest with its mouth shut; over one column of it (`panel.mouth.box`, in % of the artwork's
+own box) sit two strips, both plain rectangles: `open`, cut from a second photo of the piece
+with its drawer pulled out, and `shut`, cut from the artwork itself. `--mouth-open` drives
+both as **one moving seam**: the open strip scales vertically about its *top* edge (the jaw
+line), the shut strip about its *bottom* edge at `--mouth-squeeze` times the rate, so the two edges
+always meet, and the shut strip is gone by the time the open one is ~63% out. That rate is
+measured to the open strip's **seam row** (`mouth.open.seam`), not to its full height: below
+that row only the drawer pull hangs free, and chasing the file's bottom edge instead parts
+the strips around that overhang. So the whole drawer is present from the first frame,
+squashed flat against the jaw line, and unfolds downward while pushing the closed face out
+of sight — not a curtain lifting off a still picture. The strips are rectangles *because* they
+are scaled: a shaped cut-out would deform against paint that is not moving, while straight
+sides stay straight. The open strip is the taller file, so at full stretch it hangs past the
+bottom of the card box, as the real drawer does. The drive is
+`cos(worldAngle)` — the same number that sets the panel's apparent size — smoothstepped from
+shut at `cos 0.1` to open at `0.85`: the piece comes at you growing *and* opening, and shuts
+again on the way out. The same three layers are packaged as `TigerPiece.astro` and reused
+twice off the spiral: as the first card of the works run and as the hero of the page that
+card opens (artifacts flagged `tiger` in `artifacts.ts`; artwork and strip geometry shared
+from `tigerArt`/`mouthVars` in `panels.ts`). Only the drive differs — there is no orbit
+there, so **hover** flips `--mouth-open` 0 → 1 and each strip's `scale` transitions across
+it, eased to match the smoothstep. Hover also shakes the piece: `tiger-shake`, three swings
+that die away over 0.42s about a pivot high in the box, one shot per hover rather than an
+idle loop. The angles are small (±1.8° at most) because the piece is wide — a couple of
+degrees already throws its far corners a long way. In the run it is 160% of its card box
+and hangs a little below its centre, about as low as it can go: wide enough to read,
+narrow enough to keep its corners clear of the run's clipped top edge while it swings, and
+low enough that the fully hung drawer reaches just past the bottom of the box — what is
+left between there and the title is all the room it has, since the title row is shared
+alignment and cannot move. The whole artwork (all three layers) also tilts,
+`--glide` — a function of the orbit, not of the clock, so it only turns while the page is scrolling. It is spread
+over the panel's *whole journey* rather than repeating every turn: the world angle is
+unwrapped (`spin` climbs past 360°), every panel makes its one frontal pass at worldDeg 360°
+(the angle/turns coupling in `panels.ts`), and the swing runs ±240° — half a full spin —
+either side of it. So the piece leans one way the entire time it is coming up, turns **once**,
+60° past facing us, and swings back for the rest; each leg is smoothstepped, so that single
+reversal eases rather than snaps. A swing that repeated every orbit instead would reverse two
+or three times while the panel is on screen, which reads as ticking. Amplitude ±4.5°. That is
+why the layers sit in their own `.card__art` box: the card's own transform is the spiral
+billboard.
+
 **Card placement & billboarding** (`PanelCard.astro`). Each card's transform is
 `rotateY(angle) translateZ(radius) translateY(drop) rotateY(−(spin+angle))`: the first
 three place it on the spiral (inside the spinning group), the final counter-rotation
@@ -258,7 +300,22 @@ identical on server and client and stable across builds. The spray look is one S
 a blur is the overspray, a fast displacement the paint dust, and an alpha ramp gives back
 the body the blur cost. `--near` swells each photo
 as it crosses the middle; hover/focus adds `--hover`, which swells it a little further and
-fades in the description over it.
+fades in the description over it — a panel centred on the photo but free to grow past it
+(the copy is longer than the card is tall), `pointer-events: none` so it never steals the
+hover from its own photo, with the whole slot lifted (`z-index`) while it shows. A
+multi-page event (the comic) shows as a pile: two tinted plates behind the top page,
+fanned a little further apart on hover. A card with media is a button that opens that
+event's `<dialog>` as a panel over nearly the whole viewport (96vw × 94svh): close row,
+artwork row, caption. A card whose media is a video has no still to show, so it keeps its
+tint under a play mark. The panel's layout hangs off `.bio-zoom[open]`, never the dialog
+itself — a plain `display: grid` there outranks the UA's `dialog:not([open])` rule and
+leaves every panel sitting open on the page. The artwork row is a flex row taking every pixel left over — each
+page whole and as tall as the panel allows, the set scrolling sideways (`justify-content:
+safe center`, so centring never pushes the first page out of reach) with the shared
+`wheelToHorizontal` on it. The dialogs sit outside the timeline's scroller, so its own
+wheel handler never fires under an open one; `bio.ts` opens them by delegation and closes
+on the close button, on Escape, or on a click that lands outside the dialog's own box (the
+backdrop reports the dialog itself as its target).
 
 **Works run** (`works.ts`, `WorksPage.astro`). A finite strip: the artifact cards, then
 the two `EndCard`s that leave the section (tiles page, back to the showcase). The track

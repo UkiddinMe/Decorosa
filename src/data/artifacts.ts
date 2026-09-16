@@ -13,40 +13,47 @@ export interface Artifact {
   world: WorldKind;
   /** already sold: still has its own page, but is left out of the dark-side list */
   sold?: boolean;
+  /**
+   * Shows the tiger chest cut-out (the showcase's "MY" piece, `tigerArt` in panels.ts)
+   * in place of the card plate, opening its mouth on hover.
+   */
+  tiger?: boolean;
   /** localized text */
   i18n: Record<'it' | 'en', { title: string; subtitle?: string; body: string }>;
 }
 
 export const artifacts: Artifact[] = [
   {
-    id: 'comodino-disco',
-    world: 'disco',
+    // First of the run, and the one the tiger chest stands for: its card *is* the piece.
+    id: 'credenza-jungle',
+    world: 'jungle',
+    tiger: true,
     i18n: {
       it: {
         title: 'Item 1',
-        subtitle: 'The dark side of the mood',
-        body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore.',
+        subtitle: 'Lorem ipsum',
+        body: 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo.',
       },
       en: {
         title: 'Item 1',
-        subtitle: 'The dark side of the mood',
-        body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore.',
+        subtitle: 'Lorem ipsum',
+        body: 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo.',
       },
     },
   },
   {
-    id: 'credenza-jungle',
-    world: 'jungle',
+    id: 'comodino-disco',
+    world: 'disco',
     i18n: {
       it: {
-        title: 'Credenza Jungle',
-        subtitle: 'Lorem ipsum',
-        body: 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo.',
+        title: 'Item 2',
+        subtitle: 'The dark side of the mood',
+        body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore.',
       },
       en: {
-        title: 'Jungle Sideboard',
-        subtitle: 'Lorem ipsum',
-        body: 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo.',
+        title: 'Item 2',
+        subtitle: 'The dark side of the mood',
+        body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore.',
       },
     },
   },

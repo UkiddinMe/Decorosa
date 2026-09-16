@@ -3,6 +3,7 @@
 // entered by the card flying in from the "MY" run (view-transition-name: artifact-hero).
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import BackLink from '../BackLink.astro';
+import TigerPiece from '../works/TigerPiece.astro';
 import DiscoWorld from '../worlds/DiscoWorld.astro';
 import JungleWorld from '../worlds/JungleWorld.astro';
 import DesertWorld from '../worlds/DesertWorld.astro';
@@ -32,7 +33,12 @@ const tone = artifact.world === 'desert' ? 'light' : 'dark';
     <div class="artifact__viewport" data-artifact tabindex="0" aria-label={txt.title}>
       <World>
         <div class="artifact__intro">
-          <div class="artifact__hero" style={`--media:${artifactMedia(artifact)}`}></div>
+          <div
+            class:list={['artifact__hero', artifact.tiger && 'artifact__hero--tiger']}
+            style={artifact.tiger ? undefined : `--media:${artifactMedia(artifact)}`}
+          >
+            {artifact.tiger && <TigerPiece />}
+          </div>
           <div class="world__caption">
             <h1>{txt.title}</h1>
             {txt.subtitle && <span class="sub">{txt.subtitle}</span>}
@@ -69,6 +75,16 @@ const tone = artifact.world === 'desert' ? 'light' : 'dark';
     box-shadow: 0 16px 40px rgb(0 0 0 / 0.35);
     /* the run's card stamps the same name on itself on click, so it morphs into this */
     view-transition-name: artifact-hero;
+  }
+  /* The tiger stands in for the plate here too, and takes the artwork's own shape rather
+     than the card's: no frame to fill, so nothing to crop it to. It is the piece that
+     arrived from the run, so it keeps its live mouth. */
+  .artifact__hero--tiger {
+    width: clamp(260px, 30vw, 520px);
+    aspect-ratio: auto;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
   }
   .artifact__intro .world__caption {
     position: static;

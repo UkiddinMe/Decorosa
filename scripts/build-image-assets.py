@@ -1,5 +1,6 @@
 """One-off: turn the raw shots in the sibling `Decorosa Data/` folder into web assets."""
 import os
+import cv2
 import numpy as np
 from PIL import Image, ImageFilter
 from scipy import ndimage
@@ -83,6 +84,53 @@ def drop_cast_shadow(img, base_y, drawer, drawer_y, v_max):
     return trim(Image.fromarray(a.astype(np.uint8), 'RGBA'))
 
 
+def drop_right_shadow(img, from_y, margin=4):
+    """This piece is photographed on a white sweep with its shadow falling to the right,
+    and in shade that shadow is neither bright nor neutral enough for `flood_bg` to reach
+    it — it survives as a beige skirt welded to the object. The chest's own right edge,
+    though, is painted green all the way down (body, then the plinth that juts back out),
+    so from `from_y` down keep nothing right of each row's last green pixel. The median
+    filter is there because single rows lose the green to a black outline stroke."""
+    a = np.asarray(img).astype(np.float32)
+    green = (a[..., 1] - a[..., 0] > 5) & (a[..., 3] > 128)
+    idx = np.arange(a.shape[1])
+    right = ndimage.median_filter(np.where(green.any(1), (green * idx).max(1), a.shape[1]), 41)
+    keep = (idx[None, :] <= right[:, None] + margin).astype(np.float32)
+    keep[:from_y] = 1
+    keep = np.asarray(
+        Image.fromarray((keep * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(0.8))
+    ).astype(np.float32) / 255.0
+    a[..., 3] *= keep
+    a[..., 3] *= keep_object(a[..., 3] > 128)
+    return trim(Image.fromarray(a.astype(np.uint8), 'RGBA'))
+
+
+def register(src, dst, skip):
+    """Homography that lays cut-out `src` onto cut-out `dst`. The two shots are the same
+    piece from a slightly different camera spot, so nothing short of a fitted transform
+    makes the paint line up. Matching runs on the opaque pixels only, minus `skip` — the
+    band where the two shots are *meant* to differ (the mouth), which would otherwise
+    offer the fit a pile of confident wrong matches."""
+    def prep(img):
+        g = cv2.cvtColor(np.asarray(img)[..., :3], cv2.COLOR_RGB2GRAY)
+        m = (np.asarray(img)[..., 3] > 200).astype(np.uint8) * 255
+        h, w = m.shape
+        m[int(h * skip[1]):, int(w * skip[0]):int(w * skip[2])] = 0
+        return g, m
+
+    sift = cv2.SIFT_create(6000)
+    ks, ds = sift.detectAndCompute(*prep(src))
+    kd, dd = sift.detectAndCompute(*prep(dst))
+    pairs = cv2.BFMatcher().knnMatch(ds, dd, k=2)
+    good = [m for m, n in pairs if m.distance < 0.75 * n.distance]
+    H, inliers = cv2.findHomography(
+        np.float32([ks[m.queryIdx].pt for m in good]).reshape(-1, 1, 2),
+        np.float32([kd[m.trainIdx].pt for m in good]).reshape(-1, 1, 2),
+        cv2.RANSAC, 3.0)
+    print(f'register: {int(inliers.sum())}/{len(good)} matches kept')
+    return H
+
+
 def resize(img, width):
     return img.resize((width, round(img.height * width / img.width)), Image.LANCZOS)
 
@@ -105,9 +153,53 @@ box = (centre[0] - half_w, centre[1] - half_h, centre[0] + half_w, centre[1] + h
 save(resize(iam.crop(box), 880), 'showcase/iam', quality=88)
 
 # MY — the tiger chest, lifted off its white sweep (background + cast shadow dropped).
-my = resize(cutout('TigreAperta', 42, (185, 150, 128)), 1500)
-save(drop_cast_shadow(my, base_y=1012, drawer=(575, 931), drawer_y=1138, v_max=85),
-     'showcase/my', quality=88)
+# It comes in two shots, mouth shut and mouth open, and the page animates between them
+# (ANIMATIONS.md): the shut chest is the artwork, and the mouth is two strips cut from the
+# *same column* of it — the open mouth from the second shot, the shut mouth from the first.
+# On the page the open strip stretches down from the jaw line while the shut strip is
+# squeezed against its own floor, so the drawer pushes the closed face out of the way.
+#
+# Both strips are plain rectangles, and deliberately so: the page scales them vertically,
+# and a shaped cut-out would deform against paint that isn't moving. Straight sides stay
+# straight. Their width is the drawer's, at its widest — the outer edge of its side walls.
+shut = resize(drop_right_shadow(cutout('TigreChiusa', 42, (185, 150, 128)), from_y=1150), 1500)
+open_ = resize(cutout('TigreAperta', 42, (185, 150, 128)), 1500)
+open_ = drop_cast_shadow(open_, base_y=1012, drawer=(575, 931), drawer_y=1138, v_max=85)
+save(shut, 'showcase/my', quality=88)
+
+# Hand-measured on these two shots, in the 1500px frame both are resized to: the column the
+# drawer occupies, the jaw line it swings from, and the floor of the shut drawers (below
+# that the green plinth starts, and the open drawer simply covers it).
+MOUTH_X = (578, 952)
+JAW_Y = 530
+SHUT_FLOOR_Y = 905
+
+H = register(open_, shut, skip=(0.42, 0.40, 0.62))
+# The open drawer hangs below the shut chest's silhouette, so the shared canvas is taller
+# than the artwork — the open strip is allowed to spill past the card box on the page.
+corners = np.float32([[0, 0], [open_.width, 0], [open_.width, open_.height], [0, open_.height]])
+canvas_h = int(np.ceil(max(cv2.perspectiveTransform(corners.reshape(-1, 1, 2), H)[:, 0, 1].max(),
+                           shut.height)))
+warped = Image.fromarray(cv2.warpPerspective(np.asarray(open_), H, (shut.width, canvas_h),
+                                             flags=cv2.INTER_LANCZOS4, borderValue=(0, 0, 0, 0)),
+                         'RGBA')
+mouth_open = warped.crop((MOUTH_X[0], JAW_Y, MOUTH_X[1], canvas_h))
+save(mouth_open, 'showcase/my-mouth', quality=88)
+save(shut.crop((MOUTH_X[0], JAW_Y, MOUTH_X[1], SHUT_FLOOR_Y)), 'showcase/my-mouth-shut', quality=88)
+
+# The open strip does not end in a straight line: its last rows are the drawer's pull,
+# hanging free with transparency either side. So the shut strip below it is pinned to the
+# deepest row that is still solid across the strip — the drawer's bottom bar — and the
+# pull simply overhangs it. Pinned to the file's true bottom instead, the two strips only
+# touch at the pull and a band of untouched artwork shows between them.
+# (not a full row: below the chest's silhouette the strip's outermost columns are already
+# past the drawer's side walls, so the deepest solid rows are ~97% opaque, not 100%)
+solid = (np.asarray(mouth_open)[..., 3] > 200).mean(1) > 0.9
+seam = int(np.nonzero(solid)[0].max()) + 1
+# Copy into `mouth` in panels.ts: where the column sits on the artwork, and that seam row.
+print('  mouth box (% of my.webp): left {:.2f} top {:.2f} width {:.2f} | seam {}'.format(
+    100 * MOUTH_X[0] / shut.width, 100 * JAW_Y / shut.height,
+    100 * (MOUTH_X[1] - MOUTH_X[0]) / shut.width, seam))
 
 # DARK SIDE — the black shape; alpha comes from the ink itself, so the wavy edges
 # keep their anti-aliasing instead of being cut by a threshold.
@@ -155,3 +247,19 @@ def unmix(name, width):
 # so lossless keeps the lines crisp at a fraction of a photo's weight.
 save(unmix('strobo 1', 960), 'dark-side/ball', lossless=True)
 save(unmix('animaletto 1', 660), 'dark-side/animal', lossless=True)
+
+# I AM timeline — the photos a few events on /bio carry (see src/data/bio.ts).
+TIMELINE = os.path.join(DATA, 'I AM', 'file per timeline')
+
+# The comic (2014): five scanned pages, already trimmed to the paper. They are read
+# full-screen in the timeline's lightbox, so they keep their native size — the scan is
+# only 679px wide and upscaling would buy nothing.
+for page in range(1, 6):
+    src = Image.open(os.path.join(TIMELINE, f'{page} fumetto.JPG')).convert('RGB')
+    save(src, f'bio/fumetto-{page}', quality=86)
+
+# The workshop sign (2022): a wide piece in a tall shot. The timeline cards are near-square
+# and cover-cropped, so frame a square on the sign — hand-measured on this photo, wall
+# above and floor below — instead of letting CSS cut the lettering off.
+entrata = Image.open(os.path.join(TIMELINE, 'entrata.jpeg')).convert('RGB')
+save(resize(entrata.crop((250, 905, 2700, 3355)), 1200), 'bio/entrata', quality=86)

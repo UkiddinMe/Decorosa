@@ -2,7 +2,14 @@
 // locale must satisfy; en.ts imports and conforms to it.
 export type Dict = {
   meta: { title: string; description: string };
-  nav: { enter: string; contacts: string; back: string; backToWorks: string; mainWorks: string };
+  nav: {
+    enter: string;
+    contacts: string;
+    back: string;
+    backToWorks: string;
+    mainWorks: string;
+    close: string;
+  };
   slogan: { lead: string; items: string[] };
   contacts: {
     heading: string;
@@ -23,7 +30,7 @@ export type Dict = {
     };
   };
   bio: { heading: string; hint: string };
-  works: { heading: string; hint: string; tiles: string; backToShowcase: string };
+  works: { heading: string; tiles: string; backToShowcase: string };
   tiles: { heading: string };
   darkSide: {
     heading: string;
@@ -48,6 +55,7 @@ export const it: Dict = {
     back: 'Indietro',
     backToWorks: 'Tutte le opere',
     mainWorks: 'Opere principali',
+    close: 'Chiudi',
   },
   slogan: {
     lead: 'Un progetto artistico che vuole dare nuova vita a qualcosa che non sapevi potesse essere «bello»',
@@ -76,7 +84,6 @@ export const it: Dict = {
   },
   works: {
     heading: 'MY',
-    hint: 'Scorri lateralmente',
     tiles: 'Ne vuoi ancora?',
     backToShowcase: 'Torna al menù',
   },

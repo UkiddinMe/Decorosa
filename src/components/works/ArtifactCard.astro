@@ -1,7 +1,9 @@
 ---
 // One card of the "MY" run. The media element is what flies into the detail page:
 // works.ts stamps `view-transition-name: artifact-hero` on it just before navigating.
+// An artifact flagged `tiger` drops the plate and shows the tiger chest itself instead.
 import { artifactMedia, artifactPath, type Artifact } from '../../data/artifacts';
+import TigerPiece from './TigerPiece.astro';
 import { withBase } from '../../data/routes';
 
 interface Props {
@@ -13,13 +15,21 @@ const txt = artifact.i18n[lang];
 ---
 
 <a
-  class="artifact-card"
+  class:list={['artifact-card', artifact.tiger && 'artifact-card--tiger']}
   href={withBase(artifactPath(artifact.id, lang))}
   data-artifact={artifact.id}
   data-card
-  style={`--media:${artifactMedia(artifact)}`}
+  style={artifact.tiger ? undefined : `--media:${artifactMedia(artifact)}`}
 >
-  <span class="artifact-card__media" data-hero></span>
+  <span class="artifact-card__media" data-hero>
+    {
+      artifact.tiger && (
+        <span class="artifact-card__tiger">
+          <TigerPiece />
+        </span>
+      )
+    }
+  </span>
   <span class="artifact-card__title">{txt.title}</span>
 </a>
 
@@ -64,6 +74,31 @@ const txt = artifact.i18n[lang];
   }
   .artifact-card:hover .artifact-card__title {
     color: var(--accent);
+  }
+
+  /* The tiger keeps the plate's box — so it holds its place in the run, its title lines up
+     with every other and it still has a box to hand the detail page — but paints nothing
+     of its own: no frame, no shadow, and no clip, since the piece is twice the width of
+     that box and its drawer has to be free to hang past the bottom edge. The overflow is
+     still inside the link, so the whole tiger is clickable. */
+  .artifact-card--tiger .artifact-card__media {
+    position: relative;
+    background: none;
+    box-shadow: none;
+    clip-path: none;
+  }
+  /* Half again as wide as its box, and hanging a little below the centre of it — about as
+     low as it can sit: at full stretch the drawer reaches past the bottom of the box, and
+     what is left between there and the title is all the room it has. The title row itself
+     can't move — every card in the run hangs its label from the same line. The width is
+     what keeps the piece clear of the run's top edge, which clips: it has to have room to
+     swing there without losing its corners. */
+  .artifact-card__tiger {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 160%;
+    translate: -50% -47%;
   }
 
   @media (prefers-reduced-motion: reduce) {

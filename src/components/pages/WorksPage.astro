@@ -2,6 +2,7 @@
 // "MY" — the artifacts as a finite lateral run, closed by two cards that leave the
 // section (the tiles page, and back up to the showcase). Shared by both locales.
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import BackLink from '../BackLink.astro';
 import ArtifactCard from '../works/ArtifactCard.astro';
 import EndCard from '../works/EndCard.astro';
 import DuneScene from '../works/DuneScene.astro';
@@ -17,7 +18,9 @@ const dict = t(lang);
 const isIt = lang === 'it';
 ---
 
-<BaseLayout lang={lang} title={`${dict.works.heading} — DECOROSA`}>
+<BaseLayout lang={lang} title={`${dict.works.heading} — DECOROSA`} tone="dark">
+  <BackLink href={isIt ? '/showcase' : '/en/showcase'} label={dict.nav.back} tone="dark" />
+
   <main class="works">
     <div class="works__viewport" data-works tabindex="0" aria-label={dict.works.heading}>
       <div class="works__track">
@@ -32,8 +35,6 @@ const isIt = lang === 'it';
         />
       </div>
     </div>
-
-    <p class="works__hint" aria-hidden="true">← {dict.works.hint} →</p>
   </main>
 
   <script>
@@ -42,25 +43,26 @@ const isIt = lang === 'it';
 </BaseLayout>
 
 <style>
-  /* The run centres on the screen itself — the hint floats over the bottom corner
-     rather than taking a band, which would push the cards above the true centre. */
+  /* The run centres on the screen itself: nothing takes a band under it, which would
+     push the cards above the true centre. */
   .works {
     position: relative;
     height: 100svh;
     overflow: hidden;
+    /* Grey backdrop for the whole run, shaded gently along the diagonal: lit at the
+       top-right, fading into a little shadow towards the bottom-left, so the strip
+       doesn't read as a flat fill. The cards inherit --fg for their titles. */
+    background: linear-gradient(
+      215deg,
+      color-mix(in srgb, var(--c-grey-dark) 92%, white) 0%,
+      var(--c-grey-dark) 50%,
+      color-mix(in srgb, var(--c-grey-dark) 90%, black) 100%
+    );
+    --fg: var(--c-white);
     display: grid;
     align-content: center;
     /* height-aware: a 2:3 card must leave room for its title *and* its centre swell */
     --artifact-w: clamp(170px, min(19vw, 34svh), 340px);
-  }
-  .works__hint {
-    position: absolute;
-    right: var(--space-m);
-    bottom: var(--space-m);
-    margin: 0;
-    font-family: var(--font-display);
-    font-size: var(--step--1);
-    color: var(--c-grey);
   }
   .works__viewport {
     align-self: center;
@@ -76,7 +78,7 @@ const isIt = lang === 'it';
   /* Half a viewport of runway at each end: the run is finite now, so the first and the
      last card must still be able to reach the centre, where the swell is. */
   .works__track {
-    --gap: clamp(4.5rem, 11vw, 13rem);
+    --gap: clamp(13.5rem, 33vw, 39rem);
     display: flex;
     width: max-content;
     /* start, not center: a two-line title must not push its card up relative to the
