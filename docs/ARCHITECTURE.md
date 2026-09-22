@@ -81,7 +81,7 @@ src/
                           up to the showcase. Same plate as an ArtifactCard; the plate
                           is filled by the `media` prop (the showcase card's photo,
                           which also gets an inner vignette) or by slotted markup
-      DuneScene.astro     The tiles card's artwork: flat SVG dune + falling cherry
+      DuneScene.astro     The tiles card's cherry + its shadow, animated over the Dessert plate
     worlds/               One component per artifact aesthetic (Disco / Jungle / Desert);
                           pure scenery, the artifact page slots its hero + caption in
   scripts/                Client-side TS (see ANIMATIONS.md)
@@ -190,7 +190,12 @@ hand-framed crops for the two photos ("I AM", and the works page's back-to-showc
 card) — each cropped to its card's aspect so CSS never has to squeeze a whole frame into
 a small plate — and, for the DSOTM backdrop pair, an exact two-tone unmix: those drawings
 are one pink on one navy, so a projection onto the navy→pink axis *is* the coverage, and
-the navy enclosed by the lines stays transparent for the page gradient to show through. Its numbers are tuned to *these* photos — re-tune, don't re-run blindly,
+the navy enclosed by the lines stays transparent for the page gradient to show through.
+The tiles card's "Dessert" painting is flat colour too: the cherry's cast shadow is a
+uniform ×0.783 multiply, so it is divided back out (and kept as its own black-alpha
+layer, for the page to fade in); the cherry is cut out as the one non-palette blob, sky
+and ridge filled in behind it, its rim unmixed against that. The plate is a 2:3 window
+slid right and down to centre the peak, with the word pasted back at its own margins. Its numbers are tuned to *these* photos — re-tune, don't re-run blindly,
 when the client sends replacements.
 
 ## Styling

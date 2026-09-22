@@ -250,9 +250,10 @@ const layout = bioEvents.map((_, index) => {
     /* the event's own tick is taller than the ruler's; the photo/year stack clears it */
     --event-tick: 66px;
   }
-  /* the open caption overhangs its neighbours, so lift the whole slot while it shows */
+  /* the open label overhangs its neighbours, so lift the whole slot while it shows */
   .bio-event:has(.bio-event__card:hover),
-  .bio-event:has(.bio-event__card:focus-visible) {
+  .bio-event:has(.bio-event__card:focus-visible),
+  .bio-event[data-active] {
     z-index: 2;
   }
   /* The whole group is sprayed at once, so neighbouring strokes bend together. The box
@@ -321,8 +322,15 @@ const layout = bioEvents.map((_, index) => {
     transform-origin: 50% 100%;
     transition: scale 0.35s var(--ease-out);
   }
-  .bio-event__card:hover,
-  .bio-event__card:focus-visible {
+  /* The label shows under the pointer on a mouse; on touch there is no hover (and a tap
+     would stick it on), so there bio.ts marks the event at the centre `data-active`. */
+  @media (hover: hover) {
+    .bio-event__card:hover {
+      --hover: 1;
+    }
+  }
+  .bio-event__card:focus-visible,
+  .bio-event[data-active] .bio-event__card {
     --hover: 1;
   }
   button.bio-event__card {
@@ -380,27 +388,48 @@ const layout = bioEvents.map((_, index) => {
     background: var(--tint);
     box-shadow: 0 14px 34px rgb(0 0 0 / 0.18);
   }
-  /* The copy is longer than the photo is tall, so the caption is a panel centred on the
-     photo and free to grow past it — never a text box clipped to the card. */
+  /* The photo is always on show; the label is a tab tucked behind it that slides out of
+     its right edge (the scroll direction), bottom-aligned with it, a tint stripe on the
+     edge it shares with the photo. */
   .bio-event__desc {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    translate: -50% -50%;
-    width: max(100%, 15rem);
-    border-radius: 0.4rem;
-    padding: 0.7rem 0.8rem;
+    left: calc(100% - 0.4rem);
+    bottom: 0.6rem;
+    /* behind the photo and the comic's plates (-1), in the card's stacking context */
+    z-index: -2;
+    width: 14rem;
+    border-radius: 0 0.4rem 0.4rem 0;
+    border-left: 0.4rem solid var(--tint);
+    padding: 0.7rem 0.8rem 0.7rem 1rem;
     display: grid;
-    align-content: center;
     gap: 0.35em;
-    background: rgb(20 20 20 / 0.88);
+    background: var(--c-black);
     color: var(--c-white);
     font-size: clamp(0.62rem, 0.75vw, 0.8rem);
     line-height: 1.35;
+    box-shadow: 0 14px 34px rgb(0 0 0 / 0.18);
     /* it overhangs the card, so it must never steal the hover from its own photo */
     pointer-events: none;
     opacity: var(--hover, 0);
-    transition: opacity 0.3s var(--ease-out);
+    translate: calc(-70% * (1 - var(--hover, 0))) 0;
+    transition:
+      opacity 0.3s var(--ease-out),
+      translate 0.35s var(--ease-out);
+  }
+  /* A phone has no room beside the card: the label rises above it instead (the year and
+     the ruler are below). */
+  @media (max-width: 40rem) {
+    .bio-event__desc {
+      left: 50%;
+      bottom: calc(100% + 0.6rem);
+      width: min(16rem, 80vw);
+      border-radius: 0.4rem;
+      border-left: 0;
+      border-bottom: 0.4rem solid var(--tint);
+      padding: 0.7rem 0.8rem;
+      font-size: 0.8rem;
+      translate: -50% calc(1rem * (1 - var(--hover, 0)));
+    }
   }
   .bio-event__desc strong {
     font-family: var(--font-futura);

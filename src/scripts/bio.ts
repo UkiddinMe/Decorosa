@@ -1,5 +1,6 @@
-// "I AM" timeline: sideways scrolling plus the centre-proximity swell on each photo
-// (the CSS reads `--near`). Lifecycle-safe for View-Transition navigation.
+// "I AM" timeline: sideways scrolling, the centre-proximity swell on each photo (the CSS
+// reads `--near`) and, on touch screens, the event at the centre showing its label.
+// Lifecycle-safe for View-Transition navigation.
 import { prefersReduced } from './motion';
 import { wheelToHorizontal, onScrollFrame, writeCentreProximity } from './hscroll';
 
@@ -9,11 +10,38 @@ function init(): void {
   cleanup.push(lightbox());
 
   const viewport = document.querySelector<HTMLElement>('[data-bio]');
-  if (!viewport || prefersReduced()) return;
-
+  if (!viewport) return;
   const events = Array.from(document.querySelectorAll<HTMLElement>('[data-bio-event]'));
+
+  // the label is content, not motion: it follows the centre even with reduced motion
+  if (matchMedia('(hover: none)').matches) {
+    cleanup.push(onScrollFrame(viewport, () => markCentreEvent(events)));
+  }
+  if (prefersReduced()) return;
   cleanup.push(wheelToHorizontal(viewport));
   cleanup.push(onScrollFrame(viewport, () => writeCentreProximity(events)));
+}
+
+/**
+ * Touch has no hover, so the label shows on the event nearest the viewport's centre
+ * (`data-active`), and leaves it as that event scrolls on. A newcomer has to be clearly
+ * closer before it takes over, so a scroll that stops between two events never flickers.
+ */
+const HANDOVER = 24; // px
+const REACH = 0.35; // of the viewport width: farther than this from the centre, no label
+function markCentreEvent(events: HTMLElement[]): void {
+  const centre = window.innerWidth / 2;
+  const distances = events.map((event) => {
+    const box = event.getBoundingClientRect();
+    return Math.abs(box.left + box.width / 2 - centre);
+  });
+  const current = events.findIndex((event) => event.hasAttribute('data-active'));
+  let best = distances.indexOf(Math.min(...distances));
+  if (current >= 0 && distances[current] - distances[best] < HANDOVER) best = current;
+  if (distances[best] > window.innerWidth * REACH) best = -1;
+  if (best === current) return;
+  events[current]?.removeAttribute('data-active');
+  events[best]?.setAttribute('data-active', '');
 }
 
 /** An event with artwork opens its own <dialog>: the card is far too small to read in. */

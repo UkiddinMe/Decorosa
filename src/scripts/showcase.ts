@@ -36,10 +36,15 @@ function nearThresholdZ(perspective: number, radius: number): number {
 // opening. Tied to cos(worldAngle), the same number that drives its apparent size:
 // shut while it is still side-on, fully open just before it faces front. Smoothstepped,
 // or the drawer would jerk into motion at either end of the range.
-const MOUTH_SHUT_COS = 0.1;
-const MOUTH_OPEN_COS = 0.85;
+// On narrow viewports (same breakpoint as --scene-scale, which also covers phones held
+// sideways) the panel is still off-screen while side-on, so the window is pulled in toward
+// the front pass: the mouth opens later and shuts earlier, both in view.
+const MOUTH_COS = { shut: 0.1, open: 0.85 };
+const MOUTH_COS_NARROW = { shut: 0.6, open: 0.93 };
+const narrow = window.matchMedia('(max-width: 1100px)');
 function mouthOpen(cos: number): number {
-  const t = Math.min(1, Math.max(0, (cos - MOUTH_SHUT_COS) / (MOUTH_OPEN_COS - MOUTH_SHUT_COS)));
+  const { shut, open } = narrow.matches ? MOUTH_COS_NARROW : MOUTH_COS;
+  const t = Math.min(1, Math.max(0, (cos - shut) / (open - shut)));
   return t * t * (3 - 2 * t);
 }
 

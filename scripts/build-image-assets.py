@@ -263,3 +263,129 @@ for page in range(1, 6):
 # above and floor below — instead of letting CSS cut the lettering off.
 entrata = Image.open(os.path.join(TIMELINE, 'entrata.jpeg')).convert('RGB')
 save(resize(entrata.crop((250, 905, 2700, 3355)), 1200), 'bio/entrata', quality=86)
+
+
+# WORKS — the tiles end-card: the "Dessert" dune, split into the plate and the cherry that
+# drops onto it (DuneScene.astro). The painting is flat colour — sky, sand, sand in shade,
+# plus the text — so both jobs are exact rather than guessed:
+#  * the cherry's cast shadow is a plain multiply over the sand: every shadowed colour is
+#    its lit colour × 0.783 per channel. Find the band (the one blob of the two shadowed
+#    colours), divide it back out, and the dune is as it would be with no cherry on it.
+#  * the cherry is everything in its corner that is not a palette colour. Behind it goes
+#    sky, down to the ridge line; its anti-aliased rim is unmixed against that background.
+# The plate is 2:3 and the painting square, and in the painting the dune's peak sits high
+# and well right of where the card wants it. So the plate is a two-thirds-wide window slid
+# right and down — the peak lands just right of the card's centre, the sky grows above it
+# and the dune's foot drops off the bottom — and the word, which that would move or cut,
+# is pasted back from the unmoved frame at its own margins (plain sky around it both ways).
+# The cast shadow is kept as a layer of its own: the page fades it in as the cherry falls.
+dessert = np.asarray(Image.open(os.path.join(DATA, 'MY', 'Dessert.JPG')).convert('RGB')).astype(np.float32)
+SKY, SAND, BROWN = (136, 162, 161), (221, 165, 106), (137, 102, 74)
+SHADE = 0.783
+
+
+def near(img, c, tol=14):
+    return np.abs(img - np.float32(c)).max(2) < tol
+
+
+# 1. the shadow band: the biggest blob of shaded sand/brown, with its pinholes (the brush
+#    strokes crossing it) filled. Inside, divide; on its 1px rim — pixels only partly in
+#    shade — snap to whichever lit colour, sand or brown, explains the pixel best.
+band = near(dessert, np.float32(SAND) * SHADE) | near(dessert, np.float32(BROWN) * SHADE)
+lab, _ = ndimage.label(band)
+band = lab == np.argmax(np.bincount(lab.ravel())[1:]) + 1
+band = ndimage.binary_fill_holes(ndimage.binary_closing(band, np.ones((5, 5))))
+flat = dessert.copy()
+flat[band] = np.clip(dessert[band] / SHADE, 0, 255)
+rim = ndimage.binary_dilation(band, np.ones((5, 5))) & ~band & ~near(dessert, SKY, 30)
+lit = np.float32([SAND, BROWN])
+for y, x in zip(*np.nonzero(rim)):
+    p = dessert[y, x]
+    # p = c · s for a shade factor s in [SHADE, 1]: fit s per candidate, keep the better
+    s = np.clip((lit @ p) / (lit * lit).sum(1), SHADE, 1)
+    flat[y, x] = lit[np.argmin(((lit * s[:, None] - p) ** 2).sum(1))]
+
+# 2. the cherry: non-palette pixels in its corner of the frame, as one blob, closed and
+#    grown by 2px so its whole anti-aliased rim is inside.
+BOX = (980, 280, 1320, 760)  # x0, y0, x1, y1 — hand-framed around the cherry and stem
+sub = flat[BOX[1]:BOX[3], BOX[0]:BOX[2]].copy()
+other = ~(near(sub, SKY, 10) | near(sub, SAND, 10) | near(sub, BROWN, 10))
+lab, _ = ndimage.label(ndimage.binary_opening(other, np.ones((3, 3))))
+core = ndimage.binary_fill_holes(lab == np.argmax(np.bincount(lab.ravel())[1:]) + 1)
+cherry_px = ndimage.binary_dilation(core, np.ones((5, 5)))
+
+# 3. behind it: sky above the ridge, sand/brown below. The ridge under the cherry is what
+#    each column shows just below the blob; the sand's top edge is interpolated straight
+#    across the columns where the cherry sits on it.
+bg = sub.copy()
+sky = np.median(sub[near(sub, SKY, 10)], 0)  # the true tone: SKY is only a tolerance centre
+h, w = cherry_px.shape
+ridge = np.full(w, h, np.int32)
+for x in range(w):
+    col = np.nonzero(~near(sub[:, x:x + 1], SKY, 30)[:, 0] & ~cherry_px[:, x])[0]
+    if col.size:
+        ridge[x] = col.min()
+touch = np.nonzero(cherry_px[-1] | (ridge < h) & cherry_px[np.clip(ridge - 1, 0, h - 1), np.arange(w)])[0]
+if touch.size:
+    l, r = max(touch.min() - 1, 0), min(touch.max() + 1, w - 1)
+    ridge[l:r + 1] = np.round(np.interp(np.arange(l, r + 1), [l, r], [ridge[l], ridge[r]]))
+for x in range(w):
+    ys = np.nonzero(cherry_px[:, x])[0]
+    if not ys.size:
+        continue
+    below = sub[min(max(ridge[x], ys.max() + 1), h - 1), x]
+    for y in ys:
+        bg[y, x] = sky if y < ridge[x] else below
+flat[BOX[1]:BOX[3], BOX[0]:BOX[2]] = bg
+
+# the cherry's colour: its core pixels as they are; on the rim, the nearest core colour,
+# with alpha = how far the pixel sits from the background towards that colour
+_, (iy, ix) = ndimage.distance_transform_edt(~core, return_indices=True)
+c = sub[iy, ix]
+d = c - bg
+alpha = np.clip(((sub - bg) * d).sum(2) / np.maximum((d * d).sum(2), 1), 0, 1)
+alpha[core] = 1
+alpha[~cherry_px] = 0
+cherry = trim(Image.fromarray(np.dstack([c, alpha * 255]).astype(np.uint8), 'RGBA'))
+cy0, cx0 = [int(v.min()) for v in np.nonzero(alpha > 8 / 255)]
+
+PLATE_W = round(dessert.shape[0] * 2 / 3)
+SHIFT, DROP = 384, 290  # the peak (≈1150, 722) lands at ~56% across, ~49% down
+WORD = (0, 0, 1110, 320)  # x0, y0, x1, y1 — the word plus a margin of sky
+OUT_W = 1024  # the card renders at most ~410 CSS px wide, so ~2.5x
+k = OUT_W / PLATE_W
+
+
+def window(img, fill):
+    """The painting slid SHIFT left and DROP down in a plate-sized frame; `fill` tops it."""
+    out = np.empty((img.shape[0], PLATE_W) + img.shape[2:], img.dtype)
+    out[:] = fill
+    out[DROP:] = img[:img.shape[0] - DROP, SHIFT:SHIFT + PLATE_W]
+    return out
+
+
+wordless = flat.copy()
+wordless[WORD[1]:WORD[3], WORD[0]:WORD[2]] = sky
+framed = window(wordless, sky)
+framed[WORD[1]:WORD[3], WORD[0]:WORD[2]] = flat[WORD[1]:WORD[3], WORD[0]:WORD[2]]
+save(resize(Image.fromarray(framed.astype(np.uint8), 'RGB'), OUT_W), 'works/dessert', quality=92)
+save(cherry.resize((round(cherry.width * k), round(cherry.height * k)), Image.LANCZOS),
+     'works/dessert-cherry', quality=92)
+
+# the shadow as black at the coverage that reproduces the multiply: 1 - shot / clean. Flat
+# 1 - SHADE inside the band, fractional on its anti-aliased rim; cropped to its own box.
+shade = np.clip(1 - (dessert * flat).sum(2) / np.maximum((flat * flat).sum(2), 1), 0, 1 - SHADE)
+shade[~ndimage.binary_dilation(band, np.ones((5, 5)))] = 0
+shade = window(shade, 0)
+shadow = Image.fromarray(np.dstack([np.zeros(shade.shape + (3,)), shade * 255]).astype(np.uint8), 'RGBA')
+sx0, sy0, sx1, sy1 = shadow.getchannel('A').getbbox()
+shadow = shadow.crop((sx0, sy0, sx1, sy1))
+save(shadow.resize((round(shadow.width * k), round(shadow.height * k)), Image.LANCZOS),
+     'works/dessert-shadow', quality=92)
+
+# Copy into DuneScene.astro: the plate's size and where the cherry and shadow sit on it.
+print('  plate {}x{} | cherry at x {:.1f} y {:.1f} size {:.1f}x{:.1f}'.format(
+    OUT_W, round(dessert.shape[0] * k), (BOX[0] + cx0 - SHIFT) * k, (BOX[1] + cy0 + DROP) * k,
+    cherry.width * k, cherry.height * k))
+print('  shadow at x {:.1f} y {:.1f} size {:.1f}x{:.1f}'.format(
+    sx0 * k, sy0 * k, (sx1 - sx0) * k, (sy1 - sy0) * k))

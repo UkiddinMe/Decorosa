@@ -18,14 +18,18 @@ const dict = t(lang);
 const isIt = lang === 'it';
 ---
 
-<BaseLayout lang={lang} title={`${dict.works.heading} — DECOROSA`} tone="dark">
-  <BackLink href={isIt ? '/showcase' : '/en/showcase'} label={dict.nav.back} tone="dark" />
+<BaseLayout lang={lang} title={`${dict.works.heading} — DECOROSA`}>
+  <BackLink href={isIt ? '/showcase' : '/en/showcase'} label={dict.nav.back} />
 
   <main class="works">
     <div class="works__viewport" data-works tabindex="0" aria-label={dict.works.heading}>
       <div class="works__track">
         {artifacts.map((a) => <ArtifactCard artifact={a} lang={lang} />)}
-        <EndCard href={isIt ? '/mosaico' : '/en/mosaic'} title={dict.works.tiles}>
+        <EndCard
+          href={isIt ? '/mosaico' : '/en/mosaic'}
+          title={dict.works.tiles}
+          media={`url("${withBase('/assets/works/dessert.webp')}") center / cover`}
+        >
           <DuneScene />
         </EndCard>
         <EndCard
@@ -49,16 +53,6 @@ const isIt = lang === 'it';
     position: relative;
     height: 100svh;
     overflow: hidden;
-    /* Grey backdrop for the whole run, shaded gently along the diagonal: lit at the
-       top-right, fading into a little shadow towards the bottom-left, so the strip
-       doesn't read as a flat fill. The cards inherit --fg for their titles. */
-    background: linear-gradient(
-      215deg,
-      color-mix(in srgb, var(--c-grey-dark) 92%, white) 0%,
-      var(--c-grey-dark) 50%,
-      color-mix(in srgb, var(--c-grey-dark) 90%, black) 100%
-    );
-    --fg: var(--c-white);
     display: grid;
     align-content: center;
     /* height-aware: a 2:3 card must leave room for its title *and* its centre swell */

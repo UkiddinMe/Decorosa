@@ -183,7 +183,8 @@ sides stay straight. The open strip is the taller file, so at full stretch it ha
 bottom of the card box, as the real drawer does. The drive is
 `cos(worldAngle)` — the same number that sets the panel's apparent size — smoothstepped from
 shut at `cos 0.1` to open at `0.85`: the piece comes at you growing *and* opening, and shuts
-again on the way out. The same three layers are packaged as `TigerPiece.astro` and reused
+again on the way out. At ≤ 1100px (phones either way up) the window narrows to `0.6 → 0.93`,
+since a side-on panel is still off-screen there — both moves happen in view. The same three layers are packaged as `TigerPiece.astro` and reused
 twice off the spiral: as the first card of the works run and as the hero of the page that
 card opens (artifacts flagged `tiger` in `artifacts.ts`; artwork and strip geometry shared
 from `tigerArt`/`mouthVars` in `panels.ts`). Only the drive differs — there is no orbit
@@ -299,10 +300,16 @@ identical on server and client and stable across builds. The spray look is one S
 (`#spray`) applied to each ruler group: a slow displacement bends the strokes off-straight,
 a blur is the overspray, a fast displacement the paint dust, and an alpha ramp gives back
 the body the blur cost. `--near` swells each photo
-as it crosses the middle; hover/focus adds `--hover`, which swells it a little further and
-fades in the description over it — a panel centred on the photo but free to grow past it
-(the copy is longer than the card is tall), `pointer-events: none` so it never steals the
-hover from its own photo, with the whole slot lifted (`z-index`) while it shows. A
+as it crosses the middle. The photo is always on show; its label (title + description) is
+a dark tab tucked behind it (`z-index: -2` in the card's stacking context, under the
+comic's plates) that slides out of its right edge, bottom-aligned, a tint stripe on the
+shared edge; under 40rem it rises above the card instead. `--hover` drives it (plus a
+little extra swell): set by `:hover` only under `(hover: hover)` — a tap would stick it
+on — and by `:focus-visible`. On touch (`hover: none`) `markCentreEvent` in `bio.ts` puts
+`data-active` on the event nearest the centre (within 35% of the viewport width, a 24px
+handover margin so a scroll stopping between two events never flickers), which sets
+`--hover` too; it runs even under reduced motion, since the label is content. The label
+is `pointer-events: none` and its slot is lifted (`z-index`) while it shows. A
 multi-page event (the comic) shows as a pile: two tinted plates behind the top page,
 fanned a little further apart on hover. A card with media is a button that opens that
 event's `<dialog>` as a panel over nearly the whole viewport (96vw × 94svh): close row,
@@ -326,19 +333,18 @@ fixed two-line box (a long label overflows it instead of growing the card), so a
 cards keep the same height and stay aligned as they scale. On click the clicked
 card's media is stamped with `view-transition-name: artifact-hero`; the artifact page's
 hero carries the same name in CSS, so Astro's View Transition morphs the card into the
-page. The tiles `EndCard` is filled by `works/DuneScene.astro` instead of a tint: a flat
-SVG dune (blue sky, two yellow wedges cut by three diagonals meeting at the centre, the
-narrow one shaded) with a cherry on a single 7.5s CSS keyframe loop — gravity fall,
-squash-and-bounce jiggle on contact (`transform-origin` at the point that touches the
-sand), a few seconds at rest, a fade out, then it waits offstage before falling again.
-The berry is a single biconcave silhouette (dimpled top and bottom, lobes of unequal
-width); it rests below the ridge apex, drawn after the sand so it overlaps it rather than
-floating on it. "DESSERT" is set across the sky in the plate's upper third, black and
-uppercase in the display face, matching `DesertWorld`'s big word, and is drawn last so it
-always sits in front of the sun and the cherry; a yellow sun peeks out of the top-left
-corner (drawn at the right corner and mirrored about the vertical centre), with three
-round-capped rays fanned 35° apart and kept short enough to stop clear of the word. Each ray is a dash sliding out and back along its line on a staggered
-`stroke-dashoffset` loop that never runs off either end, so they pulse without vanishing.
+page. The tiles `EndCard`'s plate is the "Dessert" painting with its cherry and the
+cherry's cast shadow lifted off (`assets/works/dessert*.webp`); `works/DuneScene.astro`
+lays both back over it in an SVG whose viewBox is the plate's pixel grid, so they sit
+exactly where they were cut from. One 7.5s CSS loop — gravity fall from above the plate's
+top edge, squash-and-jiggle on contact with two small hops (`transform-origin` at the
+image's bottom edge, the point that touches the sand), a few seconds at rest, a fade out
+in place, then it waits offstage before falling again. While the cherry falls, its shadow
+wipes in from the dune's foot to the peak — an SVG `<mask>` whose rect is three shadow
+heights tall (dark top third, a soft band, then lit) slides up 1.1 shadow heights,
+landing with the cherry; the dark third keeps the soft band clear of the shadow at rest,
+so nothing shows before the wipe — its tip draws back a little on each hop, and it fades
+out alongside the cherry.
 
 **Artifact pages** (`artifact.ts`, `ArtifactPage.astro`, `worlds/*`). The world is a 300vw
 track scrolled sideways with `wheelToHorizontal` + `applyDepthParallax`. `.world` has
