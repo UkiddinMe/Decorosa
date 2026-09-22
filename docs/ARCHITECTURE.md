@@ -72,8 +72,9 @@ src/
                           `form: 'card'` frames the photo in the card box; `form: 'object'`
                           is a cut-out on transparency, floating with no frame or shadow
     works/
-      ArtifactCard.astro  One card of the "MY" run (links to its detail page). The one
-                          flagged `tiger` in artifacts.ts drops the plate for a TigerPiece
+      ArtifactCard.astro  One card of the "MY" run (links to its detail page): the piece's
+                          cut-out, frameless on the 2:3 box's floor — or, for the one
+                          flagged `tiger` in artifacts.ts, a TigerPiece
       TigerPiece.astro    The tiger chest as a live piece — artwork + the two mouth
                           strips, which open (and shake it) on hover. Fills its
                           container's width; used by the card and by its detail hero
@@ -88,6 +89,8 @@ src/
     lenis.ts  motion.ts  showcase.ts  transition.ts
     logo.ts               Hands the starburst label from its peek animation to CSS hover
     hscroll.ts            Shared sideways-scroll plumbing
+    came-from.ts          Path the last SPA navigation left (loaded by BaseLayout)
+    showcase-return.ts    Hidden start pose of the showcase's return glide (BaseLayout)
     bio.ts  works.ts  artifact.ts    One controller per horizontal section
     contacts.ts           Contacts form submit (relay POST, or mailto: fallback)
   data/
@@ -111,6 +114,7 @@ public/
                           showcase panel and the first works card scale to open the
                           tiger's mouth (ANIMATIONS.md)
   assets/works/           Artwork for the "MY" run's end cards (webp)
+  assets/artifacts/       One cut-out per artifact, `<id>.webp` (alpha) — card and hero
   assets/dark-side/       The DSOTM backdrop pair, ball + animal (webp, alpha)
   assets/bio/             Timeline photos: the comic's five pages + the workshop sign
 scripts/slice-logo.mjs    One-off glyph slicer (see below); splits the starburst in two
@@ -147,13 +151,13 @@ scripts/build-og-image.mjs
 size) plus `form` — `card` for a photo cropped into the card box, `object` for a cut-out
 that floats frameless at its own `width`.
 
-**`src/data/artifacts.ts`** — one entry per artwork: `id` (slug, also the asset folder
-name under `public/assets/artifacts/<id>/`), `world` (which `worlds/*` component renders
+**`src/data/artifacts.ts`** — one entry per artwork: `id` (slug, also the cut-out's
+name, `public/assets/artifacts/<id>.webp`), `image` (its intrinsic size), `world` (which `worlds/*` component renders
 its detail scenery), an optional `sold` flag (sold pieces keep their page but drop out of
 `availableArtifacts`, the list the dark-side page shows) and IT/EN `i18n`
 title/subtitle/body. `artifactPath(id, lang)` is the
 canonical URL builder — `routes.ts` derives its IT↔EN pairs from it. Adding an artifact =
-append an entry + drop assets + (only for a new aesthetic) create a `worlds/*` component
+append an entry + its cut-out + (only for a new aesthetic) create a `worlds/*` component
 and register it in the `worlds` map in `ArtifactPage.astro`.
 
 **`src/data/bio.ts`** — the "I AM" timeline: `id` (also the asset name), the `year` label,
@@ -168,14 +172,13 @@ opens a blank panel, holding the place of artwork to come — that is 1994, wait
 catalogue cover and painting clip. No `media` key at all and the card is a plain tint that
 does not open anything, which is `portogallo`.
 
-The showcase panels and two timeline events carry real artwork, and the first artifact
-(`credenza-jungle`) carries the tiger chest — card and hero both. The rest of the artifact
-art is still a placeholder gradient/tint (tokens `--world-*-bg`) — wire real images in
-`ArtifactCard.astro` when they land.
+The showcase panels and two timeline events carry real artwork. Every artifact does too:
+the first (`credenza-jungle`) is the tiger chest, the rest a cut-out each — card and hero
+both. Titles and text are still placeholders.
 
 **Raw artwork** lives outside the repo, in the sibling `Decorosa Data/` folder (originals,
 unprocessed). Only the derived files are committed under `public/assets/`.
-`scripts/build-image-assets.py` (run by hand; needs Pillow + SciPy + OpenCV) regenerates
+`scripts/build-image-assets.py` (run by hand; needs Pillow + SciPy + OpenCV + rembg) regenerates
 them from it: a flood-fill cut-out for the tiger chest — from *two* shots, mouth shut and
 mouth open, since the showcase panel and the works card animate between them
 (ANIMATIONS.md). The shut chest is the
@@ -195,7 +198,11 @@ The tiles card's "Dessert" painting is flat colour too: the cherry's cast shadow
 uniform ×0.783 multiply, so it is divided back out (and kept as its own black-alpha
 layer, for the page to fade in); the cherry is cut out as the one non-palette blob, sky
 and ridge filled in behind it, its rim unmixed against that. The plate is a 2:3 window
-slid right and down to centre the peak, with the word pasted back at its own margins. Its numbers are tuned to *these* photos — re-tune, don't re-run blindly,
+slid right and down to centre the peak, with the word pasted back at its own margins.
+The artifact cut-outs (`MY/2. …` to `MY/7. …`, folder number = run order) are the one
+job no colour rule can do — real rooms behind real furniture — so they go through a
+matting model (rembg's BiRefNet), with a hand-measured polygon patching back what it
+misses (the coat rack's white pillar on a white wall). Its numbers are tuned to *these* photos — re-tune, don't re-run blindly,
 when the client sends replacements.
 
 ## Styling

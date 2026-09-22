@@ -11,11 +11,19 @@ interface Props {
   title: string;
   /** any CSS <image> or <color> for the plate */
   media?: string;
+  /** coming back from `href` lands the run in front of this card (works.ts) */
+  returnHere?: boolean;
 }
-const { href, title, media } = Astro.props;
+const { href, title, media, returnHere } = Astro.props;
 ---
 
-<a class="end-card" href={withBase(href)} data-card style={media && `--media:${media}`}>
+<a
+  class="end-card"
+  href={withBase(href)}
+  data-card
+  data-return={returnHere}
+  style={media && `--media:${media}`}
+>
   <span class:list={['end-card__media', media && 'end-card__media--plate']}><slot /></span>
   <span class="end-card__title">{title}</span>
 </a>

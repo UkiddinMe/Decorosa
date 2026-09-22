@@ -209,17 +209,18 @@ save(trim(Image.fromarray(
     np.dstack([np.zeros(ink.shape + (3,), np.uint8), (a * 255).astype(np.uint8)]), 'RGBA')),
     'showcase/dark-side', lossless=True)
 
-# WORKS — the "back to the showcase" end-card. Its plate is 2:3 and the shot is taller
-# than that, so trim the ceiling beam and keep the hatch, her, and the ladder's foot on
-# the floor. No downscale: 853px already covers the card's largest render.
+# WORKS — the "back to the showcase" end-card. Hand-framed on this shot to the owner's
+# reference crop: the bookcase on the right and the floor below are left out, which caps
+# the width at 776px; the 2:3 plate is centred vertically on the reference's height.
+# No upscale: 776px still covers ~1.9x the card's largest render.
 #
 # The shot is a white room that never reaches white — its 99th percentile sits at 217/255
 # — so it reads grey on the page. A gamma lift opens the midtones back up (a linear
 # stretch would clip the lit hatch, which is already at 255 in places) without touching
 # either end, so the dark jacket and boots keep their weight.
 deco = Image.open(os.path.join(DATA, 'MY', 'DecoScala.jpeg')).convert('RGB')
-plate_h = round(deco.width * 3 / 2)
-deco = deco.crop((0, 160, deco.width, 160 + plate_h))
+DECO_W, DECO_TOP = 776, 42
+deco = deco.crop((0, DECO_TOP, DECO_W, DECO_TOP + round(DECO_W * 3 / 2)))
 lifted = np.power(np.asarray(deco).astype(np.float32) / 255.0, 0.82) * 255
 save(Image.fromarray(lifted.astype(np.uint8), 'RGB'), 'works/back-to-showcase', quality=90)
 
@@ -389,3 +390,38 @@ print('  plate {}x{} | cherry at x {:.1f} y {:.1f} size {:.1f}x{:.1f}'.format(
     cherry.width * k, cherry.height * k))
 print('  shadow at x {:.1f} y {:.1f} size {:.1f}x{:.1f}'.format(
     sx0 * k, sy0 * k, (sx1 - sx0) * k, (sy1 - sy0) * k))
+
+
+# WORKS — the "MY" run's cards (artifacts.ts), one shot per folder in `MY/`, numbered in
+# run order (1 is the tiger and -1 the dessert, both handled above). The backgrounds are
+# real rooms — wall, tiles, stone, a courtyard — so no colour rule separates the piece:
+# the cut-out is a matting model (rembg's BiRefNet; `pip install "rembg[cpu]"`, ~1 GB
+# model on first run). Each card floats frameless in its 2:3 box, so ~1200px on the long
+# side covers the largest render (the detail hero, ~520 CSS px) at 2x.
+from rembg import new_session, remove
+from PIL import ImageDraw, ImageOps
+
+matte = new_session('birefnet-general')
+RUN = [
+    ('2. Attacchini', 'attacchini'),
+    ('3. Si sta come d_inverno', 'si-sta-come-d-inverno'),
+    ('4. Giungla dei colori', 'giungla-dei-colori'),
+    ('5. Drago', 'drago'),
+    ('6. llorona', 'llorona'),
+    ('7. Metto il becco', 'metto-il-becco'),
+]
+# White on white: the model loses the left pillar of the coat rack against the wall
+# behind it. The frame is straight, so its body (below the cornice, down to the plinth)
+# is given back as a hand-measured polygon on this shot.
+PATCH = {'attacchini': [(289, 157), (440, 157), (440, 1050), (292, 1050), (292, 1035), (297, 1033)]}
+
+for folder, slug in RUN:
+    d = os.path.join(DATA, 'MY', folder)
+    shot = ImageOps.exif_transpose(Image.open(os.path.join(d, os.listdir(d)[0]))).convert('RGB')
+    alpha = remove(shot, session=matte, only_mask=True)
+    if slug in PATCH:
+        ImageDraw.Draw(alpha).polygon(PATCH[slug], fill=255)
+    art = trim(Image.fromarray(np.dstack([np.asarray(shot), np.asarray(alpha)]), 'RGBA'))
+    k = min(1, 1200 / max(art.size))
+    save(art.resize((round(art.width * k), round(art.height * k)), Image.LANCZOS),
+         f'artifacts/{slug}', quality=88)

@@ -1,13 +1,14 @@
 // DECOROSA — the single source of truth for the artist's artifacts ("MY" section).
 // They are shown as a finite lateral run on /opere (/en/works) and each one gets
 // its own horizontal-parallax detail page at /opere/<id> (/en/works/<id>).
-// Adding an artifact = append here + drop assets in public/assets/artifacts/<id>/ +
-// (only if it needs a new aesthetic) a worlds/* component registered in ArtifactPage.
+// Adding an artifact = append here + its cut-out at public/assets/artifacts/<id>.webp
+// (build-image-assets.py) + (only if it needs a new aesthetic) a worlds/* component
+// registered in ArtifactPage.
 
 export type WorldKind = 'disco' | 'jungle' | 'desert';
 
 export interface Artifact {
-  /** slug; also the asset folder name under public/assets/artifacts/<id>/ */
+  /** slug; also the cut-out's name, public/assets/artifacts/<id>.webp */
   id: string;
   /** which worlds/* component renders the scenery of its detail page */
   world: WorldKind;
@@ -18,6 +19,8 @@ export interface Artifact {
    * in place of the card plate, opening its mouth on hover.
    */
   tiger?: boolean;
+  /** intrinsic size of the cut-out (every artifact but the tiger has one) */
+  image?: { w: number; h: number };
   /** localized text */
   i18n: Record<'it' | 'en', { title: string; subtitle?: string; body: string }>;
 }
@@ -30,104 +33,126 @@ export const artifacts: Artifact[] = [
     tiger: true,
     i18n: {
       it: {
-        title: 'Item 1',
+        title: 'Tigre',
         subtitle: 'Lorem ipsum',
         body: 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo.',
       },
       en: {
-        title: 'Item 1',
+        title: 'Tigre',
         subtitle: 'Lorem ipsum',
         body: 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo.',
       },
     },
   },
   {
-    id: 'comodino-disco',
+    id: 'attacchini',
+    image: { w: 597, h: 1043 },
     world: 'disco',
     i18n: {
       it: {
-        title: 'Item 2',
+        title: 'Attacchini',
         subtitle: 'The dark side of the mood',
         body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore.',
       },
       en: {
-        title: 'Item 2',
+        title: 'Attacchini',
         subtitle: 'The dark side of the mood',
         body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore.',
       },
     },
   },
   {
-    id: 'sedia-dessert',
+    id: 'si-sta-come-d-inverno',
+    image: { w: 932, h: 829 },
     world: 'desert',
     i18n: {
       it: {
-        title: 'Item 3',
+        title: "Si sta come d'inverno sui tavoli le foglie",
         subtitle: 'Lorem ipsum',
         body: 'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
       },
       en: {
-        title: 'Item 3',
+        title: "Si sta come d'inverno sui tavoli le foglie",
         subtitle: 'Lorem ipsum',
         body: 'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
       },
     },
   },
   {
-    id: 'item-4',
+    id: 'giungla-dei-colori',
+    image: { w: 842, h: 1200 },
     sold: true,
     world: 'disco',
     i18n: {
       it: {
-        title: 'Item 4',
+        title: 'Giungla dei colori primari',
         subtitle: 'Lorem ipsum',
         body: 'Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim.',
       },
       en: {
-        title: 'Item 4',
+        title: 'Giungla dei colori primari',
         subtitle: 'Lorem ipsum',
         body: 'Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim.',
       },
     },
   },
   {
-    id: 'item-5',
+    id: 'drago',
+    image: { w: 1022, h: 1200 },
     sold: true,
     world: 'jungle',
     i18n: {
       it: {
-        title: 'Item 5',
+        title: 'Drago',
         subtitle: 'Lorem ipsum',
         body: 'Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur.',
       },
       en: {
-        title: 'Item 5',
+        title: 'Drago',
         subtitle: 'Lorem ipsum',
         body: 'Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur.',
       },
     },
   },
   {
-    id: 'item-6',
+    id: 'llorona',
+    image: { w: 1064, h: 1200 },
     sold: true,
     world: 'desert',
     i18n: {
       it: {
-        title: 'Item 6',
+        title: 'Llorona',
         subtitle: 'Lorem ipsum',
         body: 'Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit.',
       },
       en: {
-        title: 'Item 6',
+        title: 'Llorona',
         subtitle: 'Lorem ipsum',
         body: 'Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit.',
+      },
+    },
+  },
+  {
+    id: 'metto-il-becco',
+    image: { w: 665, h: 1200 },
+    world: 'jungle',
+    i18n: {
+      it: {
+        title: 'Metto il becco nelle vostre credenze',
+        subtitle: 'Lorem ipsum',
+        body: 'Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae.',
+      },
+      en: {
+        title: 'Metto il becco nelle vostre credenze',
+        subtitle: 'Lorem ipsum',
+        body: 'Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae.',
       },
     },
   },
 ];
 
-/** Placeholder gradient for an artifact's card/hero until real artwork lands. */
-export const artifactMedia = (a: Artifact): string => `var(--world-${a.world}-bg)`;
+/** The artifact's cut-out (not the tiger's: that one is `tigerArt` in panels.ts). */
+export const artifactImage = (a: Artifact): string => `/assets/artifacts/${a.id}.webp`;
 
 /** The ones still up for grabs — the dark-side page lists only these. */
 export const availableArtifacts = artifacts.filter((a) => !a.sold);

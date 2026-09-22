@@ -7,7 +7,8 @@ import TigerPiece from '../works/TigerPiece.astro';
 import DiscoWorld from '../worlds/DiscoWorld.astro';
 import JungleWorld from '../worlds/JungleWorld.astro';
 import DesertWorld from '../worlds/DesertWorld.astro';
-import { artifactMedia, type Artifact } from '../../data/artifacts';
+import { artifactImage, type Artifact } from '../../data/artifacts';
+import { withBase } from '../../data/routes';
 import { t } from '../../data/i18n';
 
 interface Props {
@@ -33,11 +34,21 @@ const tone = artifact.world === 'desert' ? 'light' : 'dark';
     <div class="artifact__viewport" data-artifact tabindex="0" aria-label={txt.title}>
       <World>
         <div class="artifact__intro">
-          <div
-            class:list={['artifact__hero', artifact.tiger && 'artifact__hero--tiger']}
-            style={artifact.tiger ? undefined : `--media:${artifactMedia(artifact)}`}
-          >
-            {artifact.tiger && <TigerPiece />}
+          <div class:list={['artifact__hero', artifact.tiger && 'artifact__hero--tiger']}>
+            {
+              artifact.tiger ? (
+                <TigerPiece />
+              ) : (
+                artifact.image && (
+                  <img
+                    src={withBase(artifactImage(artifact))}
+                    width={artifact.image.w}
+                    height={artifact.image.h}
+                    alt=""
+                  />
+                )
+              )
+            }
           </div>
           <div class="world__caption">
             <h1>{txt.title}</h1>
@@ -66,25 +77,26 @@ const tone = artifact.world === 'desert' ? 'light' : 'dark';
     align-items: center;
     gap: clamp(1.5rem, 4vw, 4rem);
   }
+  /* The piece itself, frameless, in the card's 2:3 box — the tiger takes its artwork's
+     own shape instead, and keeps its live mouth. */
   .artifact__hero {
     flex: 0 0 auto;
     width: clamp(180px, 17vw, 290px);
     aspect-ratio: 2 / 3;
-    border-radius: 0.4rem;
-    background: var(--media, var(--c-grey));
-    box-shadow: 0 16px 40px rgb(0 0 0 / 0.35);
+    display: flex;
     /* the run's card stamps the same name on itself on click, so it morphs into this */
     view-transition-name: artifact-hero;
   }
-  /* The tiger stands in for the plate here too, and takes the artwork's own shape rather
-     than the card's: no frame to fill, so nothing to crop it to. It is the piece that
-     arrived from the run, so it keeps its live mouth. */
+  .artifact__hero > img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: 50% 100%;
+    filter: drop-shadow(0 16px 22px rgb(0 0 0 / 0.35));
+  }
   .artifact__hero--tiger {
     width: clamp(260px, 30vw, 520px);
     aspect-ratio: auto;
-    border-radius: 0;
-    background: none;
-    box-shadow: none;
   }
   .artifact__intro .world__caption {
     position: static;

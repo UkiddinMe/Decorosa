@@ -10,14 +10,12 @@ import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
 import { isFrontOfLadder } from '../data/panels';
 import { prefersReduced } from './motion';
-import { initLenis, destroyLenis, stopLenis, startLenis, jumpTo } from './lenis';
+import { initLenis, destroyLenis, stopLenis, startLenis, jumpTo, glideTo } from './lenis';
+import { returnPose, SCROLL_KEY } from './showcase-return';
 
 gsap.registerPlugin(ScrollTrigger);
 
 const INTRO_KEY = 'decorosa:enter-intro';
-// Last scroll offset on this page, so coming back (link, back button, reload) resumes at
-// the same height instead of at the top of the spiral.
-const SCROLL_KEY = 'decorosa:showcase-scroll';
 let trigger: ScrollTrigger | null = null;
 // While the entrance intro tweens the spiral, scroll must not drive it too (the two
 // writers fight over --spin): lenis is stopped and the ScrollTrigger update is ignored.
@@ -40,7 +38,7 @@ function nearThresholdZ(perspective: number, radius: number): number {
 // sideways) the panel is still off-screen while side-on, so the window is pulled in toward
 // the front pass: the mouth opens later and shuts earlier, both in view.
 const MOUTH_COS = { shut: 0.1, open: 0.85 };
-const MOUTH_COS_NARROW = { shut: 0.6, open: 0.93 };
+const MOUTH_COS_NARROW = { shut: 0.72, open: 0.95 };
 const narrow = window.matchMedia('(max-width: 1100px)');
 function mouthOpen(cos: number): number {
   const { shut, open } = narrow.matches ? MOUTH_COS_NARROW : MOUTH_COS;
@@ -106,16 +104,32 @@ function saveScroll(): void {
   if (trigger) sessionStorage.setItem(SCROLL_KEY, String(window.scrollY));
 }
 
-// Restore before the ScrollTrigger is created so its first progress (and the initial panel
-// sort) already match the resumed height. Arriving from the landing always starts at the
+// Coming back (link, back button, reload) resumes where the visitor left — not by just
+// reappearing there, but by fading in on the way down to it, so the spiral turns back
+// into place (showcase-return.ts sets the hidden starting pose). Short and eased out: a
+// camera settling, not a scroll to sit through.
+const RETURN_GLIDE = 1.3; // s; the fade (global.css) runs alongside
+
+// Jump before the ScrollTrigger is created so its first progress (and the initial panel
+// sort) already match the starting height. Arriving from the landing always starts at the
 // top: the intro replays there, so any stored offset is stale.
 function restoreScroll(): void {
   if (sessionStorage.getItem(INTRO_KEY)) {
     sessionStorage.removeItem(SCROLL_KEY);
     return;
   }
-  const saved = Number(sessionStorage.getItem(SCROLL_KEY) ?? 0);
-  if (saved > 0) jumpTo(saved);
+  const pose = returnPose();
+  if (!pose) return;
+  const root = document.documentElement;
+  root.classList.add('is-returning'); // already there after an SPA swap; not on a hard load
+  jumpTo(pose.from);
+  // one painted frame hidden at the start pose, then fade and glide together
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => {
+      root.classList.remove('is-returning');
+      glideTo(pose.to, RETURN_GLIDE);
+    }),
+  );
 }
 
 function init(): void {
@@ -187,6 +201,7 @@ function init(): void {
 }
 
 function teardown(): void {
+  document.documentElement.classList.remove('is-returning');
   saveScroll();
   window.removeEventListener('pagehide', saveScroll);
   trigger?.kill();

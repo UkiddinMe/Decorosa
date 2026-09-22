@@ -1,8 +1,9 @@
 ---
 // One card of the "MY" run. The media element is what flies into the detail page:
 // works.ts stamps `view-transition-name: artifact-hero` on it just before navigating.
-// An artifact flagged `tiger` drops the plate and shows the tiger chest itself instead.
-import { artifactMedia, artifactPath, type Artifact } from '../../data/artifacts';
+// Every piece floats frameless in the card's box: its cut-out, or — the one flagged
+// `tiger` — the live tiger chest.
+import { artifactImage, artifactPath, type Artifact } from '../../data/artifacts';
 import TigerPiece from './TigerPiece.astro';
 import { withBase } from '../../data/routes';
 
@@ -15,18 +16,29 @@ const txt = artifact.i18n[lang];
 ---
 
 <a
-  class:list={['artifact-card', artifact.tiger && 'artifact-card--tiger']}
+  class="artifact-card"
   href={withBase(artifactPath(artifact.id, lang))}
   data-artifact={artifact.id}
   data-card
-  style={artifact.tiger ? undefined : `--media:${artifactMedia(artifact)}`}
+  data-return
 >
   <span class="artifact-card__media" data-hero>
     {
-      artifact.tiger && (
+      artifact.tiger ? (
         <span class="artifact-card__tiger">
           <TigerPiece />
         </span>
+      ) : (
+        artifact.image && (
+          <img
+            class="artifact-card__art"
+            src={withBase(artifactImage(artifact))}
+            width={artifact.image.w}
+            height={artifact.image.h}
+            alt=""
+            decoding="async"
+          />
+        )
       )
     }
   </span>
@@ -46,15 +58,23 @@ const txt = artifact.i18n[lang];
     transform-origin: 50% 50%;
     transition: scale 0.3s var(--ease-out);
   }
+  /* The box holds the piece's place in the run — so every title hangs from the same line
+     and the detail page has a box to morph from — but paints nothing of its own. */
   .artifact-card__media {
+    position: relative;
     aspect-ratio: 2 / 3;
-    border-radius: 0.4rem;
-    background: var(--media, var(--c-grey));
-    box-shadow: 0 16px 40px -12px rgb(0 0 0 / 0.28);
-    /* the blur spreads in every direction, so it always haloes over the top edge (and
-       the halo slides as the card scales). Clip the paint at that edge: the shadow only
-       ever shows below and beside the card. */
-    clip-path: inset(0 -80px -80px -80px);
+  }
+  /* Standing on the box's floor. A little wider than the box, so a low wide piece (the
+     table) is not dwarfed by the tall ones; the height still caps the tall ones. */
+  .artifact-card__art {
+    position: absolute;
+    left: -15%;
+    width: 130%;
+    max-width: none;
+    height: 100%;
+    object-fit: contain;
+    object-position: 50% 100%;
+    filter: drop-shadow(0 16px 22px rgb(0 0 0 / 0.25));
   }
   .artifact-card__title {
     font-family: var(--font-futura);
@@ -76,18 +96,9 @@ const txt = artifact.i18n[lang];
     color: var(--accent);
   }
 
-  /* The tiger keeps the plate's box — so it holds its place in the run, its title lines up
-     with every other and it still has a box to hand the detail page — but paints nothing
-     of its own: no frame, no shadow, and no clip, since the piece is twice the width of
-     that box and its drawer has to be free to hang past the bottom edge. The overflow is
-     still inside the link, so the whole tiger is clickable. */
-  .artifact-card--tiger .artifact-card__media {
-    position: relative;
-    background: none;
-    box-shadow: none;
-    clip-path: none;
-  }
-  /* Half again as wide as its box, and hanging a little below the centre of it — about as
+  /* The tiger is wider than its box and its drawer hangs past the bottom edge; the
+     overflow is still inside the link, so the whole tiger is clickable.
+     Half again as wide as its box, and hanging a little below the centre of it — about as
      low as it can sit: at full stretch the drawer reaches past the bottom of the box, and
      what is left between there and the title is all the room it has. The title row itself
      can't move — every card in the run hangs its label from the same line. The width is

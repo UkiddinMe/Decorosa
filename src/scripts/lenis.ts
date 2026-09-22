@@ -32,6 +32,11 @@ export function jumpTo(y: number): void {
   lenis?.scrollTo(y, { immediate: true, force: true });
 }
 
+/** Animated scroll to `y`, input locked until it lands (a scripted camera move). */
+export function glideTo(y: number, duration: number): void {
+  lenis?.scrollTo(y, { duration, lock: true, force: true, easing: (t) => 1 - Math.pow(1 - t, 3) });
+}
+
 /** Pause/resume smooth scroll (e.g. while a detail panel is open). */
 export function stopLenis(): void {
   lenis?.stop();

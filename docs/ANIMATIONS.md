@@ -265,10 +265,16 @@ completion before control is handed back.
 
 **Scroll memory.** Leaving the showcase stores `window.scrollY` in `sessionStorage`
 (`decorosa:showcase-scroll`, written on `astro:before-swap` and `pagehide`, only while
-the showcase is the live page), and `restoreScroll()` re-applies it via `jumpTo` on
-`astro:page-load` — before the ScrollTrigger is created, so the first spin/panel sort
-already matches the resumed height. Coming back by link, back button or reload lands
-where the visitor left. Arriving from the landing is the exception: the intro replays,
+the showcase is the live page). Coming back — link, back button or reload — the scene
+fades in while gliding down to that height, so the spiral turns back into place.
+`showcase-return.ts` (global, since the page script may not be loaded yet) sets the start
+pose on `astro:after-swap`: `html.is-returning` hides `[data-driver]` and the page is
+scrolled (instantly — `html` is `scroll-behavior: smooth`) half a viewport above the
+stored height. It has to be then, inside the view transition's update: by
+`astro:page-load` the new page is already captured and on screen. `restoreScroll()` then
+syncs Lenis to that pose (`jumpTo`, before the ScrollTrigger is created, so the first
+spin/panel sort match), and a frame later drops the class (0.9 s opacity fade,
+`global.css`) and `glideTo`s the stored height (Lenis, input locked, ease-out, 1.3 s). Arriving from the landing is the exception: the intro replays,
 so the stored offset is dropped and the page starts at the top.
 
 ## Sideways sections — `hscroll.ts`
@@ -333,7 +339,11 @@ fixed two-line box (a long label overflows it instead of growing the card), so a
 cards keep the same height and stay aligned as they scale. On click the clicked
 card's media is stamped with `view-transition-name: artifact-hero`; the artifact page's
 hero carries the same name in CSS, so Astro's View Transition morphs the card into the
-page. The tiles `EndCard`'s plate is the "Dessert" painting with its cherry and the
+page. Coming back (back pill or browser back) from a card's page — a detail page, or the
+tiles page — the run opens centred on that card instead: `came-from.ts` records the path
+each SPA swap leaves, and `works.ts` matches it against the `href` of the cards marked
+`data-return` (every artifact card, and the tiles `EndCard` via `returnHere`; not the
+back-to-showcase card, so arriving from the showcase still starts at the first card). The tiles `EndCard`'s plate is the "Dessert" painting with its cherry and the
 cherry's cast shadow lifted off (`assets/works/dessert*.webp`); `works/DuneScene.astro`
 lays both back over it in an SVG whose viewBox is the plate's pixel grid, so they sit
 exactly where they were cut from. One 7.5s CSS loop — gravity fall from above the plate's

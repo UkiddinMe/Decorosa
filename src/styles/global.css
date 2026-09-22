@@ -17,6 +17,15 @@ html.is-loading body {
   opacity: 0;
 }
 
+/* Coming back to the showcase (showcase-return.ts): the scene waits hidden at the start of
+   its return glide, then fades in as it glides into place. */
+html.is-returning [data-driver] {
+  opacity: 0;
+}
+[data-driver] {
+  transition: opacity 0.9s ease-out;
+}
+
 body {
   margin: 0;
   min-height: 100svh;
