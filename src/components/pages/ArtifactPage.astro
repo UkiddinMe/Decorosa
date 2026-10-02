@@ -3,12 +3,12 @@
 // entered by the card flying in from the "MY" run (view-transition-name: artifact-hero).
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import BackLink from '../BackLink.astro';
+import ArtifactPiece from '../works/ArtifactPiece.astro';
 import TigerPiece from '../works/TigerPiece.astro';
 import DiscoWorld from '../worlds/DiscoWorld.astro';
 import JungleWorld from '../worlds/JungleWorld.astro';
 import DesertWorld from '../worlds/DesertWorld.astro';
-import { artifactImage, type Artifact } from '../../data/artifacts';
-import { withBase } from '../../data/routes';
+import type { Artifact } from '../../data/artifacts';
 import { t } from '../../data/i18n';
 
 interface Props {
@@ -39,14 +39,7 @@ const tone = artifact.world === 'desert' ? 'light' : 'dark';
               artifact.tiger ? (
                 <TigerPiece />
               ) : (
-                artifact.image && (
-                  <img
-                    src={withBase(artifactImage(artifact))}
-                    width={artifact.image.w}
-                    height={artifact.image.h}
-                    alt=""
-                  />
-                )
+                artifact.image && <ArtifactPiece artifact={{ ...artifact, image: artifact.image }} />
               )
             }
           </div>
@@ -87,11 +80,7 @@ const tone = artifact.world === 'desert' ? 'light' : 'dark';
     /* the run's card stamps the same name on itself on click, so it morphs into this */
     view-transition-name: artifact-hero;
   }
-  .artifact__hero > img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    object-position: 50% 100%;
+  .artifact__hero > .piece {
     filter: drop-shadow(0 16px 22px rgb(0 0 0 / 0.35));
   }
   .artifact__hero--tiger {

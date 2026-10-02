@@ -12,6 +12,7 @@ Map of the moving parts, in the order a visitor meets them.
 | Showcase spiral | `src/scripts/showcase.ts`, `showcase/Scene.astro`, `PanelCard.astro`, `Ladder3D.astro` |
 | Sideways sections (bio / works / artifact) | `src/scripts/hscroll.ts` + `bio.ts`, `works.ts`, `artifact.ts` |
 | Works end-card dune (falling cherry) | `src/components/works/DuneScene.astro` |
+| Live artifact pieces (run cards + detail heroes) | `works/ArtifactPiece.astro`, `MotionNode.astro`, `src/data/motion.ts`, `src/scripts/pieces.ts` |
 | Artifact-page parallax | `src/scripts/artifact.ts`, `worlds/*`, `.world` in `global.css` |
 | Contacts micro-motion (floating labels, sweeping rules) | `src/components/pages/ContactsPage.astro` |
 
@@ -355,6 +356,49 @@ heights tall (dark top third, a soft band, then lit) slides up 1.1 shadow height
 landing with the cherry; the dark third keeps the soft band clear of the shadow at rest,
 so nothing shows before the wipe — its tip draws back a little on each hop, and it fades
 out alongside the cherry.
+
+**Live pieces** (`ArtifactPiece.astro`, `motion.ts`, `pieces.ts`). Every artifact but the
+tiger is drawn as an SVG whose viewBox is its cut-out's pixel grid: the cut-out, then the
+layers `scripts/build-artifact-motion.py` cut from it, each back exactly where it came
+from, so at rest the piece is the photo. A moving *part* always has a *patch* under it — flat
+sampled colour (wall, board, eye-white) — which is what shows in the sliver it uncovers;
+patches stop short of a part's joint, so the wedge a rotation opens there shows the
+original instead. Like the tiger, hover (or focus on the card) drives it; one-shots replay
+on each new hover. Per piece:
+
+- *Attacchini* — the three fowl heads `peck` (two dips about the neck base, `--tilt` per
+  head, staggered by `--d`); the bowler `hop`s off the cornice, spins, lands with a
+  squash. Nothing is behind the hat, so its shape is masked out of the base (`hat-cut`)
+  rather than patched. The photo only shows the brim down to the cornice's edge, so the
+  script fits an ellipse to the brim's two tips and paints in its front half; the hat is
+  drawn *under* the base, so that half stays behind the cornice until it lifts. The cornice's top edge, lost in
+  the hat's shadow, is the one patch (`cornice`, under the hat). The run's `padding-block` leaves the hop room under the clipped top.
+- *Leaf table* — `draw`: the ink layer is masked by its time map (grey = when the stroke
+  is reached, travelling along the veins left to right from the top's left tip) through a `feComponentTransfer`
+  that `pieces.ts` drives, a soft front 1/14 of the drawing wide: first the slope is
+  flipped and the front sweeps the ink away (1.2s), then it sweeps again the same way and
+  draws it back (2.4s). At rest the intercept is past the end, so all the ink shows. The clean top runs right up to
+  the cut-out's silhouette on its far sides and to the dark rim on the near one, so no
+  vein stub is left in the base.
+- *Giungla* — the three boards are `crop`s of the cut-out (no base) that `fan` apart and
+  hold while hovered; riding on them: the panther's irises (`eye`), the blue tiger's
+  `snap` (a fur-blue lid in the mouth's shape, scaled about its lip line), the red tiger's
+  `blink`, and the leopard's tail in two bones (`swish-tip` nested in `swish-run`). In
+  the run (`ArtifactPiece`'s `loop` prop, set by the card) the blink (two in 1.6s) and the
+  tail (one 2.5s swish) loop on their own, hover or not, each with a 2.5s rest — periods
+  of 4.1s and 5s, so they never keep time. On the detail page they are one-shots per
+  hover, quicker (same keyframes, shorter duration).
+- *Drago* — the finials' irises (`eye`) slide between a socket patch and a frame layer
+  (the box minus the eye-white), so they go *behind* the lids; `pieces.ts` turns every eye
+  towards the pointer, up to its `travel`, and on touch screens CSS glances them about
+  instead. The roses `ember`: a brightened copy, screen-blended, breathing 3.4s, also
+  without hover.
+- *Llorona* — each drawer is a `crop` that `pull`s (scale 1.07 + drop shadow, 50ms apart,
+  held while hovered) — plain crops of the cut-out, no layers from the script.
+- *Toucans* — the right bird's head and beak `poke` twice about the neck; the door's
+  keyhole plates are inpainted off the moving part and laid back on top, so they stay put.
+
+All of it sits inside `prefers-reduced-motion: no-preference` (and `pieces.ts` bails out).
 
 **Artifact pages** (`artifact.ts`, `ArtifactPage.astro`, `worlds/*`). The world is a 300vw
 track scrolled sideways with `wheelToHorizontal` + `applyDepthParallax`. `.world` has

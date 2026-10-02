@@ -1,0 +1,274 @@
+---
+// An artifact as a live piece: its cut-out drawn as an SVG in its own pixel grid, with the
+// parts that move laid back over it (the tree in src/data/motion.ts, the layers from
+// scripts/build-artifact-motion.py). Like the tiger, it comes alive on hover — each part
+// plays its animation once per hover, or holds its pose while hovered (a few loop on their
+// own) — plus two moves
+// that need a script (scripts/pieces.ts): eyes that follow the pointer, the table's veins
+// drawing in. Fills its container; `meet` + bottom
+// alignment stand the piece on the box's floor, exactly as `object-fit: contain` did.
+import MotionNode from './MotionNode.astro';
+import { artifactImage, type Artifact } from '../../data/artifacts';
+import { motion } from '../../data/motion';
+import { withBase } from '../../data/routes';
+
+interface Props {
+  artifact: Artifact & { image: { w: number; h: number } };
+  /** the blink and the tail swish keep going on their own, instead of once per hover */
+  loop?: boolean;
+}
+const { artifact, loop = false } = Astro.props;
+const { w, h } = artifact.image;
+const src = withBase(artifactImage(artifact));
+const nodes = motion[artifact.id] ?? [{ base: true }];
+const uid = `${artifact.id}-${Math.random().toString(36).slice(2, 7)}`;
+---
+
+<svg class:list={['piece', { 'piece--loop': loop }]} viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+  {nodes.map((node) => <MotionNode node={node} id={artifact.id} uid={uid} src={src} w={w} h={h} />)}
+</svg>
+
+<script>
+  import '../../scripts/pieces.ts';
+</script>
+
+<style>
+  .piece {
+    display: block;
+    width: 100%;
+    height: 100%;
+    /* boards fan and hats hop past the artwork's own edges */
+    overflow: visible;
+  }
+
+  /* Rest poses of the parts that are only there mid-move: the tiger's shut jaw and the
+     red tiger's lids start fully folded away. */
+  .piece :global(.m-snap),
+  .piece :global(.m-blink) {
+    scale: 1 0;
+  }
+  .piece :global(.m-ember) {
+    mix-blend-mode: screen;
+    opacity: 0;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    /* Held while hovered: the boards fan apart, the drawers pull out one by one — and
+       fold back when the pointer leaves. */
+    .piece :global(.m-fan) {
+      transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .piece:hover :global(.m-fan),
+    :global(a:focus-visible) .piece :global(.m-fan) {
+      transform: translate(var(--x), var(--y)) rotate(var(--r));
+    }
+    .piece :global(.m-pull) {
+      transition:
+        transform 0.4s cubic-bezier(0.22, 1, 0.36, 1) var(--d),
+        filter 0.4s ease var(--d);
+    }
+    .piece:hover :global(.m-pull),
+    :global(a:focus-visible) .piece :global(.m-pull) {
+      transform: scale(1.07);
+      filter: drop-shadow(0 6px 5px rgb(0 0 0 / 0.4));
+    }
+
+    /* One shot per hover (leaving and coming back plays it again), like the tiger. */
+    .piece:hover :global(.m-peck),
+    :global(a:focus-visible) .piece :global(.m-peck) {
+      animation: peck 0.9s ease-in-out var(--d);
+    }
+    .piece:hover :global(.m-hop),
+    :global(a:focus-visible) .piece :global(.m-hop) {
+      animation: hop 0.95s 0.15s;
+    }
+    .piece:hover :global(.m-snap),
+    :global(a:focus-visible) .piece :global(.m-snap) {
+      animation: snap 0.8s ease-in-out 0.25s;
+    }
+    /* (not where they loop — the run's cards, below; only the detail page is left) */
+    .piece:not(.piece--loop):hover :global(.m-blink) {
+      animation: blink 2.75s ease-in-out 0.4s;
+    }
+    .piece:not(.piece--loop):hover :global(.m-swish-run) {
+      animation: swish-run 3s ease-in-out 0.2s;
+    }
+    .piece:not(.piece--loop):hover :global(.m-swish-tip) {
+      animation: swish-tip 3s ease-in-out 0.25s;
+    }
+    .piece:hover :global(.m-poke),
+    :global(a:focus-visible) .piece :global(.m-poke) {
+      animation: poke 0.9s ease-in-out 0.1s;
+    }
+
+    /* Always on: the roses smoulder, slowly. */
+    .piece :global(.m-ember) {
+      animation: ember 3.4s ease-in-out infinite alternate;
+    }
+    /* In the run (`loop`) the red tiger blinks and the leopard's tail swishes on their
+       own too, slower, each with a 2.5s rest between turns — on different periods, so
+       the two drift apart rather than keep time. */
+    .piece--loop :global(.m-blink) {
+      animation: blink 4.1s ease-in-out 2s infinite;
+    }
+    .piece--loop :global(.m-swish-run) {
+      animation: swish-run 5s ease-in-out infinite;
+    }
+    .piece--loop :global(.m-swish-tip) {
+      animation: swish-tip 5s ease-in-out 0.05s infinite;
+    }
+
+    /* The eyes: pointer-driven where there is a pointer (pieces.ts eases them there);
+       on touch screens they glance about on their own. */
+    .piece :global(.m-eye) {
+      transition: translate 0.25s ease-out;
+    }
+    @media (hover: none) {
+      .piece :global(.m-eye) {
+        animation: glance 7s ease-in-out infinite;
+      }
+    }
+  }
+
+  /* two quick pecks about the neck; --tilt carries each head's direction */
+  @keyframes peck {
+    0%,
+    28%,
+    56%,
+    100% {
+      transform: none;
+    }
+    15%,
+    43% {
+      transform: rotate(var(--tilt));
+    }
+  }
+  /* up and spinning a little, down onto the cornice, squash and settle */
+  @keyframes hop {
+    0% {
+      transform: none;
+      animation-timing-function: cubic-bezier(0.2, 0.7, 0.4, 1);
+    }
+    24% {
+      transform: translateY(-34px) rotate(-14deg);
+      animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4);
+    }
+    42% {
+      transform: scale(1.12, 0.84);
+      animation-timing-function: ease-out;
+    }
+    56% {
+      transform: scale(0.95, 1.06);
+    }
+    68% {
+      transform: scale(1.03, 0.97);
+    }
+    80%,
+    100% {
+      transform: none;
+    }
+  }
+  /* shut, open, shut, open: scale is about the lip line */
+  @keyframes snap {
+    0%,
+    26%,
+    58%,
+    100% {
+      scale: 1 0;
+    }
+    12%,
+    42% {
+      scale: 1 1;
+    }
+  }
+  /* two blinks, then a look (the rest between turns when looping) */
+  @keyframes blink {
+    0%,
+    11%,
+    28%,
+    39%,
+    100% {
+      scale: 1 0;
+    }
+    5.5%,
+    33.5% {
+      scale: 1 1;
+    }
+  }
+  /* one swish, then as long a rest; the tip swings wider and a beat later than the run
+     it rides on */
+  @keyframes swish-run {
+    0%,
+    50%,
+    100% {
+      transform: none;
+    }
+    11% {
+      transform: rotate(-2.5deg);
+    }
+    25% {
+      transform: rotate(2deg);
+    }
+    37.5% {
+      transform: rotate(-0.8deg);
+    }
+  }
+  @keyframes swish-tip {
+    0%,
+    50%,
+    100% {
+      transform: none;
+    }
+    9% {
+      transform: rotate(12deg);
+    }
+    21% {
+      transform: rotate(-9deg);
+    }
+    33% {
+      transform: rotate(5deg);
+    }
+    43% {
+      transform: rotate(-2deg);
+    }
+  }
+  /* tap, tap: the beak dips forward about the neck and hits the glass */
+  @keyframes poke {
+    0%,
+    55%,
+    100% {
+      transform: none;
+    }
+    16%,
+    40% {
+      transform: translateX(-6px) rotate(-5deg);
+    }
+    27% {
+      transform: rotate(-2deg);
+    }
+  }
+  @keyframes ember {
+    from {
+      opacity: 0.05;
+    }
+    to {
+      opacity: 0.6;
+    }
+  }
+  @keyframes glance {
+    0%,
+    12%,
+    88%,
+    100% {
+      translate: 0 0;
+    }
+    22%,
+    40% {
+      translate: calc(var(--tx) * -1) 0;
+    }
+    52%,
+    72% {
+      translate: var(--tx) calc(var(--ty) * 0.6);
+    }
+  }
+</style>

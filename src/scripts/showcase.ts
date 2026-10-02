@@ -38,7 +38,7 @@ function nearThresholdZ(perspective: number, radius: number): number {
 // sideways) the panel is still off-screen while side-on, so the window is pulled in toward
 // the front pass: the mouth opens later and shuts earlier, both in view.
 const MOUTH_COS = { shut: 0.1, open: 0.85 };
-const MOUTH_COS_NARROW = { shut: 0.72, open: 0.95 };
+const MOUTH_COS_NARROW = { shut: 0.8, open: 0.96 };
 const narrow = window.matchMedia('(max-width: 1100px)');
 function mouthOpen(cos: number): number {
   const { shut, open } = narrow.matches ? MOUTH_COS_NARROW : MOUTH_COS;

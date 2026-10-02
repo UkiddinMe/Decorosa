@@ -1,0 +1,98 @@
+---
+// One node of a piece's motion tree (src/data/motion.ts), and its children — recursive.
+// Styled and driven from ArtifactPiece.astro (CSS) and scripts/pieces.ts (pointer).
+import { cutPath, layerBox, type MotionNode } from '../../data/motion';
+import { withBase } from '../../data/routes';
+
+interface Props {
+  node: MotionNode;
+  /** artifact id: which cut-out, and whose layers */
+  id: string;
+  /** per-instance prefix for the ids of masks and filters */
+  uid: string;
+  /** the cut-out's url and pixel size */
+  src: string;
+  w: number;
+  h: number;
+}
+const { node, id, uid, src, w, h } = Astro.props;
+const layerSrc = (name: string) => withBase(`/assets/artifacts/motion/${id}-${name}.webp`);
+const box = (name: string) => {
+  const [x, y, width, height] = layerBox(id, name);
+  return { x, y, width, height };
+};
+/** the draw mask's edge is 1/DRAW_EDGE of the whole drawing wide (pieces.ts reads it off `data-draw`) */
+const DRAW_EDGE = 14;
+const children = 'children' in node ? node.children : [];
+---
+
+{
+  'base' in node &&
+    (node.cut ? (
+      <>
+        <mask id={`${uid}-cut`} maskUnits="userSpaceOnUse" x="0" y="0" width={w} height={h}>
+          <rect width={w} height={h} fill="#fff" />
+          <path d={cutPath(id, node.cut)} fill="#000" />
+        </mask>
+        <image href={src} width={w} height={h} mask={`url(#${uid}-cut)`} />
+      </>
+    ) : (
+      <image href={src} width={w} height={h} />
+    ))
+}
+{
+  'crop' in node && (
+    <svg
+      x={node.crop[0]}
+      y={node.crop[1]}
+      width={node.crop[2]}
+      height={node.crop[3]}
+      viewBox={node.crop.join(' ')}
+    >
+      <image href={src} width={w} height={h} />
+    </svg>
+  )
+}
+{'layer' in node && <image href={layerSrc(node.layer)} {...box(node.layer)} />}
+{
+  'move' in node && (
+    <g
+      class={`m-${node.move}`}
+      style={[
+        `transform-origin:${node.origin[0]}px ${node.origin[1]}px`,
+        ...Object.entries(node.vars ?? {}).map(([k, v]) => `${k}:${v}`),
+      ].join(';')}
+    >
+      {children.map((c) => <Astro.self node={c} id={id} uid={uid} src={src} w={w} h={h} />)}
+    </g>
+  )
+}
+{
+  'eye' in node && (
+    <g
+      class="m-eye"
+      data-eye={node.eye.join(' ')}
+      data-travel={node.travel.join(' ')}
+      style={`--tx:${node.travel[0]}px;--ty:${node.travel[1]}px`}
+    >
+      {children.map((c) => <Astro.self node={c} id={id} uid={uid} src={src} w={w} h={h} />)}
+    </g>
+  )
+}
+{
+  'draw' in node && (
+    <>
+      <filter id={`${uid}-draw-f`} color-interpolation-filters="sRGB">
+        <feComponentTransfer data-draw={DRAW_EDGE}>
+          <feFuncR type="linear" slope={-DRAW_EDGE} intercept={DRAW_EDGE + 1} />
+          <feFuncG type="linear" slope={-DRAW_EDGE} intercept={DRAW_EDGE + 1} />
+          <feFuncB type="linear" slope={-DRAW_EDGE} intercept={DRAW_EDGE + 1} />
+        </feComponentTransfer>
+      </filter>
+      <mask id={`${uid}-draw`} maskUnits="userSpaceOnUse" x="0" y="0" width={w} height={h}>
+        <image href={layerSrc(node.draw.time)} {...box(node.draw.time)} filter={`url(#${uid}-draw-f)`} />
+      </mask>
+      <image href={layerSrc(node.draw.ink)} {...box(node.draw.ink)} mask={`url(#${uid}-draw)`} />
+    </>
+  )
+}

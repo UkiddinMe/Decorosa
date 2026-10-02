@@ -1,9 +1,10 @@
 ---
 // One card of the "MY" run. The media element is what flies into the detail page:
 // works.ts stamps `view-transition-name: artifact-hero` on it just before navigating.
-// Every piece floats frameless in the card's box: its cut-out, or — the one flagged
-// `tiger` — the live tiger chest.
-import { artifactImage, artifactPath, type Artifact } from '../../data/artifacts';
+// Every piece floats frameless in the card's box, alive on hover: its cut-out as an
+// ArtifactPiece, or — the one flagged `tiger` — the tiger chest.
+import { artifactPath, type Artifact } from '../../data/artifacts';
+import ArtifactPiece from './ArtifactPiece.astro';
 import TigerPiece from './TigerPiece.astro';
 import { withBase } from '../../data/routes';
 
@@ -30,14 +31,9 @@ const txt = artifact.i18n[lang];
         </span>
       ) : (
         artifact.image && (
-          <img
-            class="artifact-card__art"
-            src={withBase(artifactImage(artifact))}
-            width={artifact.image.w}
-            height={artifact.image.h}
-            alt=""
-            decoding="async"
-          />
+          <span class="artifact-card__art">
+            <ArtifactPiece artifact={{ ...artifact, image: artifact.image }} loop />
+          </span>
         )
       )
     }
@@ -72,8 +68,6 @@ const txt = artifact.i18n[lang];
     width: 130%;
     max-width: none;
     height: 100%;
-    object-fit: contain;
-    object-position: 50% 100%;
     filter: drop-shadow(0 16px 22px rgb(0 0 0 / 0.25));
   }
   .artifact-card__title {
