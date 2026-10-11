@@ -1,15 +1,17 @@
 ---
 // Flames licking off a piece's outline, for its motion tree (the `flames` node,
-// src/data/motion.ts): drawn, not cut from the photo. Each flame is rooted just inside the
-// silhouette, a curvy tongue with its tip curled to one side (every other one mirrored),
-// a yellow core inside a gradient that runs from hot at the root to red at the tip. A
-// turbulence displacement rags the edges; the noise stays put while the flames move
-// through it, so the edges keep changing. Each turn live, each one flares up and fades, swaying,
-// along one smooth curve: out to its `to`, slowing, while it rises ever faster — all inside 0.8s
-// (ArtifactPiece.astro).
+// src/data/motion.ts): drawn, not cut from the photo. Each flame is a curvy tongue with its
+// tip curled to one side, a yellow core inside a gradient that runs from hot at the root to
+// red at the tip. A turbulence displacement rags the edges; the noise stays put while the
+// flames move through it, so the edges keep changing. Only the shapes are drawn here:
+// every turn live, scripts/pieces.ts re-roots each flame somewhere new along its edge
+// (`data-flames`), with its own height, curl, sway and pace; it then flares up and fades,
+// swaying, along one smooth curve: out to the edge's `to`, slowing, while it rises ever
+// faster — all inside 0.8s (ArtifactPiece.astro).
+import type { Flames } from '../../data/motion';
+
 interface Props {
-  /** each flame's root (x, y), its height, and the x it drifts out to — cut-out pixels */
-  flames: [number, number, number, number][];
+  flames: Flames;
   /** the cut-out's width: its centre line is what "outwards" is measured from */
   w: number;
   /** per-instance prefix for the ids of the gradients and filter */
@@ -17,6 +19,8 @@ interface Props {
 }
 const { flames, w, uid } = Astro.props;
 
+/** the tongues are drawn this tall; pieces.ts scales each to its rolled height */
+const H = 100;
 /** a flame of height h pointing up from (0, 0): a round belly, an S-bend, a curled tip */
 const tongue = (h: number) =>
   [
@@ -27,26 +31,9 @@ const tongue = (h: number) =>
     `C ${0.32 * h} ${-0.28 * h} ${0.3 * h} ${-0.02 * h} 0 0 Z`,
   ].join(' ');
 
-const all = flames.map(([x, y, h, to], i) => {
-  const out = Math.sign(x - w / 2) || 1;
-  return {
-    x,
-    y,
-    lean: out * 18,
-    outer: tongue(h),
-    core: tongue(h * 0.55),
-    mirror: i % 2 ? -1 : 1,
-    // three speeds and three start times in turn, a few hundredths apart: all flare up
-    // at once, yet no two neighbours move in step
-    style: [
-      `--dx:${to - x}px`,
-      `--dy:${Math.round(-h * 1.3)}px`,
-      `--tilt:${(i % 2 ? -1 : 1) * 7}deg`,
-      `--t:${0.66 + (i % 3) * 0.04}s`,
-      `--d:${((i * 2) % 3) * 0.03}s`,
-    ].join(';'),
-  };
-});
+const edges = flames.edges.map(({ x, out }) =>
+  JSON.stringify({ x, out, lean: (Math.sign(x - w / 2) || 1) * 18, height: flames.height, unit: H, min: flames.per[0] }),
+);
 ---
 
 <linearGradient id={`${uid}-flame-g`} x1="0" y1="1" x2="0" y2="0">
@@ -68,16 +55,22 @@ const all = flames.map(([x, y, h, to], i) => {
 
 <g filter={`url(#${uid}-flame-f)`}>
   {
-    all.map((f) => (
-      <g transform={`translate(${f.x} ${f.y}) rotate(${f.lean})`}>
-        <g class="m-flame-out" style={f.style}>
-          <g class="m-flame-rise">
-            <g class="m-flame">
-              <path d={f.outer} transform={`scale(${f.mirror} 1)`} fill={`url(#${uid}-flame-g)`} />
-              <path d={f.core} transform={`scale(${f.mirror} 1)`} fill={`url(#${uid}-flame-core-g)`} />
+    edges.map((edge) => (
+      <g data-flames={edge}>
+        {Array.from({ length: flames.per[1] }, () => (
+          <g>
+            <g class="m-flame-out">
+              <g class="m-flame-rise">
+                <g class="m-flame">
+                  <g>
+                    <path d={tongue(H)} fill={`url(#${uid}-flame-g)`} />
+                    <path d={tongue(H * 0.55)} fill={`url(#${uid}-flame-core-g)`} />
+                  </g>
+                </g>
+              </g>
             </g>
           </g>
-        </g>
+        ))}
       </g>
     ))
   }

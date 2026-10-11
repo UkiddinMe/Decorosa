@@ -9,7 +9,8 @@
 //   eye    a group that turns towards the pointer, up to `travel` px each way
 //   draw   the veins of the table top, wiped out then drawn in along their time map once per turn
 //   trip   a layer warped and hue-cycled while live, clipped to a mask layer (the water)
-//   flames drawn flames, each from (x, y) out to x `to`, `height` tall (Flames.astro)
+//   flames drawn flames licking off each `edge` (a root x, and the x they drift out to at a
+//          given y), `per` edge (a random count in that range), each `height` tall — re-rolled every turn (Flames.astro)
 // Every number is in the cut-out's pixels. Layer geometry: artifact-motion.json.
 import geometry from './artifact-motion.json';
 
@@ -22,7 +23,13 @@ export type MotionNode =
   | { eye: [number, number]; travel: [number, number]; children: MotionNode[] }
   | { draw: { ink: string; time: string } }
   | { trip: { layer: string; mask: string } }
-  | { flames: [x: number, y: number, height: number, to: number][] };
+  | { flames: Flames };
+
+export type Flames = {
+  per: [min: number, max: number];
+  height: [min: number, max: number];
+  edges: { x: number; out: [y: number, to: number][] }[];
+};
 
 type Geometry = Record<string, Record<string, number[] | string | number>>;
 const geo: Geometry = geometry;
@@ -126,11 +133,14 @@ export const motion: Record<string, MotionNode[]> = {
         ...eye('eye-l', [228, 56], [9, 9]),
         ...eye('eye-r', [789, 56], [9, 9]),
         {
-          flames: [
-            [235, 290, 160, 57], [790, 290, 160, 968],
-            [235, 440, 180, 16], [790, 440, 180, 1009], [235, 730, 180, 16], [790, 730, 180, 1009],
-            [235, 900, 160, 52], [790, 900, 160, 973], [235, 1040, 170, 14], [790, 1040, 170, 1011],
-          ],
+          flames: {
+            per: [4, 6],
+            height: [160, 230],
+            edges: [
+              { x: 235, out: [[290, 57], [440, 16], [730, 16], [900, 52], [1040, 14]] },
+              { x: 790, out: [[290, 968], [440, 1009], [730, 1009], [900, 973], [1040, 1011]] },
+            ],
+          },
         },
       ],
     },

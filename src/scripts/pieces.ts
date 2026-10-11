@@ -8,7 +8,8 @@
 //  * eyes [data-eye] turn towards the pointer, as far as their `data-travel` allows;
 //  * the table's veins [data-draw] are wiped out, then drawn back in, along their time
 //    map, once per turn;
-//  * the water [data-trip] fades into a ripple that runs through every hue, held while live.
+//  * the water [data-trip] fades into a ripple that runs through every hue, held while live;
+//  * the flames [data-flames] take new roots, sizes and paces every turn.
 // Lifecycle-safe for View-Transition navigation.
 import { prefersReduced } from './motion';
 
@@ -147,6 +148,49 @@ function trip(piece: Element, filter: SVGFilterElement): (on: boolean) => void {
   };
 }
 
+const between = (a: number, b: number): number => a + Math.random() * (b - a);
+
+/** re-rolls an edge's flames as each turn starts: a random few of them (the rest hidden),
+    evenly spread from its top to its bottom
+    end, each nudged up or down by up to a third of the spacing, so the whole edge burns but
+    never the same way twice — and each its own size */
+function flames(edge: SVGGElement): (on: boolean) => void {
+  type Edge = { x: number; out: [number, number][]; lean: number; height: [number, number]; unit: number; min: number };
+  const { x, out, lean, height, unit, min }: Edge = JSON.parse(edge.dataset.flames!);
+  const top = out[0][0];
+  const bottom = out[out.length - 1][0];
+  /** the x a flame rooted at y drifts out to, between the nearest two of `out` */
+  const to = (y: number): number => {
+    const i = Math.max(1, out.findIndex(([oy]) => oy >= y));
+    const [[y0, x0], [y1, x1]] = [out[i - 1], out[i]];
+    return x0 + ((x1 - x0) * (y - y0)) / (y1 - y0);
+  };
+  return (on) => {
+    if (!on) return;
+    const all = Array.from(edge.children) as SVGGElement[];
+    const n = Math.round(between(min - 0.5, all.length + 0.5));
+    const step = (bottom - top) / (n - 1);
+    all.forEach((flame, i) => {
+      flame.style.display = i < n ? '' : 'none';
+      if (i >= n) return;
+      const y = Math.min(bottom, Math.max(top, top + (i + between(-1 / 3, 1 / 3)) * step));
+      const h = between(...height);
+      const wide = between(0.8, 1.25);
+      const mirror = Math.random() < 0.5 ? -1 : 1;
+      flame.setAttribute('transform', `translate(${x} ${y}) rotate(${lean})`);
+      flame.querySelector('.m-flame > g')!.setAttribute('transform', `scale(${(mirror * wide * h) / unit} ${h / unit})`);
+      // roughly the same pace for all, never quite in step
+      (flame.firstElementChild as SVGGElement).style.cssText = [
+        `--dx:${to(y) - x}px`,
+        `--dy:${-h * 1.3}px`,
+        `--tilt:${mirror * between(5, 9)}deg`,
+        `--t:${between(0.62, 0.74)}s`,
+        `--d:${between(0, 0.06)}s`,
+      ].join(';');
+    });
+  };
+}
+
 function init(): void {
   const still = prefersReduced();
   if (!still) eyes();
@@ -156,6 +200,7 @@ function init(): void {
     const water = piece.querySelector<SVGFilterElement>('[data-trip]');
     if (!still && transfer) moves.push(draw(transfer));
     if (!still && water) moves.push(trip(piece, water));
+    if (!still) piece.querySelectorAll<SVGGElement>('[data-flames]').forEach((edge) => moves.push(flames(edge)));
     drive(piece, moves);
   }
 }

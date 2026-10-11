@@ -394,13 +394,16 @@ poses open and fold. Per piece:
   (the box minus the eye-white), so they go *behind* the lids; `pieces.ts` turns every eye
   towards the pointer, up to its `travel`, and on touch screens CSS glances them about
   instead. While live the whole piece `shake`s like the tiger and flames lick off its
-  sides (`Flames.astro`, drawn, not cut from the photo): 10 curvy tongues, rooted just
-  inside the door's red frame (not the top), every other one mirrored, a yellow core in a
-  root-to-tip gradient, edges ragged by a still turbulence displacement. Each `flame`
-  flares up and drifts along one smooth arc — out by `--dx` barely slowing (`flame-out`),
-  up by `--dy` from the start and ever more steeply (`flame-rise`), both quadratic in
-  time — sways by `--tilt` and fades; all start together (`--d` jitters them by a few
-  hundredths) and the last is gone by 0.8s.
+  sides (`Flames.astro`, drawn, not cut from the photo): curvy tongues, a yellow core in a
+  root-to-tip gradient, edges ragged by a still turbulence displacement. Every turn
+  `pieces.ts` re-rolls them, each edge on its own (so the sides never mirror): `per` (4–6,
+  random each turn) flames per edge, evenly spread from end to end of the edge just inside the door's red
+  frame, each nudged by up to ⅓ of the spacing, each with a random height (160–230px) and
+  width (×0.8–1.25), curl side, `--tilt`, pace (`--t` 0.62–0.74s) and
+  start (`--d` 0–0.06s). Each `flame` flares up and drifts along one smooth arc — out by
+  `--dx` (to the edge's `to`, interpolated at its root) barely slowing (`flame-out`), up by
+  `--dy` from the start and ever more steeply (`flame-rise`), both quadratic in time —
+  sways and fades; the last is gone by 0.8s.
 - *Llorona* — each drawer is a `crop` that `pull`s (scale 1.07 + drop shadow, 50ms apart,
   held while live) — plain crops of the cut-out, no layers from the script.
 - *Toucans* — the right bird's head and beak `poke` twice about the neck; the door's

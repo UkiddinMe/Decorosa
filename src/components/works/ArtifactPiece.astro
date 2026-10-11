@@ -6,7 +6,7 @@
 // plays its animation once per turn, or holds its pose while live (a few loop on their
 // own) — plus three moves
 // that need a script (scripts/pieces.ts): eyes that follow the pointer, the table's veins
-// drawing in, the mangroves' water tripping out. Fills its container; `meet` + bottom
+// drawing in, the mangroves' water tripping out, the dragon's flames re-rolled each turn. Fills its container; `meet` + bottom
 // alignment stand the piece on the box's floor, exactly as `object-fit: contain` did.
 import MotionNode from './MotionNode.astro';
 import { artifactImage, type Artifact } from '../../data/artifacts';
@@ -98,8 +98,8 @@ const uid = `${artifact.id}-${Math.random().toString(36).slice(2, 7)}`;
     .piece.is-live :global(.m-shake) {
       animation: shake 0.42s ease-in-out;
     }
-    /* each flame flares, sways and fades on its own timing (--t, --d, --tilt from
-       Flames.astro), the last gone by 0.8s. Its path is one smooth arc: both curves are
+    /* each flame flares, sways and fades on its own timing (--t, --d, --tilt, re-rolled
+       each turn by pieces.ts), the last gone by 0.8s. Its path is one smooth arc: both curves are
        plain quadratics in time (control points at 1/3, 2/3), out = 1.3t − 0.3t² (barely
        slowing) and up = 0.35t + 0.65t² (rising from the start, ever more steeply) */
     .piece.is-live :global(.m-flame) {
