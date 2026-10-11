@@ -51,17 +51,17 @@ export interface Panel {
   /** section this panel opens, per locale (root-relative, before withBase()) */
   href: Record<"it" | "en", string>;
   /**
-   * How the artwork rides the spiral: `card` fills the fixed card box (a photo,
-   * cropped); `object` is a cut-out on transparency that floats with no frame —
-   * sized by `width`, its height following the file's own proportions.
+   * artwork in public/assets/showcase (before withBase()): a cut-out on transparency
+   * that floats with no frame — sized by `width`, its height following the file's own
+   * proportions.
    */
-  form: "card" | "object";
-  /** artwork in public/assets/showcase (before withBase()) */
   image: { src: string; w: number; h: number };
   /** mouth overlay that opens as the panel turns to face the viewer (tiger chest) */
   mouth?: Mouth;
-  /** scene-space width of an `object` panel (cards use --card-w) */
-  width?: number;
+  /** scene-space width of the panel */
+  width: number;
+  /** scene-space gap between the artwork and its title (default 22) */
+  titleGap?: number;
 }
 
 /** Mirrors `--scene-perspective` (tokens.css) for the server-rendered first paint. */
@@ -95,15 +95,15 @@ export const panels: Panel[] = [
     // viewport centre — see showcase.ts (turns) for the relationship.
     spiral: { angleDeg: 0, radius: 360, dropY: 0 },
     href: { it: "/bio", en: "/en/bio" },
-    form: "card",
-    image: { src: "/assets/showcase/iam.webp", w: 880, h: 1120 },
+    image: { src: "/assets/showcase/iam.webp", w: 486, h: 2379 },
+    width: 60,
+    titleGap: 69, // label 99px from her centre
   },
   {
     id: "works",
     title: "MY",
     spiral: { angleDeg: 120, radius: 360, dropY: 700 },
     href: { it: "/opere", en: "/en/works" },
-    form: "object",
     image: tigerArt.image,
     mouth: tigerArt.mouth,
     width: 340,
@@ -113,7 +113,6 @@ export const panels: Panel[] = [
     title: "DARK SIDE OF THE MOOD",
     spiral: { angleDeg: 240, radius: 360, dropY: 1400 },
     href: { it: "/dark-side", en: "/en/dark-side" },
-    form: "object",
     image: { src: "/assets/showcase/dark-side.webp", w: 482, h: 428 },
     width: 300,
   },

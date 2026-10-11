@@ -190,7 +190,7 @@ twice off the spiral: as the first card of the works run and as the hero of the 
 card opens (artifacts flagged `tiger` in `artifacts.ts`; artwork and strip geometry shared
 from `tigerArt`/`mouthVars` in `panels.ts`). Only the drive differs — there is no orbit
 there, so **hover** flips `--mouth-open` 0 → 1 and each strip's `scale` transitions across
-it, eased to match the smoothstep. Hover also shakes the piece: `tiger-shake`, three swings
+it, eased to match the smoothstep. Hover also shakes the piece: `shake` (global.css, shared with the Drago), three swings
 that die away over 0.42s about a pivot high in the box, one shot per hover rather than an
 idle loop. The angles are small (±1.8° at most) because the piece is wide — a couple of
 degrees already throws its far corners a long way. In the run it is 160% of its card box
@@ -213,8 +213,8 @@ billboard.
 **Card placement & billboarding** (`PanelCard.astro`). Each card's transform is
 `rotateY(angle) translateZ(radius) translateY(drop) rotateY(−(spin+angle))`: the first
 three place it on the spiral (inside the spinning group), the final counter-rotation
-cancels the *total* world rotation so the card always faces the viewer. A `form: 'object'`
-panel (a cut-out with no frame) overrides `--card-w/--card-h` inline from its artwork's
+cancels the *total* world rotation so the card always faces the viewer. Every panel is a
+cut-out with no frame; it sets `--card-w/--card-h` inline from its `width` and its artwork's
 proportions, so the same billboard transform drives a box of any shape.
 
 **The occlusion sandwich** (`Scene.astro`). Three sibling `.scene` layers — cards
@@ -391,8 +391,14 @@ on each new hover. Per piece:
 - *Drago* — the finials' irises (`eye`) slide between a socket patch and a frame layer
   (the box minus the eye-white), so they go *behind* the lids; `pieces.ts` turns every eye
   towards the pointer, up to its `travel`, and on touch screens CSS glances them about
-  instead. The roses `ember`: a brightened copy, screen-blended, breathing 3.4s, also
-  without hover.
+  instead. On hover the whole piece `shake`s like the tiger and flames lick off its
+  sides (`Flames.astro`, drawn, not cut from the photo): 10 curvy tongues, rooted just
+  inside the door's red frame (not the top), every other one mirrored, a yellow core in a
+  root-to-tip gradient, edges ragged by a still turbulence displacement. Each `flame`
+  flares up and drifts along one smooth arc — out by `--dx` barely slowing (`flame-out`),
+  up by `--dy` from the start and ever more steeply (`flame-rise`), both quadratic in
+  time — sways by `--tilt` and fades; all start together (`--d` jitters them by a few
+  hundredths) and the last is gone by 0.8s.
 - *Llorona* — each drawer is a `crop` that `pull`s (scale 1.07 + drop shadow, 50ms apart,
   held while hovered) — plain crops of the cut-out, no layers from the script.
 - *Toucans* — the right bird's head and beak `poke` twice about the neck; the door's

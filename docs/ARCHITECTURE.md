@@ -68,9 +68,8 @@ src/
     showcase/
       Scene.astro         The 3D scene: scroll driver, sky, layer sandwich, fallback list
       Ladder3D.astro      The ladder as the spiral's central axis
-      PanelCard.astro     One panel on the spiral (billboard transform + big side title).
-                          `form: 'card'` frames the photo in the card box; `form: 'object'`
-                          is a cut-out on transparency, floating with no frame or shadow
+      PanelCard.astro     One panel on the spiral (billboard transform + big side title):
+                          a cut-out on transparency, floating with no frame or shadow
     works/
       ArtifactCard.astro  One card of the "MY" run (links to its detail page): the piece
                           as an ArtifactPiece, frameless on the 2:3 box's floor — or,
@@ -79,6 +78,7 @@ src/
                           (tree in motion.ts) + the CSS that animates them on hover.
                           Used by the card and by its detail hero
       MotionNode.astro    One node of that tree, recursive (image / crop / group / filter)
+      Flames.astro        Drawn flames licking off a piece's outline (the `flames` node)
       TigerPiece.astro    The tiger chest as a live piece — artwork + the two mouth
                           strips, which open (and shake it) on hover. Fills its
                           container's width; used by the card and by its detail hero
@@ -132,7 +132,8 @@ scripts/build-og-image.mjs)
 scripts/slice-logo.mjs    One-off glyph slicer (see below); splits the starburst in two
 scripts/build-image-assets.py
                           One-off: derives the site's webps from the raw shots in the
-                          sibling `Decorosa Data/` folder (cut-outs + crops)
+                          sibling `Decorosa Data/` folder (cut-outs + crops; `RETOUCH`
+                          paints out what isn't the piece, e.g. Drago's roses)
 scripts/build-og-image.mjs
                           Composes assets/og-image.png from the starburst layers
 ```

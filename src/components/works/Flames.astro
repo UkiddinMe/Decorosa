@@ -1,0 +1,84 @@
+---
+// Flames licking off a piece's outline, for its motion tree (the `flames` node,
+// src/data/motion.ts): drawn, not cut from the photo. Each flame is rooted just inside the
+// silhouette, a curvy tongue with its tip curled to one side (every other one mirrored),
+// a yellow core inside a gradient that runs from hot at the root to red at the tip. A
+// turbulence displacement rags the edges; the noise stays put while the flames move
+// through it, so the edges keep changing. On hover each one flares up and fades, swaying,
+// along one smooth curve: out to its `to`, slowing, while it rises ever faster — all inside 0.8s
+// (ArtifactPiece.astro).
+interface Props {
+  /** each flame's root (x, y), its height, and the x it drifts out to — cut-out pixels */
+  flames: [number, number, number, number][];
+  /** the cut-out's width: its centre line is what "outwards" is measured from */
+  w: number;
+  /** per-instance prefix for the ids of the gradients and filter */
+  uid: string;
+}
+const { flames, w, uid } = Astro.props;
+
+/** a flame of height h pointing up from (0, 0): a round belly, an S-bend, a curled tip */
+const tongue = (h: number) =>
+  [
+    'M 0 0',
+    `C ${-0.34 * h} ${-0.02 * h} ${-0.4 * h} ${-0.32 * h} ${-0.17 * h} ${-0.52 * h}`,
+    `C ${-0.04 * h} ${-0.64 * h} ${-0.2 * h} ${-0.82 * h} ${0.06 * h} ${-h}`,
+    `C ${0.02 * h} ${-0.82 * h} ${0.26 * h} ${-0.7 * h} ${0.25 * h} ${-0.47 * h}`,
+    `C ${0.32 * h} ${-0.28 * h} ${0.3 * h} ${-0.02 * h} 0 0 Z`,
+  ].join(' ');
+
+const all = flames.map(([x, y, h, to], i) => {
+  const out = Math.sign(x - w / 2) || 1;
+  return {
+    x,
+    y,
+    lean: out * 18,
+    outer: tongue(h),
+    core: tongue(h * 0.55),
+    mirror: i % 2 ? -1 : 1,
+    // three speeds and three start times in turn, a few hundredths apart: all flare up
+    // at once, yet no two neighbours move in step
+    style: [
+      `--dx:${to - x}px`,
+      `--dy:${Math.round(-h * 1.3)}px`,
+      `--tilt:${(i % 2 ? -1 : 1) * 7}deg`,
+      `--t:${0.66 + (i % 3) * 0.04}s`,
+      `--d:${((i * 2) % 3) * 0.03}s`,
+    ].join(';'),
+  };
+});
+---
+
+<linearGradient id={`${uid}-flame-g`} x1="0" y1="1" x2="0" y2="0">
+  <stop offset="0" stop-color="#ffd23f" />
+  <stop offset="0.4" stop-color="#ff7a1a" />
+  <stop offset="0.8" stop-color="#e3361b" />
+  <stop offset="1" stop-color="#b3161a" stop-opacity="0.6" />
+</linearGradient>
+<linearGradient id={`${uid}-flame-core-g`} x1="0" y1="1" x2="0" y2="0">
+  <stop offset="0" stop-color="#fffbe0" />
+  <stop offset="0.6" stop-color="#ffe066" />
+  <stop offset="1" stop-color="#ffb52e" stop-opacity="0.4" />
+</linearGradient>
+<filter id={`${uid}-flame-f`} filterUnits="userSpaceOnUse" x="-200" y="-300" width={w + 400} height="1800" color-interpolation-filters="sRGB">
+  <feTurbulence type="fractalNoise" baseFrequency="0.03 0.05" numOctaves="2" seed="5" result="noise" />
+  <feDisplacementMap in="SourceGraphic" in2="noise" scale="14" xChannelSelector="R" yChannelSelector="G" />
+  <feGaussianBlur stdDeviation="0.8" />
+</filter>
+
+<g filter={`url(#${uid}-flame-f)`}>
+  {
+    all.map((f) => (
+      <g transform={`translate(${f.x} ${f.y}) rotate(${f.lean})`}>
+        <g class="m-flame-out" style={f.style}>
+          <g class="m-flame-rise">
+            <g class="m-flame">
+              <path d={f.outer} transform={`scale(${f.mirror} 1)`} fill={`url(#${uid}-flame-g)`} />
+              <path d={f.core} transform={`scale(${f.mirror} 1)`} fill={`url(#${uid}-flame-core-g)`} />
+            </g>
+          </g>
+        </g>
+      </g>
+    ))
+  }
+</g>

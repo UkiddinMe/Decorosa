@@ -279,41 +279,12 @@ part(slug, 'tail-b', a, tip)
 patch(slug, 'tail-hole', a, ndimage.binary_dilation(tail, iterations=2) & (cols >= 392), board)
 
 # ---------------------------------------------------------------------------------------
-# DRAGO — the finials' eyes follow the pointer; the roses behind the glass pulse like
-# embers (a glow layer: the roses alone, brightened and blurred, faded in and out).
+# DRAGO — the finials' eyes follow the pointer.
 print('drago')
 slug = 'drago'
 a = load(slug)
-rows, cols = np.ogrid[:a.shape[0], :a.shape[1]]
 eye(slug, 'eye-l', a, (196, 30, 254, 90), (228, 56, 11))
 eye(slug, 'eye-r', a, (758, 30, 816, 88), (789, 56, 10.5))
-rgb = a[..., :3]
-# The roses are painted barely above the black, under a glass full of reflections. What
-# tells a petal apart is red over the mean of green and blue: the glass is blue-black and
-# its reflections grey, both around -16, the petals above -8. Bright neutral things (shelf
-# edges, dust) pass too, and down in the dark the measure is all compression noise — so
-# each rose gets a loose hand-measured hull, and the faint one low in the middle, lost in
-# that noise, goes by plain red instead. The glow's strength is how far up that ramp a
-# pixel sits; its colour is an ember orange, modulated by the rose's own red so the
-# petals keep their drawing.
-smooth = cv2.GaussianBlur(np.ascontiguousarray(rgb), (0, 0), 1.2)
-red = smooth[..., 0]
-pink = red - smooth[..., 1:].mean(2)
-ROSES = [  # (hull, measure, its level off the rose, on a petal)
-    (box_mask(a.shape, 335, 250, 522, 326), pink, -13.5, -8),      # top, cut by the frame
-    (ellipse(a.shape, 477, 430, 102, 94), pink, -13.5, -8),        # centre
-    (ellipse(a.shape, 397, 595, 66, 80), pink, -13.5, -8),         # left
-    (box_mask(a.shape, 300, 635, 326, 748), pink, -13.5, -8),      # left edge, a sliver
-    (poly(a.shape, (672, 250), (628, 283), (630, 370), (640, 405), (655, 435), (672, 442),
-          (695, 430), (708, 395), (708, 250)), pink, -13.5, -8),    # top right
-    (ellipse(a.shape, 685, 690, 40, 52) & (cols < 708), pink, -13.5, -8),  # bottom right
-    (ellipse(a.shape, 530, 716, 56, 34) & (rows < 746), red, 6, 18),  # low in the middle
-]
-strength = np.zeros(a.shape[:2], np.float32)
-for hull, measure, off, on in ROSES:
-    strength = np.maximum(strength, soft(hull, 4) * np.clip((measure - off) / (on - off), 0, 1))
-ember = np.float32([235, 90, 40]) * np.clip(rgb[..., :1] / 30, 0.45, 1)
-layer(slug, 'roses', ember, soft(strength, 3))
 
 # ---------------------------------------------------------------------------------------
 # METTO IL BECCO — the right toucan pokes its beak forward: head and beak as one part,

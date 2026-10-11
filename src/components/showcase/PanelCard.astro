@@ -9,17 +9,15 @@ interface Props {
 const { panel, lang } = Astro.props;
 const { angleDeg, radius, dropY } = panel.spiral;
 // Placement of this panel within the spiral (rotated/offset inside the spinning group).
-// `object` panels are cut-outs: they set their own box from the artwork's proportions.
-const size =
-  panel.form === 'object'
-    ? `--card-w:${panel.width}px;--card-h:${Math.round((panel.width! * panel.image.h) / panel.image.w)}px;`
-    : '';
+// Panels are cut-outs: each sets its own box from the artwork's proportions.
+const size = `--card-w:${panel.width}px;--card-h:${Math.round((panel.width * panel.image.h) / panel.image.w)}px;`;
 const mouthBox = panel.mouth ? mouthVars(panel.mouth) : '';
-const style = `--angle:${angleDeg}deg;--radius:${radius}px;--drop:${dropY}px;${size}${mouthBox}`;
+const gap = panel.titleGap === undefined ? '' : `--title-gap:${panel.titleGap}px;`;
+const style = `--angle:${angleDeg}deg;--radius:${radius}px;--drop:${dropY}px;${size}${mouthBox}${gap}`;
 ---
 
 <a
-  class:list={['card', `card--${panel.form}`]}
+  class="card"
   href={withBase(panel.href[lang])}
   style={style}
   data-panel={panel.id}
@@ -92,11 +90,13 @@ const style = `--angle:${angleDeg}deg;--radius:${radius}px;--drop:${dropY}px;${s
     position: absolute;
     inset: 0;
   }
+  /* Cut-out: no frame, no shadow — the piece itself hangs in the sky. */
   .card__media {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
+    object-fit: contain;
   }
   /* The piece glides rather than hangs. No keyframes: `--glide` (showcase.ts) is a
      function of where the panel is in its orbit, so the tilt only moves while the page
@@ -132,22 +132,9 @@ const style = `--angle:${angleDeg}deg;--radius:${radius}px;--drop:${dropY}px;${s
     transform-origin: 50% 100%;
     scale: 1 clamp(0, calc(1.006 - var(--mouth-open, 0) * var(--mouth-squeeze)), 1);
   }
-  /* Framed photo: cropped into the card box, and lifted off the sky by a shadow that
-     wraps the whole plate — a tight contact edge plus a wider, softer cast below. */
-  .card--card .card__media {
-    object-fit: cover;
-    border-radius: 0.5rem;
-    box-shadow:
-      0 1px 4px rgb(0 0 0 / 0.16),
-      0 16px 36px -8px rgb(0 0 0 / 0.38);
-  }
-  /* Cut-out: no frame, no shadow — the piece itself hangs in the sky. */
-  .card--object .card__media {
-    object-fit: contain;
-  }
   .card__title {
     position: absolute;
-    left: calc(100% + 22px);
+    left: calc(100% + var(--title-gap, 22px));
     top: 50%;
     width: 5.4em;
     /* px (not rem): the title lives in the scene's own coordinate space, so perspective

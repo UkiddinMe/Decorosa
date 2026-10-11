@@ -152,6 +152,31 @@ h3 {
   background: var(--sky-bg);
 }
 
+/* The live pieces' shake (TigerPiece, and the dragon in ArtifactPiece): three swings that
+   die away, over in under half a second, so it reads as the piece coming alive at the
+   touch rather than as an idle loop. Small angles on purpose — the pieces are wide, so a
+   couple of degrees already moves their far corners a long way. */
+@keyframes shake {
+  0% {
+    rotate: 0deg;
+  }
+  16% {
+    rotate: -1.8deg;
+  }
+  38% {
+    rotate: 1.3deg;
+  }
+  58% {
+    rotate: -0.7deg;
+  }
+  78% {
+    rotate: 0.3deg;
+  }
+  100% {
+    rotate: 0deg;
+  }
+}
+
 /* Accessibility: collapse motion for users who ask for it */
 @media (prefers-reduced-motion: reduce) {
   html {

@@ -1,6 +1,7 @@
 ---
 // One node of a piece's motion tree (src/data/motion.ts), and its children — recursive.
 // Styled and driven from ArtifactPiece.astro (CSS) and scripts/pieces.ts (pointer).
+import Flames from './Flames.astro';
 import { cutPath, layerBox, type MotionNode } from '../../data/motion';
 import { withBase } from '../../data/routes';
 
@@ -114,3 +115,4 @@ const children = 'children' in node ? node.children : [];
     </>
   )
 }
+{'flames' in node && <Flames flames={node.flames} w={w} uid={uid} />}

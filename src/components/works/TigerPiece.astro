@@ -75,31 +75,9 @@ import { withBase } from '../../data/routes';
     scale: 1 clamp(0, calc(1.006 - var(--mouth-open, 0) * var(--mouth-squeeze)), 1);
   }
 
-  /* The shake: three swings that die away, over in under half a second, so it reads as
-     the piece coming alive at the touch rather than as an idle loop. Small angles on
-     purpose — the piece is wide, so a couple of degrees already moves its far corners a
-     long way. It pivots high in the box, as the showcase panel's glide does: a thing
-     carried swings from above. One shot per hover: leaving and coming back plays it again. */
-  @keyframes tiger-shake {
-    0% {
-      rotate: 0deg;
-    }
-    16% {
-      rotate: -1.8deg;
-    }
-    38% {
-      rotate: 1.3deg;
-    }
-    58% {
-      rotate: -0.7deg;
-    }
-    78% {
-      rotate: 0.3deg;
-    }
-    100% {
-      rotate: 0deg;
-    }
-  }
+  /* The shake (`shake`, global.css): one shot per hover — leaving and coming back plays
+     it again. It pivots high in the box, as the showcase panel's glide does: a thing
+     carried swings from above. */
   .tiger {
     transform-origin: 50% 25%;
   }
@@ -109,7 +87,7 @@ import { withBase } from '../../data/routes';
   .tiger:hover,
   :global(a:focus-visible) .tiger {
     --mouth-open: 1;
-    animation: tiger-shake 0.42s ease-in-out;
+    animation: shake 0.42s ease-in-out;
   }
 
   @media (prefers-reduced-motion: reduce) {

@@ -9,6 +9,7 @@
 //   eye    a group that turns towards the pointer, up to `travel` px each way
 //   draw   the veins of the table top, wiped out then drawn in along their time map on hover
 //   trip   a layer warped and hue-cycled while hovered, clipped to a mask layer (the water)
+//   flames drawn flames, each from (x, y) out to x `to`, `height` tall (Flames.astro)
 // Every number is in the cut-out's pixels. Layer geometry: artifact-motion.json.
 import geometry from './artifact-motion.json';
 
@@ -20,7 +21,8 @@ export type MotionNode =
   | { move: string; origin: [number, number]; vars?: Record<string, string>; children: MotionNode[] }
   | { eye: [number, number]; travel: [number, number]; children: MotionNode[] }
   | { draw: { ink: string; time: string } }
-  | { trip: { layer: string; mask: string } };
+  | { trip: { layer: string; mask: string } }
+  | { flames: [x: number, y: number, height: number, to: number][] };
 
 type Geometry = Record<string, Record<string, number[] | string | number>>;
 const geo: Geometry = geometry;
@@ -113,12 +115,25 @@ export const motion: Record<string, MotionNode[]> = {
     },
   ],
 
-  // the finials' eyes follow the pointer; the roses behind the glass smoulder
+  // the finials' eyes follow the pointer; it shakes like the tiger and flames lick off
+  // its sides, all at once: from just inside the door's red frame out past the side shelves
   drago: [
-    { base: true },
-    moving('ember', 'roses', [510, 570]),
-    ...eye('eye-l', [228, 56], [9, 9]),
-    ...eye('eye-r', [789, 56], [9, 9]),
+    {
+      move: 'shake',
+      origin: [511, 300],
+      children: [
+        { base: true },
+        ...eye('eye-l', [228, 56], [9, 9]),
+        ...eye('eye-r', [789, 56], [9, 9]),
+        {
+          flames: [
+            [235, 290, 160, 57], [790, 290, 160, 968],
+            [235, 440, 180, 16], [790, 440, 180, 1009], [235, 730, 180, 16], [790, 730, 180, 1009],
+            [235, 900, 160, 52], [790, 900, 160, 973], [235, 1040, 170, 14], [790, 1040, 170, 1011],
+          ],
+        },
+      ],
+    },
   ],
 
   // the drawers pull out one by one

@@ -151,10 +151,12 @@ const isFront = (p: Panel) =>
     padding-inline: var(--space-m);
     text-decoration: none;
   }
+  /* cut-outs of any shape: the full-figure portrait is ~1:5, so cap the height too */
   .fallback__media {
     width: 100%;
     height: auto;
-    border-radius: 0.5rem;
+    max-height: 22rem;
+    object-fit: contain;
   }
   .fallback__item h2 {
     font-family: var(--font-futura);

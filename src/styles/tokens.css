@@ -93,8 +93,6 @@
      the SVG to this same width. */
   --ladder3d-w: calc(3601px * 109 / 5500);
   --ladder3d-h: 3601px;
-  --card-w: 220px;
-  --card-h: 280px;
 
   /* Shared sky background (landing hole, showcase backdrop, transition covers).
      --sky-url is set on <html> in BaseLayout so the path respects the deploy base.
