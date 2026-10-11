@@ -149,6 +149,23 @@ export const artifacts: Artifact[] = [
       },
     },
   },
+  {
+    id: 'mangrovie',
+    image: { w: 1188, h: 1125 },
+    world: 'jungle',
+    i18n: {
+      it: {
+        title: 'Mangrovie',
+        subtitle: 'Lorem ipsum',
+        body: 'At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum.',
+      },
+      en: {
+        title: 'Mangrovie',
+        subtitle: 'Lorem ipsum',
+        body: 'At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum.',
+      },
+    },
+  },
 ];
 
 /** The artifact's cut-out (not the tiger's: that one is `tigerArt` in panels.ts). */

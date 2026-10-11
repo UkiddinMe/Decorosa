@@ -175,8 +175,8 @@ cut-out until it gets an entry in `motion.ts`.
 
 **`src/data/motion.ts`** — per artifact id, the tree `ArtifactPiece` draws: the cut-out
 (`base`, or `crop`s of it), `layer`s from `build-artifact-motion.py`, and groups that
-`move` (a named CSS animation about an `origin`), follow the pointer (`eye`) or
-`draw`. All numbers are pixels of the cut-out. To animate another part: cut its layer (and
+`move` (a named CSS animation about an `origin`), follow the pointer (`eye`), `draw`,
+or `trip` (a layer warped and hue-cycled by a filter, clipped to a mask layer). All numbers are pixels of the cut-out. To animate another part: cut its layer (and
 the patch behind it) in the script, re-run it, add the nodes here, and — for a new kind
 of move — a `m-<name>` rule + keyframes in `ArtifactPiece.astro`.
 
@@ -219,7 +219,7 @@ uniform ×0.783 multiply, so it is divided back out (and kept as its own black-a
 layer, for the page to fade in); the cherry is cut out as the one non-palette blob, sky
 and ridge filled in behind it, its rim unmixed against that. The plate is a 2:3 window
 slid right and down to centre the peak, with the word pasted back at its own margins.
-The artifact cut-outs (`MY/2. …` to `MY/7. …`, folder number = run order) are the one
+The artifact cut-outs (`MY/2. …` to `MY/8. …`, folder number = run order) are the one
 job no colour rule can do — real rooms behind real furniture — so they go through a
 matting model (rembg's BiRefNet), with a hand-measured polygon patching back what it
 misses (the coat rack's white pillar on a white wall). Its numbers are tuned to *these* photos — re-tune, don't re-run blindly,
@@ -230,7 +230,7 @@ when the client sends replacements.
 parts by colour rule inside hand-measured boxes (heads, hat, tail, irises, beak), flat
 patches of sampled colour for what they uncover, and for the leaf table the ink unmixed
 from the green, the top inpainted clean, and a time map (distance along the veins from the
-top's left tip). Re-cutting a cut-out means re-measuring this script's boxes.
+top's left tip); for the mangroves, the water band and its mask. Re-cutting a cut-out means re-measuring this script's boxes.
 
 ## Styling
 

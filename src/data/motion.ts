@@ -8,6 +8,7 @@
 //          with `vars` as its CSS custom properties
 //   eye    a group that turns towards the pointer, up to `travel` px each way
 //   draw   the veins of the table top, wiped out then drawn in along their time map on hover
+//   trip   a layer warped and hue-cycled while hovered, clipped to a mask layer (the water)
 // Every number is in the cut-out's pixels. Layer geometry: artifact-motion.json.
 import geometry from './artifact-motion.json';
 
@@ -18,7 +19,8 @@ export type MotionNode =
   | { layer: string }
   | { move: string; origin: [number, number]; vars?: Record<string, string>; children: MotionNode[] }
   | { eye: [number, number]; travel: [number, number]; children: MotionNode[] }
-  | { draw: { ink: string; time: string } };
+  | { draw: { ink: string; time: string } }
+  | { trip: { layer: string; mask: string } };
 
 type Geometry = Record<string, Record<string, number[] | string | number>>;
 const geo: Geometry = geometry;
@@ -139,4 +141,7 @@ export const motion: Record<string, MotionNode[]> = {
     moving('poke', 'head', [525, 1000]),
     layer('plates'),
   ],
+
+  // the water ripples and runs through every hue, for as long as the pointer stays
+  mangrovie: [{ base: true }, { trip: { layer: 'water', mask: 'water-mask' } }],
 };

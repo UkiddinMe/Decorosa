@@ -3,9 +3,9 @@
 // parts that move laid back over it (the tree in src/data/motion.ts, the layers from
 // scripts/build-artifact-motion.py). Like the tiger, it comes alive on hover — each part
 // plays its animation once per hover, or holds its pose while hovered (a few loop on their
-// own) — plus two moves
+// own) — plus three moves
 // that need a script (scripts/pieces.ts): eyes that follow the pointer, the table's veins
-// drawing in. Fills its container; `meet` + bottom
+// drawing in, the mangroves' water tripping out. Fills its container; `meet` + bottom
 // alignment stand the piece on the box's floor, exactly as `object-fit: contain` did.
 import MotionNode from './MotionNode.astro';
 import { artifactImage, type Artifact } from '../../data/artifacts';
@@ -47,9 +47,12 @@ const uid = `${artifact.id}-${Math.random().toString(36).slice(2, 7)}`;
   .piece :global(.m-blink) {
     scale: 1 0;
   }
+  .piece :global(.m-ember),
+  .piece :global(.m-trip) {
+    opacity: 0;
+  }
   .piece :global(.m-ember) {
     mix-blend-mode: screen;
-    opacity: 0;
   }
 
   @media (prefers-reduced-motion: no-preference) {

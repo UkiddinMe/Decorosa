@@ -397,6 +397,12 @@ on each new hover. Per piece:
   held while hovered) — plain crops of the cut-out, no layers from the script.
 - *Toucans* — the right bird's head and beak `poke` twice about the neck; the door's
   keyhole plates are inpainted off the moving part and laid back on top, so they stay put.
+- *Mangrovie* — `trip`: the water band (roots painted over with their nearest water, run
+  on 12px past its edge so the warp never pulls in air) goes through an SVG filter —
+  `feTurbulence` → `feDisplacementMap` (scale 22) → saturate → `hueRotate` — and is
+  clipped back to the water's own mask, so roots and outlines stay on top. `pieces.ts`
+  runs it only while hovered: fades it in over 0.5s, breathes the noise's two
+  frequencies out of step and turns the hue once every 3s; fades out on leave.
 
 All of it sits inside `prefers-reduced-motion: no-preference` (and `pieces.ts` bails out).
 

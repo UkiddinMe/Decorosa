@@ -1,7 +1,9 @@
 // The moves of the "MY" pieces that CSS can't make on its own (ArtifactPiece.astro):
 //  * eyes [data-eye] turn towards the pointer, as far as their `data-travel` allows;
 //  * the table's veins [data-draw] are wiped out, then drawn back in, along their time
-//    map, once per hover.
+//    map, once per hover;
+//  * the water [data-trip] fades into a ripple that runs through every hue, held while
+//    hovered.
 // Lifecycle-safe for View-Transition navigation.
 import { prefersReduced } from './motion';
 
@@ -81,12 +83,46 @@ function draw(piece: SVGSVGElement, transfer: SVGFEComponentTransferElement): vo
   cleanup.push(() => cancelAnimationFrame(frame));
 }
 
+/** while hovered (or its card focused); faded in and out over FADE_MS */
+function trip(piece: SVGSVGElement, filter: SVGFilterElement): void {
+  const FADE_MS = 500;
+  const group = piece.querySelector<SVGGElement>('.m-trip')!;
+  const noise = filter.querySelector('feTurbulence')!;
+  const hue = filter.querySelector('feColorMatrix[type="hueRotate"]')!;
+  let on = false;
+  let k = 0;
+  let last = 0;
+  let frame = 0;
+  const step = (now: number): void => {
+    const dt = last ? now - last : 16;
+    last = now;
+    k = Math.min(1, Math.max(0, k + (on ? dt : -dt) / FADE_MS));
+    group.style.opacity = String(k);
+    // the noise drifts by breathing its two frequencies out of step; the hue turns once in 3s
+    noise.setAttribute('baseFrequency', `${0.012 + 0.005 * Math.sin(now / 900)} ${0.04 + 0.015 * Math.sin(now / 1300)}`);
+    hue.setAttribute('values', String((now * 0.12) % 360));
+    if (on || k > 0) frame = requestAnimationFrame(step);
+    else frame = last = 0;
+  };
+  const set = (v: boolean) => () => {
+    on = v;
+    frame ||= requestAnimationFrame(step);
+  };
+  onEnter(piece, set(true));
+  listen(piece, 'pointerleave', set(false));
+  const card = piece.closest('a');
+  if (card) listen(card, 'blur', set(false));
+  cleanup.push(() => cancelAnimationFrame(frame));
+}
+
 function init(): void {
   if (prefersReduced()) return;
   eyes();
   for (const piece of document.querySelectorAll<SVGSVGElement>('svg.piece')) {
     const transfer = piece.querySelector<SVGFEComponentTransferElement>('[data-draw]');
     if (transfer) draw(piece, transfer);
+    const water = piece.querySelector<SVGFilterElement>('[data-trip]');
+    if (water) trip(piece, water);
   }
 }
 

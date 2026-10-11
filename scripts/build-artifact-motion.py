@@ -356,6 +356,28 @@ layer(slug, 'head', beak, soft(head) * a[..., 3] / 255)
 patch(slug, 'head-hole', a, ndimage.binary_dilation(head, iterations=1) & (rows < 988), cream)
 part(slug, 'plates', a, plates, 0.5)
 
+# ---------------------------------------------------------------------------------------
+# MANGROVIE — the purple water ripples and shifts hue. Two layers: `water`, the band with
+# the roots standing in it painted over with their nearest water, and `water-mask`, the water alone, which clips the warped
+# band back so the roots and their outlines stay on top. The water is a dull violet:
+# blue over green and level with red, off the black outlines, below the line the band starts on.
+print('mangrovie')
+slug = 'mangrovie'
+a = load(slug)
+rows, cols = np.ogrid[:a.shape[0], :a.shape[1]]
+rgb = a[..., :3]
+water = (rgb[..., 2] > rgb[..., 1] + 8) & (rgb[..., 2] > rgb[..., 0] - 3) & (rgb.max(2) > 60) & (rows > 690)
+water = biggest(ndimage.binary_opening(water, np.ones((3, 3))))
+# (two pixels wider than the water, so its blend into the outlines and the cream goes too)
+wide = ndimage.binary_dilation(water, iterations=2)
+# the band runs on past the mask by the ripple's reach (scale 22 in MotionNode: 11px each
+# way), so the warp never pulls in a transparent edge
+band = ndimage.binary_dilation(ndimage.binary_fill_holes(ndimage.binary_closing(wide, np.ones((25, 25)))), iterations=12)
+_, (gy, gx) = ndimage.distance_transform_edt(~water, return_indices=True)
+filled = cv2.GaussianBlur(np.ascontiguousarray(rgb[gy, gx]), (0, 0), 1.5)
+layer(slug, 'water', np.where(water[..., None], rgb, filled), soft(band, 0.6))
+layer(slug, 'water-mask', 255, soft(wide, 0.6) * a[..., 3] / 255)
+
 with open(os.path.join(ROOT, 'src/data/artifact-motion.json'), 'w') as f:
     json.dump(GEOMETRY, f, indent=1)
 print('geometry -> src/data/artifact-motion.json')

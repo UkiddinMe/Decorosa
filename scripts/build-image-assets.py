@@ -409,11 +409,17 @@ RUN = [
     ('5. Drago', 'drago'),
     ('6. llorona', 'llorona'),
     ('7. Metto il becco', 'metto-il-becco'),
+    ('8. Mangrovie', 'mangrovie'),
 ]
-# White on white: the model loses the left pillar of the coat rack against the wall
-# behind it. The frame is straight, so its body (below the cornice, down to the plinth)
-# is given back as a hand-measured polygon on this shot.
-PATCH = {'attacchini': [(289, 157), (440, 157), (440, 1050), (292, 1050), (292, 1035), (297, 1033)]}
+# Where the model misses part of the piece, a hand-measured polygon on the shot gives it
+# back. White on white, it loses the left pillar of the coat rack against the wall: the
+# frame is straight, so its body (below the cornice, down to the plinth) is filled in.
+# The mangrove embroidery comes back with a hole in the right of its mount: the frame
+# is a plain quad, so all of it is.
+PATCH = {
+    'attacchini': [(289, 157), (440, 157), (440, 1050), (292, 1050), (292, 1035), (297, 1033)],
+    'mangrovie': [(165, 482), (1338, 467), (1347, 1577), (168, 1587)],
+}
 
 for folder, slug in RUN:
     d = os.path.join(DATA, 'MY', folder)
