@@ -17,7 +17,7 @@ const ERASE_MS = 1200;
 const DRAW_MS = 2400;
 /** touch cycle: live long enough for the longest one-shot (the veins), then a rest */
 const LIVE_MS = ERASE_MS + DRAW_MS;
-const REST_MS = 2500;
+const REST_MS = 1750;
 
 let cleanup: Array<() => void> = [];
 

@@ -366,7 +366,7 @@ patches stop short of a part's joint, so the wedge a rotation opens there shows 
 original instead. Like the tiger, one switch drives it: `.is-live`, which `pieces.ts` sets on hover (or focus
 on the card) with a pointer, and on touch — no hover there — cycles by itself while the
 piece is on screen (`IntersectionObserver`): live 3.6s (the veins' erase + draw, the
-longest one-shot), rest 2.5s, like the dune's cherry. One-shots replay on each turn, held
+longest one-shot), rest 1.75s. One-shots replay on each turn, held
 poses open and fold. Per piece:
 
 - *Attacchini* — the three fowl heads `peck` (two dips about the neck base, `--tilt` per
