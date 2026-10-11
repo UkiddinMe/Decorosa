@@ -7,8 +7,8 @@
 //   move   a group that plays an animation (a class in ArtifactPiece) about `origin`,
 //          with `vars` as its CSS custom properties
 //   eye    a group that turns towards the pointer, up to `travel` px each way
-//   draw   the veins of the table top, wiped out then drawn in along their time map on hover
-//   trip   a layer warped and hue-cycled while hovered, clipped to a mask layer (the water)
+//   draw   the veins of the table top, wiped out then drawn in along their time map once per turn
+//   trip   a layer warped and hue-cycled while live, clipped to a mask layer (the water)
 //   flames drawn flames, each from (x, y) out to x `to`, `height` tall (Flames.astro)
 // Every number is in the cut-out's pixels. Layer geometry: artifact-motion.json.
 import geometry from './artifact-motion.json';

@@ -1,8 +1,9 @@
 ---
 // An artifact as a live piece: its cut-out drawn as an SVG in its own pixel grid, with the
 // parts that move laid back over it (the tree in src/data/motion.ts, the layers from
-// scripts/build-artifact-motion.py). Like the tiger, it comes alive on hover — each part
-// plays its animation once per hover, or holds its pose while hovered (a few loop on their
+// scripts/build-artifact-motion.py). Like the tiger, it comes alive while `.is-live` (pieces.ts:
+// hover or card focus with a pointer, an on/off cycle on touch) — each part
+// plays its animation once per turn, or holds its pose while live (a few loop on their
 // own) — plus three moves
 // that need a script (scripts/pieces.ts): eyes that follow the pointer, the table's veins
 // drawing in, the mangroves' water tripping out. Fills its container; `meet` + bottom
@@ -56,13 +57,12 @@ const uid = `${artifact.id}-${Math.random().toString(36).slice(2, 7)}`;
   }
 
   @media (prefers-reduced-motion: no-preference) {
-    /* Held while hovered: the boards fan apart, the drawers pull out one by one — and
-       fold back when the pointer leaves. */
+    /* Held while live: the boards fan apart, the drawers pull out one by one — and
+       fold back after. */
     .piece :global(.m-fan) {
       transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
     }
-    .piece:hover :global(.m-fan),
-    :global(a:focus-visible) .piece :global(.m-fan) {
+    .piece.is-live :global(.m-fan) {
       transform: translate(var(--x), var(--y)) rotate(var(--r));
     }
     .piece :global(.m-pull) {
@@ -70,57 +70,48 @@ const uid = `${artifact.id}-${Math.random().toString(36).slice(2, 7)}`;
         transform 0.4s cubic-bezier(0.22, 1, 0.36, 1) var(--d),
         filter 0.4s ease var(--d);
     }
-    .piece:hover :global(.m-pull),
-    :global(a:focus-visible) .piece :global(.m-pull) {
+    .piece.is-live :global(.m-pull) {
       transform: scale(1.07);
       filter: drop-shadow(0 6px 5px rgb(0 0 0 / 0.4));
     }
 
-    /* One shot per hover (leaving and coming back plays it again), like the tiger. */
-    .piece:hover :global(.m-peck),
-    :global(a:focus-visible) .piece :global(.m-peck) {
+    /* One shot per turn (each new turn plays it again), like the tiger. */
+    .piece.is-live :global(.m-peck) {
       animation: peck 0.9s ease-in-out var(--d);
     }
-    .piece:hover :global(.m-hop),
-    :global(a:focus-visible) .piece :global(.m-hop) {
+    .piece.is-live :global(.m-hop) {
       animation: hop 0.95s 0.15s;
     }
-    .piece:hover :global(.m-snap),
-    :global(a:focus-visible) .piece :global(.m-snap) {
+    .piece.is-live :global(.m-snap) {
       animation: snap 0.8s ease-in-out 0.25s;
     }
     /* (not where they loop — the run's cards, below; only the detail page is left) */
-    .piece:not(.piece--loop):hover :global(.m-blink) {
+    .piece.is-live:not(.piece--loop) :global(.m-blink) {
       animation: blink 2.75s ease-in-out 0.4s;
     }
-    .piece:not(.piece--loop):hover :global(.m-swish-run) {
+    .piece.is-live:not(.piece--loop) :global(.m-swish-run) {
       animation: swish-run 3s ease-in-out 0.2s;
     }
-    .piece:not(.piece--loop):hover :global(.m-swish-tip) {
+    .piece.is-live:not(.piece--loop) :global(.m-swish-tip) {
       animation: swish-tip 3s ease-in-out 0.25s;
     }
-    .piece:hover :global(.m-shake),
-    :global(a:focus-visible) .piece :global(.m-shake) {
+    .piece.is-live :global(.m-shake) {
       animation: shake 0.42s ease-in-out;
     }
     /* each flame flares, sways and fades on its own timing (--t, --d, --tilt from
        Flames.astro), the last gone by 0.8s. Its path is one smooth arc: both curves are
        plain quadratics in time (control points at 1/3, 2/3), out = 1.3t − 0.3t² (barely
        slowing) and up = 0.35t + 0.65t² (rising from the start, ever more steeply) */
-    .piece:hover :global(.m-flame),
-    :global(a:focus-visible) .piece :global(.m-flame) {
+    .piece.is-live :global(.m-flame) {
       animation: flame var(--t) ease-out var(--d);
     }
-    .piece:hover :global(.m-flame-out),
-    :global(a:focus-visible) .piece :global(.m-flame-out) {
+    .piece.is-live :global(.m-flame-out) {
       animation: flame-out var(--t) cubic-bezier(0.333, 0.433, 0.667, 0.767) var(--d);
     }
-    .piece:hover :global(.m-flame-rise),
-    :global(a:focus-visible) .piece :global(.m-flame-rise) {
+    .piece.is-live :global(.m-flame-rise) {
       animation: flame-rise var(--t) cubic-bezier(0.333, 0.117, 0.667, 0.45) var(--d);
     }
-    .piece:hover :global(.m-poke),
-    :global(a:focus-visible) .piece :global(.m-poke) {
+    .piece.is-live :global(.m-poke) {
       animation: poke 0.9s ease-in-out 0.1s;
     }
 

@@ -189,9 +189,9 @@ since a side-on panel is still off-screen there — both moves happen in view. T
 twice off the spiral: as the first card of the works run and as the hero of the page that
 card opens (artifacts flagged `tiger` in `artifacts.ts`; artwork and strip geometry shared
 from `tigerArt`/`mouthVars` in `panels.ts`). Only the drive differs — there is no orbit
-there, so **hover** flips `--mouth-open` 0 → 1 and each strip's `scale` transitions across
+there, so `.is-live` (hover, or the touch cycle — see Live pieces) flips `--mouth-open` 0 → 1 and each strip's `scale` transitions across
 it, eased to match the smoothstep. Hover also shakes the piece: `shake` (global.css, shared with the Drago), three swings
-that die away over 0.42s about a pivot high in the box, one shot per hover rather than an
+that die away over 0.42s about a pivot high in the box, one shot per turn rather than an
 idle loop. The angles are small (±1.8° at most) because the piece is wide — a couple of
 degrees already throws its far corners a long way. In the run it is 160% of its card box
 and hangs a little below its centre, about as low as it can go: wide enough to read,
@@ -363,8 +363,11 @@ layers `scripts/build-artifact-motion.py` cut from it, each back exactly where i
 from, so at rest the piece is the photo. A moving *part* always has a *patch* under it — flat
 sampled colour (wall, board, eye-white) — which is what shows in the sliver it uncovers;
 patches stop short of a part's joint, so the wedge a rotation opens there shows the
-original instead. Like the tiger, hover (or focus on the card) drives it; one-shots replay
-on each new hover. Per piece:
+original instead. Like the tiger, one switch drives it: `.is-live`, which `pieces.ts` sets on hover (or focus
+on the card) with a pointer, and on touch — no hover there — cycles by itself while the
+piece is on screen (`IntersectionObserver`): live 3.6s (the veins' erase + draw, the
+longest one-shot), rest 2.5s, like the dune's cherry. One-shots replay on each turn, held
+poses open and fold. Per piece:
 
 - *Attacchini* — the three fowl heads `peck` (two dips about the neck base, `--tilt` per
   head, staggered by `--d`); the bowler `hop`s off the cornice, spins, lands with a
@@ -381,17 +384,16 @@ on each new hover. Per piece:
   the cut-out's silhouette on its far sides and to the dark rim on the near one, so no
   vein stub is left in the base.
 - *Giungla* — the three boards are `crop`s of the cut-out (no base) that `fan` apart and
-  hold while hovered; riding on them: the panther's irises (`eye`), the blue tiger's
+  hold while live; riding on them: the panther's irises (`eye`), the blue tiger's
   `snap` (a fur-blue lid in the mouth's shape, scaled about its lip line), the red tiger's
   `blink`, and the leopard's tail in two bones (`swish-tip` nested in `swish-run`). In
   the run (`ArtifactPiece`'s `loop` prop, set by the card) the blink (two in 1.6s) and the
   tail (one 2.5s swish) loop on their own, hover or not, each with a 2.5s rest — periods
-  of 4.1s and 5s, so they never keep time. On the detail page they are one-shots per
-  hover, quicker (same keyframes, shorter duration).
+  of 4.1s and 5s, so they never keep time. On the detail page they are one-shots per  turn, quicker (same keyframes, shorter duration).
 - *Drago* — the finials' irises (`eye`) slide between a socket patch and a frame layer
   (the box minus the eye-white), so they go *behind* the lids; `pieces.ts` turns every eye
   towards the pointer, up to its `travel`, and on touch screens CSS glances them about
-  instead. On hover the whole piece `shake`s like the tiger and flames lick off its
+  instead. While live the whole piece `shake`s like the tiger and flames lick off its
   sides (`Flames.astro`, drawn, not cut from the photo): 10 curvy tongues, rooted just
   inside the door's red frame (not the top), every other one mirrored, a yellow core in a
   root-to-tip gradient, edges ragged by a still turbulence displacement. Each `flame`
@@ -400,15 +402,15 @@ on each new hover. Per piece:
   time — sways by `--tilt` and fades; all start together (`--d` jitters them by a few
   hundredths) and the last is gone by 0.8s.
 - *Llorona* — each drawer is a `crop` that `pull`s (scale 1.07 + drop shadow, 50ms apart,
-  held while hovered) — plain crops of the cut-out, no layers from the script.
+  held while live) — plain crops of the cut-out, no layers from the script.
 - *Toucans* — the right bird's head and beak `poke` twice about the neck; the door's
   keyhole plates are inpainted off the moving part and laid back on top, so they stay put.
 - *Mangrovie* — `trip`: the water band (roots painted over with their nearest water, run
   on 12px past its edge so the warp never pulls in air) goes through an SVG filter —
   `feTurbulence` → `feDisplacementMap` (scale 22) → saturate → `hueRotate` — and is
   clipped back to the water's own mask, so roots and outlines stay on top. `pieces.ts`
-  runs it only while hovered: fades it in over 0.5s, breathes the noise's two
-  frequencies out of step and turns the hue once every 3s; fades out on leave.
+  runs it only while live: fades it in over 0.5s, breathes the noise's two
+  frequencies out of step and turns the hue once every 3s; fades out after.
 
 All of it sits inside `prefers-reduced-motion: no-preference` (and `pieces.ts` bails out).
 

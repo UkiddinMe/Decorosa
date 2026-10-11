@@ -2,7 +2,8 @@
 // The tiger chest as a live piece: the artwork plus the two mouth strips over it. Same
 // artwork and the same seam mechanics as the showcase panel (tigerArt in panels.ts,
 // ANIMATIONS.md) — only the drive differs. There the orbit opens the mouth; here it is
-// hover: the drawer rolls out and the whole piece shakes itself a few times.
+// `.is-live` (pieces.ts — hover, or a cycle on touch): the drawer rolls out and the whole
+// piece shakes itself a few times.
 // Fills its container's width; the container places it and decides how big it is.
 import { mouthVars, tigerArt } from '../../data/panels';
 import { withBase } from '../../data/routes';
@@ -38,6 +39,10 @@ import { withBase } from '../../data/routes';
   />
 </span>
 
+<script>
+  import '../../scripts/pieces.ts';
+</script>
+
 <style>
   /* Height comes from the artwork itself, which is also what the mouth strips measure
      their % against — exactly as in the showcase, where the card box *is* the artwork. */
@@ -54,7 +59,7 @@ import { withBase } from '../../data/routes';
   /* The mouth: the same two strips of one column of the artwork as the showcase panel
      (panels.ts), meeting on a single moving seam — the open drawer stretches down from
      the jaw line while the shut face is squeezed against its own floor and pushed out of
-     sight. `--mouth-open` flips 0 -> 1 on hover and each strip's `scale` eases across it,
+     sight. `--mouth-open` flips 0 -> 1 while live and each strip's `scale` eases across it,
      matching the smoothstep showcase.ts applies to the orbit. */
   .tiger__mouth {
     position: absolute;
@@ -75,17 +80,13 @@ import { withBase } from '../../data/routes';
     scale: 1 clamp(0, calc(1.006 - var(--mouth-open, 0) * var(--mouth-squeeze)), 1);
   }
 
-  /* The shake (`shake`, global.css): one shot per hover — leaving and coming back plays
-     it again. It pivots high in the box, as the showcase panel's glide does: a thing
-     carried swings from above. */
+  /* The shake (`shake`, global.css): one shot per turn — each new turn plays it
+     again. It pivots high in the box, as the showcase panel's glide does: a thing carried
+     swings from above. */
   .tiger {
     transform-origin: 50% 25%;
   }
-  /* Hover on the piece itself, not on the box around it: in the works run the tiger
-     overflows its card, so the artwork is what the pointer is aiming at. The focus rule
-     covers the card being tabbed to, since there the piece sits inside a link. */
-  .tiger:hover,
-  :global(a:focus-visible) .tiger {
+  .tiger.is-live {
     --mouth-open: 1;
     animation: shake 0.42s ease-in-out;
   }
@@ -94,8 +95,7 @@ import { withBase } from '../../data/routes';
     .tiger__mouth {
       transition: none;
     }
-    .tiger:hover,
-    :global(a:focus-visible) .tiger {
+    .tiger.is-live {
       animation: none;
     }
   }

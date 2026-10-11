@@ -1,14 +1,22 @@
-// The moves of the "MY" pieces that CSS can't make on its own (ArtifactPiece.astro):
+// The live pieces (ArtifactPiece.astro, TigerPiece.astro) and the moves CSS can't make on
+// its own:
+//  * `.is-live` — the one switch every "hover" move in their CSS reads. With a pointer it
+//    follows hover on the piece itself (in the run the tiger overflows its card, so the
+//    artwork is what the pointer aims at) and focus on its card; on touch, where there is
+//    no hover, it cycles on and off by itself while the piece is on screen, so one-shots
+//    replay and held poses open and fold, like the dune's cherry;
 //  * eyes [data-eye] turn towards the pointer, as far as their `data-travel` allows;
 //  * the table's veins [data-draw] are wiped out, then drawn back in, along their time
-//    map, once per hover;
-//  * the water [data-trip] fades into a ripple that runs through every hue, held while
-//    hovered.
+//    map, once per turn;
+//  * the water [data-trip] fades into a ripple that runs through every hue, held while live.
 // Lifecycle-safe for View-Transition navigation.
 import { prefersReduced } from './motion';
 
 const ERASE_MS = 1200;
 const DRAW_MS = 2400;
+/** touch cycle: live long enough for the longest one-shot (the veins), then a rest */
+const LIVE_MS = ERASE_MS + DRAW_MS;
+const REST_MS = 2500;
 
 let cleanup: Array<() => void> = [];
 
@@ -17,11 +25,39 @@ function listen(el: EventTarget, type: string, fn: EventListener): void {
   cleanup.push(() => el.removeEventListener(type, fn));
 }
 
-/** hover on the piece itself, or keyboard focus on the card it sits in */
-function onEnter(piece: SVGSVGElement, fn: () => void): void {
-  listen(piece, 'pointerenter', fn);
-  const card = piece.closest('a');
-  if (card) listen(card, 'focus', fn);
+/** drives `.is-live` on the piece and tells `moves` each time it flips */
+function drive(piece: Element, moves: Array<(on: boolean) => void>): void {
+  const set = (on: boolean): void => {
+    if (piece.classList.contains('is-live') === on) return;
+    piece.classList.toggle('is-live', on);
+    for (const move of moves) move(on);
+  };
+  if (matchMedia('(hover: hover)').matches) {
+    listen(piece, 'pointerenter', () => set(true));
+    listen(piece, 'pointerleave', () => set(false));
+    const card = piece.closest('a');
+    if (card) {
+      listen(card, 'focus', () => set(true));
+      listen(card, 'blur', () => set(false));
+    }
+    return;
+  }
+  if (prefersReduced()) return;
+  let timer = 0;
+  const turn = (on: boolean): void => {
+    set(on);
+    timer = window.setTimeout(turn, on ? LIVE_MS : REST_MS, !on);
+  };
+  const seen = new IntersectionObserver(([entry]) => {
+    clearTimeout(timer);
+    if (entry.isIntersecting) turn(true);
+    else set(false);
+  });
+  seen.observe(piece);
+  cleanup.push(() => {
+    seen.disconnect();
+    clearTimeout(timer);
+  });
 }
 
 function eyes(): void {
@@ -53,7 +89,7 @@ function eyes(): void {
   cleanup.push(() => cancelAnimationFrame(frame));
 }
 
-function draw(piece: SVGSVGElement, transfer: SVGFEComponentTransferElement): void {
+function draw(transfer: SVGFEComponentTransferElement): (on: boolean) => void {
   const edge = Number(transfer.dataset.draw);
   const funcs = Array.from(transfer.children);
   const set = (slope: number, intercept: number) =>
@@ -75,16 +111,16 @@ function draw(piece: SVGSVGElement, transfer: SVGFEComponentTransferElement): vo
     else set(-edge, edge * front);
     frame = erasing || p < 1 ? requestAnimationFrame(step) : 0;
   };
-  onEnter(piece, () => {
-    if (frame) return;
+  cleanup.push(() => cancelAnimationFrame(frame));
+  return (on) => {
+    if (!on || frame) return;
     start = performance.now();
     frame = requestAnimationFrame(step);
-  });
-  cleanup.push(() => cancelAnimationFrame(frame));
+  };
 }
 
-/** while hovered (or its card focused); faded in and out over FADE_MS */
-function trip(piece: SVGSVGElement, filter: SVGFilterElement): void {
+/** while live; faded in and out over FADE_MS */
+function trip(piece: Element, filter: SVGFilterElement): (on: boolean) => void {
   const FADE_MS = 500;
   const group = piece.querySelector<SVGGElement>('.m-trip')!;
   const noise = filter.querySelector('feTurbulence')!;
@@ -104,25 +140,23 @@ function trip(piece: SVGSVGElement, filter: SVGFilterElement): void {
     if (on || k > 0) frame = requestAnimationFrame(step);
     else frame = last = 0;
   };
-  const set = (v: boolean) => () => {
+  cleanup.push(() => cancelAnimationFrame(frame));
+  return (v) => {
     on = v;
     frame ||= requestAnimationFrame(step);
   };
-  onEnter(piece, set(true));
-  listen(piece, 'pointerleave', set(false));
-  const card = piece.closest('a');
-  if (card) listen(card, 'blur', set(false));
-  cleanup.push(() => cancelAnimationFrame(frame));
 }
 
 function init(): void {
-  if (prefersReduced()) return;
-  eyes();
-  for (const piece of document.querySelectorAll<SVGSVGElement>('svg.piece')) {
+  const still = prefersReduced();
+  if (!still) eyes();
+  for (const piece of document.querySelectorAll('svg.piece, .tiger')) {
+    const moves: Array<(on: boolean) => void> = [];
     const transfer = piece.querySelector<SVGFEComponentTransferElement>('[data-draw]');
-    if (transfer) draw(piece, transfer);
     const water = piece.querySelector<SVGFilterElement>('[data-trip]');
-    if (water) trip(piece, water);
+    if (!still && transfer) moves.push(draw(transfer));
+    if (!still && water) moves.push(trip(piece, water));
+    drive(piece, moves);
   }
 }
 

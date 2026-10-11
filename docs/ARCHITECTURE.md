@@ -75,12 +75,12 @@ src/
                           as an ArtifactPiece, frameless on the 2:3 box's floor — or,
                           for the one flagged `tiger` in artifacts.ts, a TigerPiece
       ArtifactPiece.astro A cut-out as a live SVG: its moving parts laid back over it
-                          (tree in motion.ts) + the CSS that animates them on hover.
+                          (tree in motion.ts) + the CSS that animates them while live.
                           Used by the card and by its detail hero
       MotionNode.astro    One node of that tree, recursive (image / crop / group / filter)
       Flames.astro        Drawn flames licking off a piece's outline (the `flames` node)
       TigerPiece.astro    The tiger chest as a live piece — artwork + the two mouth
-                          strips, which open (and shake it) on hover. Fills its
+                          strips, which open (and shake it) while live. Fills its
                           container's width; used by the card and by its detail hero
       EndCard.astro       The two cards that close the run: the tiles page, and back
                           up to the showcase. Same plate as an ArtifactCard; the plate
@@ -96,7 +96,8 @@ src/
     came-from.ts          Path the last SPA navigation left (loaded by BaseLayout)
     showcase-return.ts    Hidden start pose of the showcase's return glide (BaseLayout)
     bio.ts  works.ts  artifact.ts    One controller per horizontal section
-    pieces.ts             The pieces' pointer-driven moves: eyes, drawn veins
+    pieces.ts             The pieces' `.is-live` switch (hover, or a touch cycle)
+                          + scripted moves: eyes, drawn veins
     contacts.ts           Contacts form submit (relay POST, or mailto: fallback)
   data/
     panels.ts             The three showcase panels (title + spiral pose + target section)

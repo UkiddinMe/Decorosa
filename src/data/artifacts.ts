@@ -16,7 +16,7 @@ export interface Artifact {
   sold?: boolean;
   /**
    * Shows the tiger chest cut-out (the showcase's "MY" piece, `tigerArt` in panels.ts)
-   * in place of the card plate, opening its mouth on hover.
+   * in place of the card plate, opening its mouth while live (pieces.ts).
    */
   tiger?: boolean;
   /** intrinsic size of the cut-out (every artifact but the tiger has one) */
