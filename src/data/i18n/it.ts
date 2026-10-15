@@ -31,6 +31,8 @@ export type Dict = {
   };
   bio: { heading: string; hint: string };
   works: { heading: string; tiles: string; backToShowcase: string };
+  /** an artifact's detail page: the link to the next one that closes it */
+  artifact: { next: string; keepScrolling: string };
   tiles: { heading: string };
   darkSide: {
     heading: string;
@@ -86,6 +88,10 @@ export const it: Dict = {
     heading: 'MY',
     tiles: 'Ne vuoi ancora?',
     backToShowcase: 'Torna al menù',
+  },
+  artifact: {
+    next: 'Prossima opera',
+    keepScrolling: 'Continua a scorrere',
   },
   tiles: {
     heading: 'Mosaico',

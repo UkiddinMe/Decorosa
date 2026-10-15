@@ -1,13 +1,16 @@
 ---
-// Detail page of one artifact: a horizontal parallax world that develops to the right,
-// entered by the card flying in from the "MY" run (view-transition-name: artifact-hero).
+// Detail page of one artifact, developing to the right and entered by the card flying in
+// from the "MY" run (view-transition-name: artifact-hero). An artifact with a story
+// component (stories/*) is told by it; the others still get a parallax world with their
+// hero + caption. Either way the page ends on the next artifact (NextWork).
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import BackLink from '../BackLink.astro';
 import ArtifactPiece from '../works/ArtifactPiece.astro';
-import TigerPiece from '../works/TigerPiece.astro';
 import DiscoWorld from '../worlds/DiscoWorld.astro';
 import JungleWorld from '../worlds/JungleWorld.astro';
 import DesertWorld from '../worlds/DesertWorld.astro';
+import TigreStory from '../stories/TigreStory.astro';
+import NextWork from '../works/NextWork.astro';
 import type { Artifact } from '../../data/artifacts';
 import { t } from '../../data/i18n';
 
@@ -20,7 +23,9 @@ const dict = t(lang);
 const txt = artifact.i18n[lang];
 const worlds = { disco: DiscoWorld, jungle: JungleWorld, desert: DesertWorld } as const;
 const World = worlds[artifact.world];
-const tone = artifact.world === 'desert' ? 'light' : 'dark';
+const stories: Partial<Record<string, typeof TigreStory>> = { 'credenza-jungle': TigreStory };
+const Story = stories[artifact.id];
+const tone = Story || artifact.world === 'desert' ? 'light' : 'dark';
 ---
 
 <BaseLayout lang={lang} title={`${txt.title} — DECOROSA`}>
@@ -32,25 +37,29 @@ const tone = artifact.world === 'desert' ? 'light' : 'dark';
 
   <main class="artifact">
     <div class="artifact__viewport" data-artifact tabindex="0" aria-label={txt.title}>
-      <World>
-        <div class="artifact__intro">
-          <div class:list={['artifact__hero', artifact.tiger && 'artifact__hero--tiger']}>
-            {
-              artifact.tiger ? (
-                <TigerPiece />
-              ) : (
-                artifact.image && <ArtifactPiece artifact={{ ...artifact, image: artifact.image }} />
-              )
-            }
-          </div>
-          <div class="world__caption">
-            <h1>{txt.title}</h1>
-            {txt.subtitle && <span class="sub">{txt.subtitle}</span>}
-            <p>{txt.body}</p>
-          </div>
-        </div>
-      </World>
+      <div class="artifact__track">
+        {
+          Story ? (
+            <Story artifact={artifact} lang={lang} />
+          ) : (
+            <World>
+              <div class="artifact__intro">
+                <div class="artifact__hero" data-page-hero>
+                  {artifact.image && <ArtifactPiece artifact={{ ...artifact, image: artifact.image }} />}
+                </div>
+                <div class="world__caption">
+                  <h1>{txt.title}</h1>
+                  {txt.subtitle && <span class="sub">{txt.subtitle}</span>}
+                  <p>{txt.body}</p>
+                </div>
+              </div>
+            </World>
+          )
+        }
+        <NextWork artifact={artifact} lang={lang} />
+      </div>
     </div>
+    <span class="artifact__progress" data-progress aria-hidden="true"></span>
   </main>
 
   <script>
@@ -70,8 +79,7 @@ const tone = artifact.world === 'desert' ? 'light' : 'dark';
     align-items: center;
     gap: clamp(1.5rem, 4vw, 4rem);
   }
-  /* The piece itself, frameless, in the card's 2:3 box — the tiger takes its artwork's
-     own shape instead, and keeps its live mouth. */
+  /* The piece itself, frameless, in the card's 2:3 box. */
   .artifact__hero {
     flex: 0 0 auto;
     width: clamp(180px, 17vw, 290px);
@@ -82,10 +90,6 @@ const tone = artifact.world === 'desert' ? 'light' : 'dark';
   }
   .artifact__hero > .piece {
     filter: drop-shadow(0 16px 22px rgb(0 0 0 / 0.35));
-  }
-  .artifact__hero--tiger {
-    width: clamp(260px, 30vw, 520px);
-    aspect-ratio: auto;
   }
   .artifact__intro .world__caption {
     position: static;
@@ -108,5 +112,25 @@ const tone = artifact.world === 'desert' ? 'light' : 'dark';
   }
   .artifact__viewport::-webkit-scrollbar {
     display: none;
+  }
+  .artifact__track {
+    display: flex;
+    width: max-content;
+    height: 100%;
+  }
+  .artifact__track > :global(.world) {
+    flex: 0 0 auto;
+  }
+  /* how far along the page is: --progress (0..1) is written by artifact.ts */
+  .artifact__progress {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    height: 3px;
+    background: var(--c-orange);
+    transform-origin: 0 50%;
+    scale: var(--progress, 0) 1;
   }
 </style>

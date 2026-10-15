@@ -13,7 +13,7 @@ Map of the moving parts, in the order a visitor meets them.
 | Sideways sections (bio / works / artifact) | `src/scripts/hscroll.ts` + `bio.ts`, `works.ts`, `artifact.ts` |
 | Works end-card dune (falling cherry) | `src/components/works/DuneScene.astro` |
 | Live artifact pieces (run cards + detail heroes) | `works/ArtifactPiece.astro`, `MotionNode.astro`, `src/data/motion.ts`, `src/scripts/pieces.ts` |
-| Artifact-page parallax | `src/scripts/artifact.ts`, `worlds/*`, `.world` in `global.css` |
+| Artifact pages (stories, worlds, next work) | `src/scripts/artifact.ts`, `stories/*`, `worlds/*`, `works/NextWork.astro`, `.world` in `global.css` |
 | Contacts micro-motion (floating labels, sweeping rules) | `src/components/pages/ContactsPage.astro` |
 
 **Reduced motion:** everything below is skipped when `prefers-reduced-motion` is on
@@ -417,11 +417,33 @@ poses open and fold. Per piece:
 
 All of it sits inside `prefers-reduced-motion: no-preference` (and `pieces.ts` bails out).
 
-**Artifact pages** (`artifact.ts`, `ArtifactPage.astro`, `worlds/*`). The world is a 300vw
-track scrolled sideways with `wheelToHorizontal` + `applyDepthParallax`. `.world` has
-`overflow: hidden` so translated layers can't extend the scroll range past 300vw (would
-expose the black page background). The world components are pure scenery; the page slots
-its hero + caption into them.
+**Artifact pages** (`artifact.ts`, `ArtifactPage.astro`, `stories/*`, `worlds/*`). One
+sideways track: the artifact's story (or its world), then `NextWork`; a fixed orange bar
+along the bottom shows how far along it is (`--progress`). `artifact.ts` writes, per frame:
+
+- `--near` on every `[data-wake]` (`writeCentreProximity`) — story photos are ink-grey
+  and a little harsh at the edges of the screen and colour up as they reach its middle
+  (`grayscale`/`contrast` off `--near`; no `--near` under reduced motion = full colour);
+- `--pan` on every `[data-pan]` slice: −1..1 as it crosses the screen (1 entering right,
+  0 centred). Slices read it locally — two shots sliding past each other vertically, the
+  stripe backdrop drifting, an image moving inside its window. Bounded, unlike
+  `applyDepthParallax`, whose offset grows with `scrollLeft` (still used by the worlds:
+  300vw, `overflow: hidden` so translated layers can't extend the scroll range).
+
+`[data-play]` videos play only while a quarter of them is on screen (controls instead,
+under reduced motion). `[data-lens]`: a colour copy of the photo clipped to a circle at
+`--lx/--ly` over an ink copy, plus an ink ring; with a pointer the lens follows it
+(`.is-aimed`), otherwise a 14s CSS drift animates the two registered `@property`s.
+TigreStory's other moves are CSS only: the info panel's wave draws itself (dash offset),
+the drawn face badge blinks twice every 4.6s (shut still over the open one, `steps`).
+The tiger chest on the scene's desk is the live `TigerPiece` and the page's view-
+transition hero.
+
+`NextWork`: on click its cut-out takes the `artifact-hero` name (the page's own
+`[data-page-hero]` drops it), so it morphs into the next page's hero. Scrolling on past
+the end also goes there: wheel delta past the end fills `--pull` (1400px to fill, drains
+back when let go), ignored for 450ms after the end is reached so the momentum that got
+there doesn't count.
 
 ## Dark-side accordion — `DarkSidePage.astro`
 

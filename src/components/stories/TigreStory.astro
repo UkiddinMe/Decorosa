@@ -1,0 +1,535 @@
+---
+// The tiger chest's detail page, told as a sideways run of full-height slices (after
+// justinesoulie.fr's work pages). Its idea is the artist's own staging of the piece: an
+// ink drawing of a room, black on white, with the one painted object in full colour.
+// So the page is that room — the floor line of the opening scene runs on under the
+// white slices, the photos hang on its wall — and colour is what the tiger brings into
+// it: the photos are ink-grey at the edges and colour up as they reach the middle
+// (`[data-wake]`), stripes go from black-and-white to orange, a lens paints the open
+// chest in where the pointer goes. Moves are driven by artifact.ts (ANIMATIONS.md).
+// Assets: scripts/build-story-assets.py -> public/assets/stories/tigre/.
+import TigerPiece from '../works/TigerPiece.astro';
+import { withBase } from '../../data/routes';
+import type { Artifact } from '../../data/artifacts';
+
+interface Props {
+  artifact: Artifact;
+  lang: 'it' | 'en';
+}
+const { artifact, lang } = Astro.props;
+const txt = artifact.i18n[lang];
+const [first, second] = txt.chapters ?? [];
+const src = (name: string): string => withBase(`/assets/stories/tigre/${name}`);
+const alt = txt.title;
+---
+
+<div class="story" style={`--stripes: url(${src('stripes.webp')})`}>
+  <!-- The room: the artist's ink drawing with its chest erased, and the live chest set
+       back on the desk (where build-story-assets.py measured the painted one). -->
+  <section class="s scene">
+    <img class="scene__room" src={src('scene.webp')} width="1600" height="1600" alt="" />
+    <div class="scene__chest" data-page-hero>
+      <TigerPiece />
+    </div>
+  </section>
+
+  <section class="s info">
+    <h1 class="info__title">{txt.title}</h1>
+    {txt.subtitle && <p class="info__sub">{txt.subtitle}</p>}
+    <p class="info__body">{txt.body}</p>
+    <svg class="wave" viewBox="0 0 320 24" aria-hidden="true">
+      <path d="M2 12 C 22 -2, 42 26, 62 12 S 102 -2, 122 12 S 162 26, 182 12 S 222 -2, 242 12 S 282 26, 318 10" />
+    </svg>
+  </section>
+
+  <!-- Shut and open, sliding past each other over the teaser's stripes drained to ink -->
+  <section class="s duo" data-pan>
+    <div class="duo__stripes" aria-hidden="true"></div>
+    <figure class="frame duo__a" data-wake>
+      <img src={src('shut.webp')} width="1800" height="1595" alt={alt} loading="lazy" />
+    </figure>
+    <figure class="frame duo__b">
+      <img src={src('open.webp')} width="1800" height="1634" alt={alt} loading="lazy" />
+    </figure>
+  </section>
+
+  {
+    first && (
+      <section class="s text">
+        <span class="face" aria-hidden="true">
+          <img src={src('face-open.webp')} width="700" height="492" alt="" loading="lazy" />
+          <img class="face__shut" src={src('face-shut.webp')} width="700" height="492" alt="" loading="lazy" />
+        </span>
+        <h2>{first.title}</h2>
+        <p>{first.body}</p>
+      </section>
+    )
+  }
+
+  <!-- The teaser the artist drew for the piece, beside the words painted on the lid -->
+  <section class="s wall teaser">
+    <figure class="frame teaser__film">
+      <video
+        src={src('teaser.mp4')}
+        poster={src('teaser.webp')}
+        width="1184"
+        height="822"
+        muted
+        loop
+        playsinline
+        preload="none"
+        data-play></video>
+    </figure>
+    <div class="col">
+      <figure class="frame square" data-wake>
+        <img src={src('detail-contro.webp')} width="1080" height="1080" alt={alt} loading="lazy" />
+      </figure>
+      <figure class="frame square" data-wake>
+        <img src={src('detail-mirror.webp')} width="1080" height="1080" alt={alt} loading="lazy" />
+      </figure>
+    </div>
+  </section>
+
+  <!-- Inside, in ink — the lens brings its colour back -->
+  <section class="s wall">
+    <figure class="frame lens" data-lens>
+      <img class="lens__ink" src={src('inside.webp')} width="1800" height="1650" alt={alt} loading="lazy" />
+      <img class="lens__paint" src={src('inside.webp')} width="1800" height="1650" alt="" loading="lazy" />
+      <span class="lens__ring" aria-hidden="true"></span>
+    </figure>
+  </section>
+
+  <section class="s wall">
+    <figure class="frame tall" data-wake>
+      <img src={src('lid-up.webp')} width="1350" height="1800" alt={alt} loading="lazy" />
+    </figure>
+    <div class="col">
+      <figure class="frame square" data-wake>
+        <img src={src('detail-flower.webp')} width="1080" height="1080" alt={alt} loading="lazy" />
+      </figure>
+      <figure class="frame square" data-wake>
+        <img src={src('detail-drawer.webp')} width="1080" height="1080" alt={alt} loading="lazy" />
+      </figure>
+    </div>
+  </section>
+
+  <!-- Full colour at last: the stripes as painted, and the chest at work -->
+  <section class="s demo" data-pan>
+    <div class="demo__stripes" aria-hidden="true"></div>
+    <div class="demo__phone">
+      <video
+        src={src('demo.mp4')}
+        poster={src('demo.webp')}
+        width="720"
+        height="1280"
+        muted
+        loop
+        playsinline
+        preload="none"
+        data-play></video>
+    </div>
+  </section>
+
+  <section class="s tongue" data-pan data-wake>
+    <img src={src('tongue.webp')} width="1350" height="1800" alt={alt} loading="lazy" />
+  </section>
+
+  {
+    second && (
+      <section class="s text">
+        <h2>{second.title}</h2>
+        <p>{second.body}</p>
+      </section>
+    )
+  }
+
+  <section class="s wall pair" data-pan>
+    <figure class="frame pair__a" data-wake>
+      <img src={src('back.webp')} width="1350" height="1800" alt={alt} loading="lazy" />
+    </figure>
+    <figure class="frame pair__b" data-wake>
+      <img src={src('top.webp')} width="1350" height="1800" alt={alt} loading="lazy" />
+    </figure>
+  </section>
+</div>
+
+<style>
+  .story {
+    /* the teaser's own orange, and its ink */
+    --tiger: #c4732f;
+    --ink: #111;
+    --paper: #fff;
+    /* the scene's floor line, as a share of the viewport height (the scene is a full-
+       height square, so its floor sits at this height on screen); the white slices hang
+       their pictures above it */
+    --floor: 81.4%;
+    --wall-top: 9svh;
+    --wall-h: 64svh;
+    --frame: max(2px, 0.32svh);
+
+    display: flex;
+    height: 100%;
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .s {
+    flex: 0 0 auto;
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  /* A drawn picture frame: an ink border and a hard ink shadow, as if inked round the
+     photo. `[data-wake]` drains it to grey off-centre — --near is 1 at the middle of the
+     screen (artifact.ts); without it (reduced motion) the photo stays in colour. */
+  .frame {
+    margin: 0;
+    border: var(--frame) solid var(--ink);
+    box-shadow: calc(var(--frame) * 3) calc(var(--frame) * 3) 0 var(--ink);
+    background: var(--paper);
+  }
+  .frame img,
+  .frame video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  [data-wake] img {
+    filter: grayscale(clamp(0, 1.8 - 2 * var(--near, 1), 1)) contrast(clamp(1, 1.5 - var(--near, 1) * 0.5, 1.25));
+  }
+
+  /* White slices: the room goes on — its floor line runs under them, pictures hang above. */
+  .wall {
+    display: flex;
+    align-items: flex-start;
+    gap: 4svh;
+    padding: var(--wall-top) 9svh 0;
+  }
+  .wall::after {
+    content: '';
+    position: absolute;
+    inset: var(--floor) 0 auto;
+    height: max(2px, 0.5svh);
+    background: var(--ink);
+  }
+  .col {
+    display: grid;
+    gap: 4svh;
+  }
+  .square {
+    width: calc((var(--wall-h) - 4svh) / 2);
+    aspect-ratio: 1;
+  }
+  .tall {
+    height: var(--wall-h);
+    aspect-ratio: 3 / 4;
+  }
+
+  /* Scene */
+  .scene {
+    aspect-ratio: 1;
+  }
+  .scene__room {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .scene__chest {
+    position: absolute;
+    left: 24.51%;
+    top: 30.27%;
+    width: 24.61%;
+    /* the run's card stamps the same name on itself on click, so it morphs into this */
+    view-transition-name: artifact-hero;
+  }
+
+  /* Info */
+  .info {
+    width: clamp(300px, 36vw, 620px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-m);
+    padding: var(--space-l) var(--space-m);
+    background: var(--ink);
+    color: var(--paper);
+    text-align: center;
+  }
+  .info__title {
+    font-family: var(--font-futura);
+    font-size: clamp(3.5rem, 2rem + 6vw, 8rem);
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+  .info__sub {
+    font-family: var(--font-display);
+    font-size: var(--step-0);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--tiger);
+  }
+  .info__body {
+    max-width: 34ch;
+    font-size: var(--step--1);
+    line-height: 1.6;
+    opacity: 0.85;
+  }
+  /* the mirror frame's painted waves, drawing themselves over and over */
+  .wave {
+    width: min(70%, 16rem);
+    overflow: visible;
+  }
+  .wave path {
+    fill: none;
+    stroke: var(--tiger);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 420;
+    animation: story-wave 3.2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  }
+  @keyframes story-wave {
+    0% {
+      stroke-dashoffset: 420;
+    }
+    50% {
+      stroke-dashoffset: 0;
+    }
+    100% {
+      stroke-dashoffset: -420;
+    }
+  }
+
+  /* Duo: stripes drained to ink, the two shots crossing each other on --pan (-1..1,
+     the slice's offset from the middle of the screen) */
+  .duo {
+    width: 140svh;
+    max-width: 260vw;
+    background: var(--ink);
+  }
+  .duo__stripes,
+  .demo__stripes {
+    position: absolute;
+    inset: 0 -12%;
+    background: var(--stripes) center / cover;
+    translate: calc(var(--pan, 0) * 8%) 0;
+  }
+  .duo__stripes {
+    filter: grayscale(1) brightness(1.6) contrast(2.2);
+  }
+  .duo .frame {
+    position: absolute;
+    width: 52%;
+    aspect-ratio: 1800 / 1620;
+  }
+  .duo__a {
+    left: 8%;
+    top: 9%;
+    translate: 0 calc(var(--pan, 0) * -5svh);
+  }
+  .duo__b {
+    right: 8%;
+    bottom: 9%;
+    translate: 0 calc(var(--pan, 0) * 5svh);
+  }
+
+  /* Text slices */
+  .text {
+    width: clamp(300px, 34vw, 560px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--space-s);
+    padding: var(--space-l) var(--space-m);
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .text h2 {
+    font-family: var(--font-futura);
+    font-size: var(--step-2);
+    line-height: 1;
+  }
+  .text p {
+    font-size: var(--step--1);
+    line-height: 1.6;
+    opacity: 0.85;
+  }
+  /* the teaser's drawn tiger, in a round badge, blinking */
+  .face {
+    position: absolute;
+    top: var(--space-l);
+    right: var(--space-m);
+    width: clamp(84px, 15svh, 150px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--tiger);
+    rotate: 8deg;
+  }
+  .face img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .face__shut {
+    opacity: 0;
+    animation: story-blink 4.6s steps(1) infinite;
+  }
+  @keyframes story-blink {
+    0%,
+    88%,
+    92%,
+    94%,
+    100% {
+      opacity: 0;
+    }
+    89%,
+    93% {
+      opacity: 1;
+    }
+  }
+
+  /* Teaser */
+  .teaser__film {
+    height: var(--wall-h);
+    aspect-ratio: 1184 / 822;
+  }
+
+  /* Lens: the chest's inside drawn in ink, its colour painted back inside a circle
+     around --lx/--ly — the pointer, or a slow drift where there is none */
+  .lens {
+    position: relative;
+    height: var(--wall-h);
+    aspect-ratio: 1800 / 1650;
+    --r: 17svh;
+    animation: story-drift 14s ease-in-out infinite alternate;
+  }
+  .lens.is-aimed {
+    animation: none;
+  }
+  .lens img {
+    position: absolute;
+    inset: 0;
+  }
+  .lens__ink {
+    filter: grayscale(1) contrast(1.35);
+  }
+  .lens__paint {
+    clip-path: circle(var(--r) at var(--lx) var(--ly));
+  }
+  .lens__ring {
+    position: absolute;
+    left: var(--lx);
+    top: var(--ly);
+    width: calc(var(--r) * 2);
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    border: var(--frame) solid var(--ink);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  @property --lx {
+    syntax: '<percentage>';
+    inherits: true;
+    initial-value: 30%;
+  }
+  @property --ly {
+    syntax: '<percentage>';
+    inherits: true;
+    initial-value: 55%;
+  }
+  @keyframes story-drift {
+    0% {
+      --lx: 22%;
+      --ly: 62%;
+    }
+    35% {
+      --lx: 55%;
+      --ly: 42%;
+    }
+    70% {
+      --lx: 78%;
+      --ly: 66%;
+    }
+    100% {
+      --lx: 60%;
+      --ly: 22%;
+    }
+  }
+
+  /* Demo: the stripes in their own colours, the chest at work on a phone */
+  .demo {
+    width: 110svh;
+    max-width: 220vw;
+    display: grid;
+    place-items: center;
+    background: var(--tiger);
+  }
+  .demo__phone {
+    position: relative;
+    height: 84svh;
+    aspect-ratio: 9 / 16;
+    padding: 1.1svh;
+    border-radius: 4.5svh;
+    background: var(--ink);
+    box-shadow: 0 3svh 6svh rgb(0 0 0 / 0.35);
+    rotate: -3deg;
+  }
+  .demo__phone video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 3.5svh;
+  }
+
+  /* Tongue: a full-height window, the shot sliding inside it */
+  .tongue {
+    width: min(88svh, 100vw);
+    background: var(--ink);
+  }
+  .tongue img {
+    position: absolute;
+    top: 0;
+    left: -15%;
+    width: 130%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+    translate: calc(var(--pan, 0) * 11%) 0;
+  }
+
+  /* Pair: back and top, drifting up and down past each other */
+  .pair {
+    gap: 6svh;
+  }
+  .pair .frame {
+    height: 56svh;
+    aspect-ratio: 3 / 4;
+  }
+  .pair__a {
+    translate: 0 calc(var(--pan, 0) * 4svh);
+  }
+  .pair__b {
+    margin-top: 8svh;
+    translate: 0 calc(var(--pan, 0) * -4svh);
+  }
+
+  /* The fixed pills sink into white by multiplying — which would sink them out of sight
+     over the black slices — so here they keep their own white. */
+  :global(html:has(.story) :is(.back-link, .lang-toggle)) {
+    mix-blend-mode: normal;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wave path,
+    .face__shut,
+    .lens {
+      animation: none;
+    }
+  }
+</style>

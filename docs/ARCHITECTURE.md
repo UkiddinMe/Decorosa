@@ -3,8 +3,8 @@
 Scenographic portfolio site: a collage-wordmark landing, a "ladder into a hole" entry
 that opens a 3D spiral showcase whose three panels are doorways into the three sections
 of the site — **I AM** (horizontal bio timeline), **MY** (a finite lateral run of
-artifacts, each opening a bespoke horizontal-parallax "world" page, closed by two cards
-that leave the section) and **DARK SIDE OF THE MOOD** (a text page scrolling over a
+artifacts, each opening a sideways detail page — a story of full-height slices, or for
+now a placeholder parallax "world" — closed by two cards that leave the section) and **DARK SIDE OF THE MOOD** (a text page scrolling over a
 fixed disco backdrop, its copy folded into an accordion). Static site, bilingual IT/EN.
 
 > Animations have their own document: **[ANIMATIONS.md](./ANIMATIONS.md)**.
@@ -82,11 +82,18 @@ src/
       TigerPiece.astro    The tiger chest as a live piece — artwork + the two mouth
                           strips, which open (and shake it) while live. Fills its
                           container's width; used by the card and by its detail hero
+      NextWork.astro      Closes every detail page: the next artifact (wrapping round) as
+                          cut-out + title; a click or scrolling on past the end goes there
       EndCard.astro       The two cards that close the run: the tiles page, and back
                           up to the showcase. Same plate as an ArtifactCard; the plate
                           is filled by the `media` prop (the showcase card's photo,
                           which also gets an inner vignette) or by slotted markup
       DuneScene.astro     The tiles card's cherry + its shadow, animated over the Dessert plate
+    stories/              One component per artifact told as a story — a sideways run of
+                          full-height slices (after justinesoulie.fr's work pages),
+                          registered in the `stories` map in ArtifactPage.astro.
+                          TigreStory: the artist's ink-drawn room with the live chest on
+                          its desk, then photos, teaser and demo videos, a colour lens
     worlds/               One component per artifact aesthetic (Disco / Jungle / Desert);
                           pure scenery, the artifact page slots its hero + caption in
   scripts/                Client-side TS (see ANIMATIONS.md)
@@ -126,6 +133,7 @@ scripts/build-og-image.mjs)
                           tiger's mouth (ANIMATIONS.md)
   assets/works/           Artwork for the "MY" run's end cards (webp)
   assets/artifacts/       One cut-out per artifact, `<id>.webp` (alpha) — card and hero
+  assets/stories/<id>/    A story's photos, stills and mp4s (build-story-assets.py)
   assets/artifacts/motion/  The parts that move on them, and the patches behind those
                           parts (`<id>-<layer>.webp`, generated)
   assets/dark-side/       The DSOTM backdrop pair, ball + animal (webp, alpha)
@@ -135,6 +143,8 @@ scripts/build-image-assets.py
                           One-off: derives the site's webps from the raw shots in the
                           sibling `Decorosa Data/` folder (cut-outs + crops; `RETOUCH`
                           paints out what isn't the piece, e.g. Drago's roses)
+scripts/build-story-assets.py
+                          One-off: the story pages' assets (see Content model)
 scripts/build-og-image.mjs
                           Composes assets/og-image.png from the starburst layers
 ```
@@ -169,10 +179,13 @@ that floats frameless at its own `width`.
 name, `public/assets/artifacts/<id>.webp`), `image` (its intrinsic size), `world` (which `worlds/*` component renders
 its detail scenery), an optional `sold` flag (sold pieces keep their page but drop out of
 `availableArtifacts`, the list the dark-side page shows) and IT/EN `i18n`
-title/subtitle/body. `artifactPath(id, lang)` is the
+title/subtitle/body, plus optional `chapters` (the extra text blocks a story shows, in
+order). `artifactPath(id, lang)` is the
 canonical URL builder — `routes.ts` derives its IT↔EN pairs from it. Adding an artifact =
 append an entry + its cut-out + (only for a new aesthetic) create a `worlds/*` component
-and register it in the `worlds` map in `ArtifactPage.astro`. A new artifact is a still
+and register it in the `worlds` map in `ArtifactPage.astro` — until a `stories/*`
+component is registered for its id in the `stories` map there, which then tells its page
+instead (the world goes unused). A new artifact is a still
 cut-out until it gets an entry in `motion.ts`.
 
 **`src/data/motion.ts`** — per artifact id, the tree `ArtifactPiece` draws: the cut-out
@@ -226,6 +239,15 @@ job no colour rule can do — real rooms behind real furniture — so they go th
 matting model (rembg's BiRefNet), with a hand-measured polygon patching back what it
 misses (the coat rack's white pillar on a white wall). Its numbers are tuned to *these* photos — re-tune, don't re-run blindly,
 when the client sends replacements.
+
+`scripts/build-story-assets.py` (by hand; Pillow + SciPy + OpenCV + an ffmpeg with
+libx264 — `FFMPEG` env var, else `imageio_ffmpeg`, else PATH) builds the story pages'
+assets into `public/assets/stories/<id>/`. For the tiger (`MY/1. Tigre/…`): the photos
+to webp; the artist's staged ink drawing ("ambientazione") with the painted chest erased
+(saturated paint + a hand-boxed drawer, hulled, painted white) — it prints the % box the
+page sets the live chest back into; from the illustrated teaser (IMG_0015) the stripes
+still and the drawn face eyes open / shut cut off white; the teaser as a loop minus its
+"coming soon" frames; the phone demo (IMG_2520) muted at 720px. Posters for both.
 
 `scripts/build-artifact-motion.py` (by hand; Pillow + SciPy + OpenCV + scikit-image) runs
 *after* it, on the published cut-outs, so every layer shares its cut-out's pixel grid:

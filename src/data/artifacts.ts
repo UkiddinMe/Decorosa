@@ -7,6 +7,11 @@
 
 export type WorldKind = 'disco' | 'jungle' | 'desert';
 
+export interface Chapter {
+  title: string;
+  body: string;
+}
+
 export interface Artifact {
   /** slug; also the cut-out's name, public/assets/artifacts/<id>.webp */
   id: string;
@@ -21,8 +26,14 @@ export interface Artifact {
   tiger?: boolean;
   /** intrinsic size of the cut-out (every artifact but the tiger has one) */
   image?: { w: number; h: number };
-  /** localized text */
-  i18n: Record<'it' | 'en', { title: string; subtitle?: string; body: string }>;
+  /**
+   * localized text; `chapters` are the extra text blocks of a page told as a story
+   * (stories/*, registered in ArtifactPage), in the order the story shows them
+   */
+  i18n: Record<
+    'it' | 'en',
+    { title: string; subtitle?: string; body: string; chapters?: Chapter[] }
+  >;
 }
 
 export const artifacts: Artifact[] = [
@@ -36,11 +47,31 @@ export const artifacts: Artifact[] = [
         title: 'Tigre',
         subtitle: 'Lorem ipsum',
         body: 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo.',
+        chapters: [
+          {
+            title: 'Lorem ipsum dolor',
+            body: 'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis.',
+          },
+          {
+            title: 'Sit amet consectetur',
+            body: 'Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.',
+          },
+        ],
       },
       en: {
         title: 'Tigre',
         subtitle: 'Lorem ipsum',
         body: 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo.',
+        chapters: [
+          {
+            title: 'Lorem ipsum dolor',
+            body: 'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis.',
+          },
+          {
+            title: 'Sit amet consectetur',
+            body: 'Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.',
+          },
+        ],
       },
     },
   },

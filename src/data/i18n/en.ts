@@ -44,6 +44,10 @@ export const en: Dict = {
     tiles: 'Would you like something else?',
     backToShowcase: 'Back to the menu',
   },
+  artifact: {
+    next: 'Next work',
+    keepScrolling: 'Keep scrolling',
+  },
   tiles: {
     heading: 'Mosaic',
   },

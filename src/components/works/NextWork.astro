@@ -1,0 +1,110 @@
+---
+// The block that closes every artifact page: the next artifact of the run (wrapping
+// round to the first), as its cut-out and title. A click goes there; so does scrolling on
+// past the end of the page — artifact.ts fills the bar with the extra scroll (`--pull`)
+// and navigates once it is full. On click the cut-out is handed the hero's
+// view-transition name, so it morphs into the next page's hero.
+import { artifactImage, artifactPath, artifacts, type Artifact } from '../../data/artifacts';
+import { tigerArt } from '../../data/panels';
+import { withBase } from '../../data/routes';
+import { t } from '../../data/i18n';
+
+interface Props {
+  artifact: Artifact;
+  lang: 'it' | 'en';
+}
+const { artifact, lang } = Astro.props;
+const dict = t(lang);
+const next = artifacts[(artifacts.indexOf(artifact) + 1) % artifacts.length];
+const src = next.tiger ? tigerArt.image.src : artifactImage(next);
+---
+
+<a class="next-work" href={withBase(artifactPath(next.id, lang))} data-next>
+  <span class="next-work__label">{dict.artifact.next}</span>
+  <span class="next-work__media" data-next-media>
+    <img src={withBase(src)} alt="" loading="lazy" decoding="async" />
+  </span>
+  <span class="next-work__title">{next.i18n[lang].title}</span>
+  <span class="next-work__pull" aria-hidden="true">
+    <span class="next-work__bar"></span>
+    {dict.artifact.keepScrolling}
+  </span>
+</a>
+
+<style>
+  .next-work {
+    flex: 0 0 auto;
+    position: relative;
+    width: clamp(280px, 64svh, 90vw);
+    height: 100%;
+    display: grid;
+    grid-template-rows: 1fr auto auto 1fr;
+    justify-items: center;
+    gap: var(--space-m);
+    padding: var(--space-l) var(--space-m);
+    background: var(--c-white);
+    color: var(--c-black);
+    text-decoration: none;
+  }
+  .next-work__label {
+    align-self: start;
+    font-family: var(--font-display);
+    font-size: var(--step--1);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .next-work__media {
+    width: min(70%, 36svh);
+    aspect-ratio: 1;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    transition: translate 0.5s var(--ease-out);
+  }
+  .next-work__media img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 14px 18px rgb(0 0 0 / 0.22));
+  }
+  .next-work__title {
+    font-family: var(--font-futura);
+    font-size: var(--step-1);
+    letter-spacing: 0.04em;
+    text-align: center;
+    text-transform: uppercase;
+    /* the underline grows from the middle on hover */
+    background: linear-gradient(currentColor, currentColor) 50% 100% / 0 2px no-repeat;
+    padding-bottom: 0.2em;
+    transition: background-size 0.4s var(--ease-out);
+  }
+  .next-work:hover .next-work__media,
+  .next-work:focus-visible .next-work__media {
+    translate: 0 -0.6rem;
+  }
+  .next-work:hover .next-work__title,
+  .next-work:focus-visible .next-work__title {
+    background-size: 100% 2px;
+  }
+  /* --pull (0..1) is the scroll spent past the end of the page */
+  .next-work__pull {
+    align-self: end;
+    display: grid;
+    justify-items: center;
+    gap: 0.6rem;
+    font-family: var(--font-display);
+    font-size: var(--step--1);
+    opacity: 0.7;
+  }
+  .next-work__bar {
+    width: 7rem;
+    height: 2px;
+    background: linear-gradient(currentColor, currentColor) 0 0 / calc(var(--pull, 0) * 100%) 100%
+      no-repeat, rgb(0 0 0 / 0.15);
+  }
+  @media (hover: none) {
+    .next-work__pull {
+      display: none;
+    }
+  }
+</style>
