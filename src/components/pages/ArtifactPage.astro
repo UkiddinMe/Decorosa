@@ -1,5 +1,6 @@
 ---
-// Detail page of one artifact, developing to the right and entered by the card flying in
+// Detail page of one artifact, developing to the right (downwards on portrait screens —
+// the `(orientation: portrait)` blocks here and in stories/worlds) and entered by the card flying in
 // from the "MY" run (view-transition-name: artifact-hero). An artifact with a story
 // component (stories/*) is told by it; the others still get a parallax world with their
 // hero + caption. Either way the page ends on the next artifact (NextWork).
@@ -95,6 +96,20 @@ const tone = Story || artifact.world === 'desert' ? 'light' : 'dark';
     position: static;
     translate: none;
   }
+  @media (orientation: portrait) {
+    .artifact__intro {
+      left: 0;
+      right: 0;
+      top: 14svh;
+      translate: none;
+      flex-direction: column;
+      padding: 0 var(--space-m);
+      text-align: center;
+    }
+    .artifact__hero {
+      width: min(58vw, 40svh);
+    }
+  }
 </style>
 
 <style>
@@ -120,6 +135,17 @@ const tone = Story || artifact.world === 'desert' ? 'light' : 'dark';
   }
   .artifact__track > :global(.world) {
     flex: 0 0 auto;
+  }
+  @media (orientation: portrait) {
+    .artifact__viewport {
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+    .artifact__track {
+      flex-direction: column;
+      width: 100%;
+      height: auto;
+    }
   }
   /* how far along the page is: --progress (0..1) is written by artifact.ts */
   .artifact__progress {

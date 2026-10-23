@@ -3,7 +3,7 @@
 Scenographic portfolio site: a collage-wordmark landing, a "ladder into a hole" entry
 that opens a 3D spiral showcase whose three panels are doorways into the three sections
 of the site — **I AM** (horizontal bio timeline), **MY** (a finite lateral run of
-artifacts, each opening a sideways detail page — a story of full-height slices, or for
+artifacts, each opening a sideways detail page (vertical on portrait screens) — a story of full-height slices, or for
 now a placeholder parallax "world" — closed by two cards that leave the section) and **DARK SIDE OF THE MOOD** (a text page scrolling over a
 fixed disco backdrop, its copy folded into an accordion). Static site, bilingual IT/EN.
 
@@ -90,8 +90,8 @@ src/
                           which also gets an inner vignette) or by slotted markup
       DuneScene.astro     The tiles card's cherry + its shadow, animated over the Dessert plate
     stories/              One component per artifact told as a story — a sideways run of
-                          full-height slices (after justinesoulie.fr's work pages),
-                          registered in the `stories` map in ArtifactPage.astro.
+                          full-height slices (after justinesoulie.fr's work pages; a
+                          column of full-width ones on portrait screens), registered in the `stories` map in ArtifactPage.astro.
                           TigreStory: the artist's ink-drawn room with the live chest on
                           its desk, then photos, teaser and demo videos, a colour lens
     worlds/               One component per artifact aesthetic (Disco / Jungle / Desert);
@@ -99,7 +99,7 @@ src/
   scripts/                Client-side TS (see ANIMATIONS.md)
     lenis.ts  motion.ts  showcase.ts  transition.ts
     logo.ts               Hands the starburst label from its peek animation to CSS hover
-    hscroll.ts            Shared sideways-scroll plumbing
+    hscroll.ts            Shared sideways-scroll plumbing (+ the `PORTRAIT` query / axis)
     came-from.ts          Path the last SPA navigation left (loaded by BaseLayout)
     showcase-return.ts    Hidden start pose of the showcase's return glide (BaseLayout)
     bio.ts  works.ts  artifact.ts    One controller per horizontal section
@@ -180,7 +180,8 @@ name, `public/assets/artifacts/<id>.webp`), `image` (its intrinsic size), `world
 its detail scenery), an optional `sold` flag (sold pieces keep their page but drop out of
 `availableArtifacts`, the list the dark-side page shows) and IT/EN `i18n`
 title/subtitle/body, plus optional `chapters` (the extra text blocks a story shows, in
-order). `artifactPath(id, lang)` is the
+order) and `listTitle` (the name the works run and the next-work link use — Italian
+noun titles with their article, e.g. "Gli attacchini"; falls back to `title`). `artifactPath(id, lang)` is the
 canonical URL builder — `routes.ts` derives its IT↔EN pairs from it. Adding an artifact =
 append an entry + its cut-out + (only for a new aesthetic) create a `worlds/*` component
 and register it in the `worlds` map in `ArtifactPage.astro` — until a `stories/*`
@@ -246,7 +247,7 @@ assets into `public/assets/stories/<id>/`. For the tiger (`MY/1. Tigre/…`): th
 to webp; the artist's staged ink drawing ("ambientazione") with the painted chest erased
 (saturated paint + a hand-boxed drawer, hulled, painted white) — it prints the % box the
 page sets the live chest back into; from the illustrated teaser (IMG_0015) the stripes
-still and the drawn face eyes open / shut cut off white; the teaser as a loop minus its
+still; the teaser as a loop minus its
 "coming soon" frames; the phone demo (IMG_2520) muted at 720px. Posters for both.
 
 `scripts/build-artifact-motion.py` (by hand; Pillow + SciPy + OpenCV + scikit-image) runs

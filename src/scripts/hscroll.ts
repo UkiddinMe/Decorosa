@@ -1,6 +1,11 @@
 // Shared plumbing for the three horizontally-developing sections (bio timeline, works
 // run, artifact detail pages). Each of them is one element that scrolls sideways;
-// what differs is only what they do with the scroll position.
+// what differs is only what they do with the scroll position. The artifact pages turn
+// vertical on portrait screens (`PORTRAIT`), so the measuring helpers take an axis.
+
+/** Where the artifact pages run top-to-bottom instead of sideways (same query in CSS). */
+export const PORTRAIT = '(orientation: portrait)';
+export type Axis = 'x' | 'y';
 
 /** Vertical wheel input drives the horizontal scroll (trackpad deltaX passes through). */
 export function wheelToHorizontal(el: HTMLElement): () => void {
@@ -34,18 +39,19 @@ export function onScrollFrame(el: HTMLElement, fn: () => void): () => void {
 }
 
 /**
- * How close an element is to the horizontal centre of the viewport, 1 at dead centre
+ * How close an element is to the centre of the viewport along `axis`, 1 at dead centre
  * falling to 0 one half-viewport away. Written to `--near` so the CSS decides what
  * "closer" looks like (swell, opacity, …).
  *
  * All measuring happens before any writing — interleaving the two would force a reflow
  * per item — and unchanged values are skipped, so a still row costs nothing.
  */
-export function writeCentreProximity(items: HTMLElement[]): void {
-  const centre = window.innerWidth / 2;
+export function writeCentreProximity(items: HTMLElement[], axis: Axis = 'x'): void {
+  const centre = (axis === 'x' ? window.innerWidth : window.innerHeight) / 2;
   const values = items.map((item) => {
     const box = item.getBoundingClientRect();
-    const distance = Math.abs(box.left + box.width / 2 - centre);
+    const mid = axis === 'x' ? box.left + box.width / 2 : box.top + box.height / 2;
+    const distance = Math.abs(mid - centre);
     return Math.max(0, 1 - distance / centre).toFixed(2);
   });
   items.forEach((item, i) => {
@@ -56,14 +62,14 @@ export function writeCentreProximity(items: HTMLElement[]): void {
 }
 
 /**
- * Layered parallax: every `[data-depth]` layer is translated by `scrollLeft × (1 − depth)`.
+ * Layered parallax: every `[data-depth]` layer is translated by `scroll × (1 − depth)`.
  * Depth 1 moves with the content (reads as fixed to the world), depth ≈ 0 stays put
  * relative to the viewport.
  */
-export function applyDepthParallax(el: HTMLElement): void {
-  const x = el.scrollLeft;
+export function applyDepthParallax(el: HTMLElement, axis: Axis = 'x'): void {
+  const scroll = axis === 'x' ? el.scrollLeft : el.scrollTop;
   el.querySelectorAll<HTMLElement>('[data-depth]').forEach((layer) => {
     const depth = parseFloat(layer.dataset.depth ?? '1');
-    layer.style.transform = `translateX(${x * (1 - depth)}px)`;
+    layer.style.transform = `translate${axis.toUpperCase()}(${scroll * (1 - depth)}px)`;
   });
 }

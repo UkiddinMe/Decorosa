@@ -1,6 +1,7 @@
 ---
 // The tiger chest's detail page, told as a sideways run of full-height slices (after
-// justinesoulie.fr's work pages). Its idea is the artist's own staging of the piece: an
+// justinesoulie.fr's work pages) — and, like those, as a column of full-width ones on
+// portrait screens (the `(orientation: portrait)` block at the end). Its idea is the artist's own staging of the piece: an
 // ink drawing of a room, black on white, with the one painted object in full colour.
 // So the page is that room — the floor line of the opening scene runs on under the
 // white slices, the photos hang on its wall — and colour is what the tiger brings into
@@ -56,10 +57,6 @@ const alt = txt.title;
   {
     first && (
       <section class="s text">
-        <span class="face" aria-hidden="true">
-          <img src={src('face-open.webp')} width="700" height="492" alt="" loading="lazy" />
-          <img class="face__shut" src={src('face-shut.webp')} width="700" height="492" alt="" loading="lazy" />
-        </span>
         <h2>{first.title}</h2>
         <p>{first.body}</p>
       </section>
@@ -256,11 +253,14 @@ const alt = txt.title;
     background: var(--ink);
     color: var(--paper);
     text-align: center;
+    container-type: inline-size;
   }
   .info__title {
     font-family: var(--font-futura);
-    font-size: clamp(3.5rem, 2rem + 6vw, 8rem);
-    line-height: 0.9;
+    /* sized to the panel so the title stacks one word per line */
+    font-size: clamp(2.25rem, 17cqi, 5.5rem);
+    line-height: 0.95;
+    text-wrap: balance;
     letter-spacing: -0.02em;
     text-transform: uppercase;
   }
@@ -356,43 +356,6 @@ const alt = txt.title;
     line-height: 1.6;
     opacity: 0.85;
   }
-  /* the teaser's drawn tiger, in a round badge, blinking */
-  .face {
-    position: absolute;
-    top: var(--space-l);
-    right: var(--space-m);
-    width: clamp(84px, 15svh, 150px);
-    aspect-ratio: 1;
-    border-radius: 50%;
-    overflow: hidden;
-    background: var(--tiger);
-    rotate: 8deg;
-  }
-  .face img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .face__shut {
-    opacity: 0;
-    animation: story-blink 4.6s steps(1) infinite;
-  }
-  @keyframes story-blink {
-    0%,
-    88%,
-    92%,
-    94%,
-    100% {
-      opacity: 0;
-    }
-    89%,
-    93% {
-      opacity: 1;
-    }
-  }
-
   /* Teaser */
   .teaser__film {
     height: var(--wall-h);
@@ -420,6 +383,13 @@ const alt = txt.title;
   }
   .lens__paint {
     clip-path: circle(var(--r) at var(--lx) var(--ly));
+  }
+  .lens__paint,
+  .lens__ring {
+    transition: opacity 1.2s ease;
+  }
+  .lens.is-faded :is(.lens__paint, .lens__ring) {
+    opacity: 0;
   }
   .lens__ring {
     position: absolute;
@@ -525,9 +495,124 @@ const alt = txt.title;
     mix-blend-mode: normal;
   }
 
+  /* Portrait: the run turns into a column. Each slice takes the full width and its own
+     height; the wall slices stack their pictures and draw the floor line under them;
+     everything --pan moved sideways moves up and down instead. */
+  @media (orientation: portrait) {
+    .story {
+      --wall-gap: 5vw;
+      --frame: max(2px, 0.6vw);
+      flex-direction: column;
+      height: auto;
+    }
+    .s {
+      width: 100%;
+      height: auto;
+    }
+    .wall {
+      flex-direction: column;
+      align-items: stretch;
+      gap: var(--wall-gap);
+      padding: 12vw 8vw 16vw;
+    }
+    .wall::after {
+      inset: auto 0 7vw;
+      height: max(2px, 0.8vw);
+    }
+    .col {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--wall-gap);
+    }
+    .square {
+      width: auto;
+    }
+    .tall,
+    .teaser__film,
+    .lens {
+      width: 100%;
+      height: auto;
+    }
+    .lens {
+      --r: 20vw;
+    }
+
+    .info,
+    .text {
+      width: 100%;
+      padding: 16vw 8vw;
+    }
+    .info {
+      min-height: 70svh;
+    }
+
+    .duo {
+      max-width: none;
+      height: 125vw;
+    }
+    .duo__stripes,
+    .demo__stripes {
+      inset: -12% 0;
+      translate: 0 calc(var(--pan, 0) * 8%);
+    }
+    .duo .frame {
+      width: 70%;
+    }
+    .duo__a {
+      left: 6%;
+      top: 7%;
+      translate: calc(var(--pan, 0) * -4vw) 0;
+    }
+    .duo__b {
+      right: 6%;
+      bottom: 7%;
+      translate: calc(var(--pan, 0) * 4vw) 0;
+    }
+
+    .demo {
+      max-width: none;
+      padding: 14vw 0;
+      overflow: hidden;
+    }
+    .demo__phone {
+      width: 60vw;
+      height: auto;
+      padding: 2.4vw;
+      border-radius: 9vw;
+    }
+    .demo__phone video {
+      border-radius: 7vw;
+    }
+
+    .tongue {
+      aspect-ratio: 3 / 4;
+    }
+    .tongue img {
+      top: -15%;
+      left: 0;
+      width: 100%;
+      height: 130%;
+      translate: 0 calc(var(--pan, 0) * 11%);
+    }
+
+    .pair {
+      flex-direction: row;
+      align-items: flex-start;
+    }
+    .pair .frame {
+      flex: 1;
+      height: auto;
+    }
+    .pair__a {
+      translate: 0 calc(var(--pan, 0) * 3vw);
+    }
+    .pair__b {
+      margin-top: 14vw;
+      translate: 0 calc(var(--pan, 0) * -3vw);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .wave path,
-    .face__shut,
     .lens {
       animation: none;
     }

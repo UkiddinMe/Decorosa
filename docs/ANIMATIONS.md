@@ -288,11 +288,11 @@ and Lenis is not involved — these pages don't scroll vertically at all.
 - `wheelToHorizontal` — vertical wheel becomes `scrollLeft`; trackpad `deltaX` passes
   straight through to the browser.
 - `onScrollFrame` — scroll + resize coalesced to one callback per animation frame.
-- `writeCentreProximity` — writes `--near` (1 at the viewport's horizontal centre, 0 half
-  a viewport away) so CSS decides what "closer" looks like. All rects are measured before
+- `writeCentreProximity` — writes `--near` (1 at the viewport's centre along the axis,
+  0 half a viewport away) so CSS decides what "closer" looks like. All rects are measured before
   any style is written, and unchanged values are skipped, so a still section costs nothing.
 - `applyDepthParallax` — every `[data-depth]` layer gets
-  `translateX(scrollLeft × (1 − depth))`: depth 1 moves with the content (reads as fixed
+  `translateX(scrollLeft × (1 − depth))` (`translateY`/`scrollTop` on the `y` axis): depth 1 moves with the content (reads as fixed
   to the world), depth ≈ 0 stays with the viewport.
 
 **Bio timeline** (`bio.ts`, `BioPage.astro`). A ruler of spray-can strokes, one group per
@@ -419,23 +419,30 @@ All of it sits inside `prefers-reduced-motion: no-preference` (and `pieces.ts` b
 
 **Artifact pages** (`artifact.ts`, `ArtifactPage.astro`, `stories/*`, `worlds/*`). One
 sideways track: the artifact's story (or its world), then `NextWork`; a fixed orange bar
-along the bottom shows how far along it is (`--progress`). `artifact.ts` writes, per frame:
+along the bottom shows how far along it is (`--progress`). On portrait screens
+(`PORTRAIT` = `(orientation: portrait)`, same query in the components' CSS) the track is a
+column scrolled natively top-to-bottom: slices go full-width, wall slices stack their
+pictures over their own floor line, `--pan` motions run on the other axis, worlds are
+`220svh` tall with re-placed focals. `artifact.ts` picks the axis at init and re-inits
+when the orientation flips; every measure below follows it. It writes, per frame:
 
 - `--near` on every `[data-wake]` (`writeCentreProximity`) — story photos are ink-grey
   and a little harsh at the edges of the screen and colour up as they reach its middle
   (`grayscale`/`contrast` off `--near`; no `--near` under reduced motion = full colour);
-- `--pan` on every `[data-pan]` slice: −1..1 as it crosses the screen (1 entering right,
-  0 centred). Slices read it locally — two shots sliding past each other vertically, the
+- `--pan` on every `[data-pan]` slice: −1..1 as it crosses the screen (1 entering right /
+  bottom, 0 centred). Slices read it locally — two shots sliding past each other vertically, the
   stripe backdrop drifting, an image moving inside its window. Bounded, unlike
   `applyDepthParallax`, whose offset grows with `scrollLeft` (still used by the worlds:
   300vw, `overflow: hidden` so translated layers can't extend the scroll range).
 
 `[data-play]` videos play only while a quarter of them is on screen (controls instead,
-under reduced motion). `[data-lens]`: a colour copy of the photo clipped to a circle at
+under reduced motion); videos swapped in by the ClientRouter (DOMParser-built,
+source selection failed) get `load()` first. `[data-lens]`: a colour copy of the photo clipped to a circle at
 `--lx/--ly` over an ink copy, plus an ink ring; with a pointer the lens follows it
-(`.is-aimed`), otherwise a 14s CSS drift animates the two registered `@property`s.
-TigreStory's other moves are CSS only: the info panel's wave draws itself (dash offset),
-the drawn face badge blinks twice every 4.6s (shut still over the open one, `steps`).
+(`.is-aimed`), otherwise a 14s CSS drift animates the two registered `@property`s. On
+pointer leave it rests 0.4s, fades out (`.is-faded`, 1.2s), then drops both classes so it
+fades back in on the drift.
+TigreStory's other moves are CSS only: the info panel's wave draws itself (dash offset).
 The tiger chest on the scene's desk is the live `TigerPiece` and the page's view-
 transition hero.
 

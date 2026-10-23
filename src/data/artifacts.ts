@@ -28,11 +28,13 @@ export interface Artifact {
   image?: { w: number; h: number };
   /**
    * localized text; `chapters` are the extra text blocks of a page told as a story
-   * (stories/*, registered in ArtifactPage), in the order the story shows them
+   * (stories/*, registered in ArtifactPage), in the order the story shows them;
+   * `listTitle` is how the works run and the next-work link name it (Italian titles
+   * that are plain nouns take their article there), falling back to `title`
    */
   i18n: Record<
     'it' | 'en',
-    { title: string; subtitle?: string; body: string; chapters?: Chapter[] }
+    { title: string; listTitle?: string; subtitle?: string; body: string; chapters?: Chapter[] }
   >;
 }
 
@@ -44,8 +46,8 @@ export const artifacts: Artifact[] = [
     tiger: true,
     i18n: {
       it: {
-        title: 'Tigre',
-        subtitle: 'Lorem ipsum',
+        title: 'Tigre contro tigre',
+        subtitle: 'Una tigre che porta gioie',
         body: 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo.',
         chapters: [
           {
@@ -59,8 +61,8 @@ export const artifacts: Artifact[] = [
         ],
       },
       en: {
-        title: 'Tigre',
-        subtitle: 'Lorem ipsum',
+        title: 'Tigre contro tigre',
+        subtitle: 'Una tigre che porta gioie',
         body: 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo.',
         chapters: [
           {
@@ -82,6 +84,7 @@ export const artifacts: Artifact[] = [
     i18n: {
       it: {
         title: 'Attacchini',
+        listTitle: 'Gli attacchini',
         subtitle: 'The dark side of the mood',
         body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore.',
       },
@@ -117,6 +120,7 @@ export const artifacts: Artifact[] = [
     i18n: {
       it: {
         title: 'Giungla dei colori primari',
+        listTitle: 'La giungla dei colori primari',
         subtitle: 'Lorem ipsum',
         body: 'Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim.',
       },
@@ -134,12 +138,12 @@ export const artifacts: Artifact[] = [
     world: 'jungle',
     i18n: {
       it: {
-        title: 'Drago',
+        title: "L'anno del drago di legno",
         subtitle: 'Lorem ipsum',
         body: 'Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur.',
       },
       en: {
-        title: 'Drago',
+        title: 'The Year of the Wood Dragon',
         subtitle: 'Lorem ipsum',
         body: 'Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur.',
       },
@@ -153,6 +157,7 @@ export const artifacts: Artifact[] = [
     i18n: {
       it: {
         title: 'Llorona',
+        listTitle: 'La Llorona',
         subtitle: 'Lorem ipsum',
         body: 'Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit.',
       },
@@ -187,6 +192,7 @@ export const artifacts: Artifact[] = [
     i18n: {
       it: {
         title: 'Mangrovie',
+        listTitle: 'Le mangrovie',
         subtitle: 'Lorem ipsum',
         body: 'At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum.',
       },

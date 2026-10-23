@@ -1,5 +1,6 @@
 // Artifact detail page: the page develops to the right — vertical wheel becomes
-// horizontal scroll. Worlds drift their [data-depth] layers; stories (stories/*) read
+// horizontal scroll — or, on portrait screens (`PORTRAIT`), plainly downwards; every
+// measure below follows that axis, and turning the device re-inits on the other one. Worlds drift their [data-depth] layers; stories (stories/*) read
 // `--near` ([data-wake], 1 at the middle of the screen) and `--pan` ([data-pan], -1..1 as
 // the slice crosses the screen), play their [data-play] videos while on screen, and aim
 // their [data-lens] at the pointer. Every page ends on NextWork: scrolling on past the
@@ -7,6 +8,8 @@
 import { navigate } from 'astro:transitions/client';
 import { prefersReduced } from './motion';
 import {
+  PORTRAIT,
+  type Axis,
   wheelToHorizontal,
   onScrollFrame,
   applyDepthParallax,
@@ -27,13 +30,14 @@ function listen(el: EventTarget, type: string, fn: EventListener, opts?: AddEven
   cleanup.push(() => el.removeEventListener(type, fn, opts));
 }
 
-/** `--pan`: where each slice sits across the screen — 1 entering on the right, 0 dead
-    centre, -1 leaving on the left. Measure all, then write all. */
-function writePan(items: HTMLElement[]): void {
-  const half = window.innerWidth / 2;
+/** `--pan`: where each slice sits across the screen — 1 entering (right / bottom), 0 dead
+    centre, -1 leaving (left / top). Measure all, then write all. */
+function writePan(items: HTMLElement[], axis: Axis): void {
+  const half = (axis === 'x' ? window.innerWidth : window.innerHeight) / 2;
   const values = items.map((item) => {
     const box = item.getBoundingClientRect();
-    const p = (box.left + box.width / 2 - half) / (half + box.width / 2);
+    const [start, size] = axis === 'x' ? [box.left, box.width] : [box.top, box.height];
+    const p = (start + size / 2 - half) / (half + size / 2);
     return Math.max(-1, Math.min(1, p)).toFixed(3);
   });
   items.forEach((item, i) => item.style.setProperty('--pan', values[i]));
@@ -56,22 +60,40 @@ function playWhenSeen(viewport: HTMLElement): void {
     },
     { threshold: 0.25 },
   );
-  for (const video of videos) seen.observe(video);
+  for (const video of videos) {
+    // The ClientRouter builds the next page in a DOMParser document, where the video's
+    // source selection fails (NETWORK_NO_SOURCE) and isn't retried once it is swapped in.
+    if (video.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) video.load();
+    seen.observe(video);
+  }
   cleanup.push(() => seen.disconnect());
 }
 
-/** The lens follows the pointer while it is over the picture; otherwise CSS drifts it. */
+/** The lens follows the pointer while it is over the picture; otherwise CSS drifts it.
+ *  Left behind, it rests a beat, fades out, and fades back in on its drift. */
+const LENS_REST = 400;
+const LENS_FADE = 1200; // = the .lens fade transition
+
 function lenses(viewport: HTMLElement): void {
   if (!matchMedia('(hover: hover)').matches) return;
   for (const lens of viewport.querySelectorAll<HTMLElement>('[data-lens]')) {
+    let timer: number | undefined;
+    cleanup.push(() => clearTimeout(timer));
     listen(lens, 'pointermove', (event) => {
       const { clientX, clientY } = event as PointerEvent;
       const box = lens.getBoundingClientRect();
+      clearTimeout(timer);
+      lens.classList.remove('is-faded');
       lens.classList.add('is-aimed');
       lens.style.setProperty('--lx', `${((clientX - box.left) / box.width) * 100}%`);
       lens.style.setProperty('--ly', `${((clientY - box.top) / box.height) * 100}%`);
     });
-    listen(lens, 'pointerleave', () => lens.classList.remove('is-aimed'));
+    listen(lens, 'pointerleave', () => {
+      timer = window.setTimeout(() => {
+        lens.classList.add('is-faded');
+        timer = window.setTimeout(() => lens.classList.remove('is-aimed', 'is-faded'), LENS_FADE);
+      }, LENS_REST);
+    });
   }
 }
 
@@ -83,7 +105,7 @@ function handOff(link: HTMLAnchorElement): void {
   if (media) media.style.viewTransitionName = HERO;
 }
 
-function nextWork(viewport: HTMLElement): void {
+function nextWork(viewport: HTMLElement, axis: Axis): void {
   const link = viewport.querySelector<HTMLAnchorElement>('[data-next]');
   if (!link) return;
   listen(link, 'click', () => handOff(link));
@@ -104,7 +126,10 @@ function nextWork(viewport: HTMLElement): void {
     'wheel',
     (event) => {
       const { deltaX, deltaY } = event as WheelEvent;
-      const atEnd = viewport.scrollLeft >= viewport.scrollWidth - viewport.clientWidth - 2;
+      const atEnd =
+        axis === 'x'
+          ? viewport.scrollLeft >= viewport.scrollWidth - viewport.clientWidth - 2
+          : viewport.scrollTop >= viewport.scrollHeight - viewport.clientHeight - 2;
       if (!atEnd) {
         endSince = 0;
         return;
@@ -132,24 +157,33 @@ function init(): void {
   const viewport = document.querySelector<HTMLElement>('[data-artifact]');
   if (!viewport) return;
 
-  cleanup.push(wheelToHorizontal(viewport));
+  const portrait = matchMedia(PORTRAIT);
+  const axis: Axis = portrait.matches ? 'y' : 'x';
+  listen(portrait, 'change', () => {
+    teardown();
+    init();
+  });
+  if (axis === 'x') cleanup.push(wheelToHorizontal(viewport));
   const bar = document.querySelector<HTMLElement>('[data-progress]');
   const wakes = Array.from(viewport.querySelectorAll<HTMLElement>('[data-wake]'));
   const pans = Array.from(viewport.querySelectorAll<HTMLElement>('[data-pan]'));
   const still = prefersReduced();
   cleanup.push(
     onScrollFrame(viewport, () => {
-      const max = viewport.scrollWidth - viewport.clientWidth;
-      bar?.style.setProperty('--progress', max > 0 ? (viewport.scrollLeft / max).toFixed(4) : '1');
+      const [at, max] =
+        axis === 'x'
+          ? [viewport.scrollLeft, viewport.scrollWidth - viewport.clientWidth]
+          : [viewport.scrollTop, viewport.scrollHeight - viewport.clientHeight];
+      bar?.style.setProperty('--progress', max > 0 ? (at / max).toFixed(4) : '1');
       if (still) return;
-      applyDepthParallax(viewport);
-      writeCentreProximity(wakes);
-      writePan(pans);
+      applyDepthParallax(viewport, axis);
+      writeCentreProximity(wakes, axis);
+      writePan(pans, axis);
     }),
   );
   playWhenSeen(viewport);
   lenses(viewport);
-  nextWork(viewport);
+  nextWork(viewport, axis);
 }
 
 function teardown(): void {

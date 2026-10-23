@@ -24,7 +24,7 @@ const src = next.tiger ? tigerArt.image.src : artifactImage(next);
   <span class="next-work__media" data-next-media>
     <img src={withBase(src)} alt="" loading="lazy" decoding="async" />
   </span>
-  <span class="next-work__title">{next.i18n[lang].title}</span>
+  <span class="next-work__title">{next.i18n[lang].listTitle ?? next.i18n[lang].title}</span>
   <span class="next-work__pull" aria-hidden="true">
     <span class="next-work__bar"></span>
     {dict.artifact.keepScrolling}
@@ -105,6 +105,16 @@ const src = next.tiger ? tigerArt.image.src : artifactImage(next);
   @media (hover: none) {
     .next-work__pull {
       display: none;
+    }
+  }
+  @media (orientation: portrait) {
+    .next-work {
+      width: 100%;
+      height: auto;
+      min-height: 70svh;
+    }
+    .next-work__media {
+      width: min(62vw, 36svh);
     }
   }
 </style>

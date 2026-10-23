@@ -8,8 +8,7 @@ Tigre (`MY/1. Tigre/...`):
   * the photos, straight to webp (long side capped);
   * the staged scene ("ambientazione"): the ink drawing with the painted chest erased —
     the page sets the live chest (TigerPiece) back on the desk. Prints where it goes;
-  * stills from the illustrated teaser (IMG_0015): the orange/black stripes, and the
-    drawn face eyes open / eyes shut, cut off their white ground, for the blinking sticker;
+  * a still from the illustrated teaser (IMG_0015): the orange/black stripes;
   * the teaser itself as a loop, minus its "coming soon" frames, and the phone demo
     (IMG_2520) re-encoded small and muted, each with a poster.
 """
@@ -45,11 +44,9 @@ TIGRE_PHOTOS = {
 }
 
 # The teaser's frames (5 fps): 0-5 stripes, 6-8 "coming soon", then the drawing, the
-# face, the title card and the TM star.
+# face, the title card and the TM star (kept: the teaser plays them all).
 TEASER_SKIP = range(6, 9)
 TEASER_STRIPES = 0
-TEASER_FACE_OPEN = 19
-TEASER_FACE_SHUT = 21
 
 
 def ffmpeg() -> str:
@@ -119,27 +116,9 @@ def teaser_frames() -> list:
         frames.append(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
 
 
-def face(frame: np.ndarray) -> Image.Image:
-    """The drawn face off its white ground: the biggest non-white blob, holes filled."""
-    ink = frame.min(2) < 225
-    lab, n = ndimage.label(ink)
-    blob = ndimage.binary_fill_holes(lab == (np.argmax(ndimage.sum(ink, lab, range(1, n + 1))) + 1))
-    alpha = cv2.GaussianBlur(blob.astype(np.uint8) * 255, (3, 3), 0)
-    img = Image.fromarray(np.dstack([frame, alpha]), 'RGBA')
-    return img.crop(img.getchannel('A').getbbox())
-
-
 def teaser() -> None:
     frames = teaser_frames()
     save_webp(Image.fromarray(frames[TEASER_STRIPES]), 'stripes', long_side=1400)
-    # same crop for both, so the two stills lie exactly on top of each other
-    opened, shut = face(frames[TEASER_FACE_OPEN]), face(frames[TEASER_FACE_SHUT])
-    w, h = max(opened.width, shut.width), max(opened.height, shut.height)
-    for img, name in ((opened, 'face-open'), (shut, 'face-shut')):
-        canvas = Image.new('RGBA', (w, h))
-        canvas.paste(img, ((w - img.width) // 2, h - img.height))
-        save_webp(canvas, name, long_side=700, quality=85)
-
     keep = [f for i, f in enumerate(frames) if i not in TEASER_SKIP]
     with tempfile.TemporaryDirectory() as tmp:
         for i, f in enumerate(keep):

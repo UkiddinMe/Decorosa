@@ -29,3 +29,11 @@ All user-facing text on the site is the owner's to write. Never invent headings,
 intros, taglines or body copy — use Lorem Ipsum / obviously generic placeholders in
 `src/data/i18n/{it,en}.ts`, keeping the shape (line count, length) the layout expects.
 Functional UI labels (buttons, form fields, nav) are fine as plain words.
+
+## IMPORTANT: Always design for mobile too
+
+Every page, component and animation must be optimized for mobile, not just shrunk.
+When drawing from a reference site (e.g. justinesoulie.fr), check its **mobile**
+version as well and replicate the mobile-specific behavior — e.g. horizontal
+scroll galleries on desktop become vertical scroll with a layout suited to a
+portrait screen. Verify every change at phone width (~390px) before calling it done.
