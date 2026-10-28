@@ -6,9 +6,9 @@ from PIL import Image, ImageDraw, ImageFilter, ImageOps
 from scipy import ndimage
 from rembg import new_session, remove
 
-DATA = 'D:/MyStuff/Websites/Decorosa Data'
+DATA = 'E:/MyStuff/Websites/Decorosa Data'
 SRC = os.path.join(DATA, 'Pagina principale Scala')
-PUB = 'D:/MyStuff/Websites/Decorosa/public/assets'
+PUB = 'E:/MyStuff/Websites/Decorosa/public/assets'
 
 
 def flood_bg(rgb, sat_max, v_levels):
@@ -213,6 +213,43 @@ save(trim(Image.fromarray(
     np.dstack([np.zeros(ink.shape + (3,), np.uint8), (a * 255).astype(np.uint8)]), 'RGBA')),
     'showcase/dark-side', lossless=True)
 
+# ...and its hover twitch (PanelCard.astro): a strip of the shape's 8 mirror/rotation
+# variants, the original first. Flipped as-is, the off-centre point the sparks converge
+# on would jump around the box, so each variant is warped back to put it where the
+# original has it: per axis a power curve x -> W·(x/W)^g, which pins both edges and is
+# smooth everywhere (no crease), with g picked to send the variant's hub onto HUB.
+# Variants that swap axes are first stretched back to the original's box.
+twitch = np.asarray(Image.open(os.path.join(PUB, 'showcase/dark-side.webp')).getchannel('A'))
+TH, TW = twitch.shape
+HUB = (257, 204)  # (x, y) of the convergence point in dark-side.webp
+
+
+def pow_axis(n, out_c, src_c):
+    """Source coordinate for each output pixel along one axis, sending out_c <- src_c."""
+    g = np.log(src_c / n) / np.log(out_c / n)
+    return (n * (np.arange(n) / n) ** g).astype(np.float32)
+
+
+def variant(img, k):
+    """k-th element of the square's symmetry group (0 = untouched), back in the TW x TH box."""
+    v = np.rot90(img, k % 4)
+    v = np.fliplr(v) if k >= 4 else v
+    return np.asarray(Image.fromarray(np.ascontiguousarray(v)).resize((TW, TH), Image.LANCZOS))
+
+
+# The hub is tracked by putting a blob on it and sending that through the same transform.
+yy, xx = np.mgrid[:TH, :TW]
+blob = (255 * np.exp(-((xx - HUB[0]) ** 2 + (yy - HUB[1]) ** 2) / 50)).astype(np.uint8)
+frames = []
+for k in range(8):
+    b = variant(blob, k).astype(np.float32)
+    hx, hy = (b * xx).sum() / b.sum(), (b * yy).sum() / b.sum()
+    mx, my = np.meshgrid(pow_axis(TW, HUB[0], hx), pow_axis(TH, HUB[1], hy))
+    frames.append(cv2.remap(variant(twitch, k), mx, my, cv2.INTER_LINEAR))
+strip = np.hstack(frames)
+save(Image.fromarray(np.dstack([np.zeros(strip.shape + (3,), np.uint8), strip]), 'RGBA'),
+     'showcase/dark-side-twitch', lossless=True)
+
 # WORKS — the "back to the showcase" end-card. Hand-framed on this shot to the owner's
 # reference crop: the bookcase on the right and the floor below are left out, which caps
 # the width at 776px; the 2:3 plate is centred vertically on the reference's height.
@@ -222,11 +259,40 @@ save(trim(Image.fromarray(
 # — so it reads grey on the page. A gamma lift opens the midtones back up (a linear
 # stretch would clip the lit hatch, which is already at 255 in places) without touching
 # either end, so the dark jacket and boots keep their weight.
+#
+# The ceiling (and the wooden beam on it) is painted out so plain wall runs straight up
+# over the window: the hand-drawn region above the doors and the window head is filled
+# with a smooth fit of the surrounding wall's light (linear across, quadratic down),
+# nudged to match the real wall where it borders, plus grain matched to the wall's own.
 deco = Image.open(os.path.join(DATA, 'MY', 'DecoScala.jpeg')).convert('RGB')
 DECO_W, DECO_TOP = 776, 42
 deco = deco.crop((0, DECO_TOP, DECO_W, DECO_TOP + round(DECO_W * 3 / 2)))
-lifted = np.power(np.asarray(deco).astype(np.float32) / 255.0, 0.82) * 255
-save(Image.fromarray(lifted.astype(np.uint8), 'RGB'), 'works/back-to-showcase', quality=90)
+lifted = np.power(np.asarray(deco).astype(np.float32) / 255.0, 0.82)
+DH, DW = lifted.shape[:2]
+ceil = np.zeros((DH, DW), np.uint8)
+cv2.fillPoly(ceil, [np.array([(200, 0), (DW, 0), (DW, 150), (744, 135), (736, 132), (662, 220),
+                              (401, 143), (399, 30), (392, 25), (316, 111), (308, 117), (276, 85)])], 1)
+lum = lifted.mean(2)
+grad = cv2.GaussianBlur(np.hypot(cv2.Sobel(lum, cv2.CV_32F, 1, 0),
+                                 cv2.Sobel(lum, cv2.CV_32F, 0, 1)), (0, 0), 2)
+yy, xx = np.mgrid[:DH, :DW]
+# Clean wall only: left of the window, and below it left of the ladder.
+wall = ((grad < 0.08) & (cv2.dilate(ceil, np.ones((9, 9))) == 0)
+        & ((xx < 268) | ((xx < 395) & (yy > 480))))
+A = np.stack([np.ones(DH * DW), xx.ravel() / DW, yy.ravel() / DH, (yy.ravel() / DH) ** 2], 1)
+coef = np.linalg.lstsq(A[wall.ravel()], lifted.reshape(-1, 3)[wall.ravel()], rcond=None)[0]
+fill = (A @ coef).reshape(DH, DW, 3).astype(np.float32)
+src = wall.astype(np.float32)
+den = cv2.GaussianBlur(src, (0, 0), 50)[..., None]
+fill += (cv2.GaussianBlur((lifted - fill) * src[..., None], (0, 0), 50)
+         / np.maximum(den, 1e-6) * np.clip(den / 0.3, 0, 1))
+grain = cv2.GaussianBlur(np.random.default_rng(0).normal(0, 1, (DH, DW)).astype(np.float32),
+                         (0, 0), 0.7)
+fill += grain[..., None] * (lifted - cv2.GaussianBlur(lifted, (0, 0), 3)).mean(2)[wall].std() / grain.std()
+m = np.clip(cv2.GaussianBlur(ceil.astype(np.float32), (0, 0), 2.5), 0, 1)[..., None]
+out = lifted * (1 - m) + fill * m
+save(Image.fromarray((np.clip(out, 0, 1) * 255).astype(np.uint8), 'RGB'),
+     'works/back-to-showcase', quality=90)
 
 
 # DARK SIDE OF THE MOOD — the mirrorball and the cat that stand in the page's corners.
@@ -240,18 +306,32 @@ DSOTM = os.path.join(DATA, 'DSOTM')
 NAVY, PINK = np.array([35, 45, 95], np.float32), np.array([203, 46, 112], np.float32)
 
 
-def unmix(name, width):
+def unmix(name, width, ink=None):
+    """`ink(h, w)` paints the drawing (an RGB float array); by default the artwork's pink."""
     rgb = np.asarray(Image.open(os.path.join(DSOTM, name + '.png')).convert('RGB')).astype(np.float32)
     axis = PINK - NAVY
     a = np.clip(((rgb - NAVY) @ axis) / (axis @ axis), 0, 1)
-    flat = np.broadcast_to(PINK.astype(np.uint8), a.shape + (3,))
+    paint = ink(*a.shape) if ink else np.broadcast_to(PINK, a.shape + (3,))
+    flat = np.clip(paint, 0, 255).astype(np.uint8)
     return resize(trim(Image.fromarray(np.dstack([flat, (a * 255).astype(np.uint8)]), 'RGBA')), width)
+
+
+# The "dim" variants the restyled page uses: a deeper, more saturated magenta, lit from
+# the right like the page's shaft of light — a horizontal ramp from shadow to lit ink.
+SHADE, LIT = np.array([96, 10, 52], np.float32), np.array([226, 34, 118], np.float32)
+
+
+def side_lit(h, w):
+    t = (np.linspace(0, 1, w, dtype=np.float32) ** 1.4)[None, :, None]
+    return np.broadcast_to(SHADE + (LIT - SHADE) * t, (h, w, 3))
 
 
 # Twice the largest size each is rendered at (see DarkSidePage.astro), no more: flat art,
 # so lossless keeps the lines crisp at a fraction of a photo's weight.
 save(unmix('strobo 1', 960), 'dark-side/ball', lossless=True)
 save(unmix('animaletto 1', 660), 'dark-side/animal', lossless=True)
+save(unmix('strobo 1', 960, side_lit), 'dark-side/ball-dim', lossless=True)
+save(unmix('animaletto 1', 660, side_lit), 'dark-side/animal-dim', lossless=True)
 
 # I AM timeline — the photos a few events on /bio carry (see src/data/bio.ts).
 TIMELINE = os.path.join(DATA, 'I AM', 'file per timeline')

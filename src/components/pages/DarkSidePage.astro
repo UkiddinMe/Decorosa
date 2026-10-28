@@ -24,10 +24,12 @@ const panels = [d.commissioni, d.collaborazioni] as const;
        while the column scrolls over them. Both are cut-outs on transparency (see the
        DSOTM block in scripts/build-image-assets.py): the navy inside the ball's tiles and
        the cat's body is *not* painted, so the page gradient reads straight through them.
-       Deliberately off-diagonal so the pair reads as found rather than composed. -->
+       Deliberately off-diagonal so the pair reads as found rather than composed. The
+       `-dim` pair is the restyle's: deeper ink, lit from the right like the room. -->
   <div class="dark-side__bg" aria-hidden="true">
-    <img class="dark-side__ball" src={withBase('/assets/dark-side/ball.webp')} alt="" width="960" height="1884" />
-    <img class="dark-side__animal" src={withBase('/assets/dark-side/animal.webp')} alt="" width="660" height="1017" />
+    <div class="dark-side__light"></div>
+    <img class="dark-side__ball" src={withBase('/assets/dark-side/ball-dim.webp')} alt="" width="960" height="1884" />
+    <img class="dark-side__animal" src={withBase('/assets/dark-side/animal-dim.webp')} alt="" width="660" height="1017" />
   </div>
 
   <main class="dark-side">
@@ -87,7 +89,43 @@ const panels = [d.commissioni, d.collaborazioni] as const;
     z-index: 0;
     overflow: hidden;
     pointer-events: none;
-    background: var(--disco-bg);
+    /* A dark room, not the disco hall's dusk: deep saturated navy sinking to near-black. */
+    background: radial-gradient(130% 100% at 75% 0%, #0d1440 0%, #070b26 45%, #020309 100%);
+  }
+  /* The one light in the room: a soft vertical shaft falling from above on the right.
+     Only position and direction are drawn — a trapezoid widening downwards, fading as it
+     falls, plus the glow where it enters at the top. The blur sits on the wrapper: on the
+     shaft itself the clip-path would cut its edges sharp again after blurring. */
+  .dark-side__light {
+    --light-w: clamp(10rem, 34vw, 34rem);
+    position: absolute;
+    top: -10%;
+    right: 4%;
+    width: var(--light-w);
+    height: 120%;
+    filter: blur(32px);
+  }
+  .dark-side__light::before,
+  .dark-side__light::after {
+    content: '';
+    position: absolute;
+  }
+  .dark-side__light::before {
+    inset: 0;
+    background: linear-gradient(
+      rgb(150 165 255 / 0.32),
+      rgb(130 140 240 / 0.14) 55%,
+      transparent 90%
+    );
+    clip-path: polygon(34% 0, 72% 0, 100% 100%, 0 100%);
+  }
+  .dark-side__light::after {
+    top: -8vmin;
+    left: 18%;
+    width: 64%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgb(170 180 255 / 0.22), transparent);
   }
   .dark-side__ball,
   .dark-side__animal {
@@ -104,8 +142,8 @@ const panels = [d.commissioni, d.collaborazioni] as const;
     left: 4%;
     top: calc(var(--ball-w) * -0.45);
     width: var(--ball-w);
-    opacity: 0.5;
-    filter: drop-shadow(0 0 40px rgb(203 46 112 / 0.35));
+    opacity: 0.75;
+    filter: drop-shadow(0 0 30px rgb(200 30 105 / 0.25));
   }
   /* Small, tucked into the bottom-right corner — intentionally not the mirror of the
      ball's offsets. */
@@ -113,7 +151,7 @@ const panels = [d.commissioni, d.collaborazioni] as const;
     right: 5%;
     bottom: 1%;
     width: clamp(5.5rem, 13vw, 11rem);
-    opacity: 0.6;
+    opacity: 0.85;
   }
 
   .dark-side {
@@ -123,11 +161,15 @@ const panels = [d.commissioni, d.collaborazioni] as const;
     display: grid;
     place-items: center;
     padding: var(--space-l) var(--space-m);
-    color: #eef1ff;
+    color: #d4d8ef;
   }
+  /* The text is the brightest thing in the room: soft lavender-white rather than pure
+     white (easy on the eye against near-black), with a faint halo of its own light. */
   .dark-side__text {
     width: min(62ch, 100%);
-    text-shadow: 0 2px 14px rgb(0 0 0 / 0.55);
+    text-shadow:
+      0 0 12px rgb(190 200 255 / 0.22),
+      0 0 36px rgb(150 165 255 / 0.14);
   }
   .dark-side__text h1 {
     font-family: var(--font-futura);
@@ -135,6 +177,10 @@ const panels = [d.commissioni, d.collaborazioni] as const;
     letter-spacing: 0.02em;
     text-align: center;
     margin: 0 0 var(--space-s);
+    color: #eceeff;
+    text-shadow:
+      0 0 14px rgb(200 210 255 / 0.35),
+      0 0 48px rgb(150 165 255 / 0.25);
   }
   .dark-side__intro {
     display: grid;

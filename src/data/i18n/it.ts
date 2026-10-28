@@ -29,6 +29,8 @@ export type Dict = {
       fallback: string;
     };
   };
+  /** small line under each showcase panel title, keyed by panel id (panels.ts) */
+  showcase: { subtitles: { bio: string; works: string; 'dark-side': string } };
   bio: { heading: string; hint: string };
   works: { heading: string; tiles: string; backToShowcase: string };
   /** an artifact's detail page: the link to the next one that closes it */
@@ -78,6 +80,13 @@ export const it: Dict = {
       sent: 'Messaggio inviato. Ti rispondo presto!',
       error: 'Invio non riuscito. Riprova o scrivimi direttamente a ciao@decorosa.art.',
       fallback: 'Apro il tuo programma di posta…',
+    },
+  },
+  showcase: {
+    subtitles: {
+      bio: 'Chi sono e le cose che ho fatto',
+      works: 'Quello che creo',
+      'dark-side': 'Bisogna anche occuparsi degli aspetti più pratici',
     },
   },
   bio: {

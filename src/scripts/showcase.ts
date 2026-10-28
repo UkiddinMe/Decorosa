@@ -4,7 +4,7 @@
 // own 3D context so planes can never slice through each other, and sortLayers() keeps
 // every panel on the side of the sandwich matching its current orbit position.
 // sortNear() reveals each panel's big title while it is in the closer half of its
-// apparent-size range. Reduced motion skips all of this (a static fallback list is shown
+// apparent-size range, and its subtitle within a slightly narrower window. Reduced motion skips all of this (a static fallback list is shown
 // via CSS). Lifecycle-safe for View-Transition navigation.
 import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
@@ -28,6 +28,10 @@ function nearThresholdZ(perspective: number, radius: number): number {
   const mid = (perspective / (perspective + radius) + perspective / (perspective - radius)) / 2;
   return perspective - perspective / mid;
 }
+
+// The subtitle's window is the title's, narrowed by this much spin on each side: it shows
+// up after the title and starts fading out before it.
+const SUBTITLE_LEAD = (14 * Math.PI) / 180;
 
 // A panel carrying a mouth overlay (the tiger chest) opens it while it swings toward the
 // viewer and shuts it again on the way out — so the piece comes at you growing *and*
@@ -163,7 +167,9 @@ function init(): void {
       const radius = Number(card.dataset.radius ?? 0);
       const layer = isFrontOfLadder(cos, radius, perspective) ? frontSpiral : backSpiral;
       if (card.parentElement !== layer) layer.appendChild(card);
-      card.classList.toggle('is-near', radius * cos >= nearThresholdZ(perspective, radius));
+      const nearZ = nearThresholdZ(perspective, radius);
+      card.classList.toggle('is-near', radius * cos >= nearZ);
+      card.classList.toggle('is-nearer', cos >= Math.cos(Math.acos(nearZ / radius) - SUBTITLE_LEAD));
       if (card.dataset.alive !== undefined) {
         card.style.setProperty('--mouth-open', mouthOpen(cos).toFixed(3));
         card.style.setProperty('--glide', `${glide(worldDeg).toFixed(2)}deg`);

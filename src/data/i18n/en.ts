@@ -35,6 +35,13 @@ export const en: Dict = {
       fallback: 'Opening your mail app…',
     },
   },
+  showcase: {
+    subtitles: {
+      bio: "Who I am and the things I've done",
+      works: 'What I create',
+      'dark-side': 'Someone has to take care of the practical side too',
+    },
+  },
   bio: {
     heading: 'I AM',
     hint: 'Scroll sideways',

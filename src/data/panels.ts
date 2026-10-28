@@ -56,6 +56,12 @@ export interface Panel {
    * proportions.
    */
   image: { src: string; w: number; h: number };
+  /**
+   * hover twitch: a horizontal strip of the artwork's 8 mirrored/rotated copies, the
+   * untouched one first, each warped so the shape's focal point stays put
+   * (scripts/build-image-assets.py) — flicked through like a TV losing its signal
+   */
+  twitch?: string;
   /** mouth overlay that opens as the panel turns to face the viewer (tiger chest) */
   mouth?: Mouth;
   /** scene-space width of the panel */
@@ -114,6 +120,7 @@ export const panels: Panel[] = [
     spiral: { angleDeg: 240, radius: 360, dropY: 1400 },
     href: { it: "/dark-side", en: "/en/dark-side" },
     image: { src: "/assets/showcase/dark-side.webp", w: 482, h: 428 },
+    twitch: "/assets/showcase/dark-side-twitch.webp",
     width: 300,
   },
 ];

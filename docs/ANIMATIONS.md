@@ -166,6 +166,10 @@ size range" is a fixed z threshold: the z at which `scale` reaches the midpoint 
 `[scale(−r), scale(+r)]` (`nearThresholdZ` in `showcase.ts`). Crossing it toggles
 `.is-near`, and CSS fades/slides the title in. Because the title lives inside the card's
 3D box and is sized in px, perspective grows it with the panel as it approaches.
+The small subtitle under it uses `.is-nearer`: the same window narrowed by
+`SUBTITLE_LEAD` (14° of spin) on each side, so it arrives after the title and starts
+leaving before it; its fade is longer (1.2s in after a 0.25s delay, 0.8s out). Its size
+is divided by `--scene-scale` so it stays legible on mobile.
 
 **The tiger's mouth** (`PanelCard.astro` + `mouthOpen` in `showcase.ts`). The "MY" artwork is
 the chest with its mouth shut; over one column of it (`panel.mouth.box`, in % of the artwork's
@@ -209,6 +213,14 @@ reversal eases rather than snaps. A swing that repeated every orbit instead woul
 or three times while the panel is on screen, which reads as ticking. Amplitude ±4.5°. That is
 why the layers sit in their own `.card__art` box: the card's own transform is the spiral
 billboard.
+
+**The DSOTM twitch** (`PanelCard.astro`, `panel.twitch`). On hover (touch: always, on a
+9.5s `twitch-touch` loop with the pauses doubled) the artwork is swapped for `.card__twitch`, a background strip of its 8
+mirror/rotation copies with the untouched one first, and a `steps(1)` keyframe loop drives a
+registered `--twitch-frame` integer through short bursts on a 5s loop, 0.3–1.9s apart (plus ±3px jumps) — a
+TV losing its signal. Each copy is warped at build time (a per-axis power curve, edges pinned)
+so the point the shapes converge on stays put. The strip sits at opacity 0 at rest so it is
+already loaded by the first hover.
 
 **Card placement & billboarding** (`PanelCard.astro`). Each card's transform is
 `rotateY(angle) translateZ(radius) translateY(drop) rotateY(−(spin+angle))`: the first

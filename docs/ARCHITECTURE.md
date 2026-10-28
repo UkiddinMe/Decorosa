@@ -43,7 +43,9 @@ src/
                           fields with floating labels and a pill submit (see Contact form)
       BioPage.astro       WorksPage.astro      ArtifactPage.astro
       DarkSidePage.astro  Title + a two-row italic standfirst (rows stepped right of
-                          each other) over a fixed backdrop layer, then a native
+                          each other) over a fixed backdrop layer (a dark room: deep
+                          navy-to-black with one blurred shaft of light falling on the
+                          right; the text glows softly as the brightest thing), then a native
                           <details name> accordion: Commissioni, Collaborazioni and
                           Prodotti disponibili — the last one a list of every artifact
                           as icon + title (hover spreads the row's wash from its centre
@@ -68,7 +70,8 @@ src/
     showcase/
       Scene.astro         The 3D scene: scroll driver, sky, layer sandwich, fallback list
       Ladder3D.astro      The ladder as the spiral's central axis
-      PanelCard.astro     One panel on the spiral (billboard transform + big side title):
+      PanelCard.astro     One panel on the spiral (billboard transform + big side title
+                          and its translated subtitle, `showcase.subtitles` in i18n):
                           a cut-out on transparency, floating with no frame or shadow
     works/
       ArtifactCard.astro  One card of the "MY" run (links to its detail page): the piece
@@ -130,13 +133,15 @@ scripts/build-og-image.mjs)
   assets/showcase/        The three panel artworks (webp; `my`/`dark-side` have alpha),
                           plus `my-mouth` / `my-mouth-shut` — the two strips the
                           showcase panel and the first works card scale to open the
-                          tiger's mouth (ANIMATIONS.md)
+                          tiger's mouth (ANIMATIONS.md), and `dark-side-twitch` —
+                          the DSOTM panel's 8-frame hover strip
   assets/works/           Artwork for the "MY" run's end cards (webp)
   assets/artifacts/       One cut-out per artifact, `<id>.webp` (alpha) — card and hero
   assets/stories/<id>/    A story's photos, stills and mp4s (build-story-assets.py)
   assets/artifacts/motion/  The parts that move on them, and the patches behind those
                           parts (`<id>-<layer>.webp`, generated)
-  assets/dark-side/       The DSOTM backdrop pair, ball + animal (webp, alpha)
+  assets/dark-side/       The DSOTM backdrop pair, ball + animal (webp, alpha), plus the
+                          `-dim` pair the page uses (deeper magenta, lit from the right)
   assets/bio/             Timeline photos: the comic's five pages + the workshop sign
 scripts/slice-logo.mjs    One-off glyph slicer (see below); splits the starburst in two
 scripts/build-image-assets.py
@@ -224,10 +229,12 @@ two strips the page scales, `my-mouth.webp` (open) and `my-mouth-shut.webp`. The
 prints where that column sits, for `mouth.box` in `panels.ts`. The timeline photos are the
 plain end of it: the comic pages pass through at their scan size, the workshop sign is
 cropped square on the sign (the cards are near-square and cover-cropped). Then: an
-ink-density alpha for the DSOTM shape,
+ink-density alpha for the DSOTM shape (and its twitch strip: the 8 flips/rotations, each
+warped so the convergence point `HUB` stays put),
 hand-framed crops for the two photos ("I AM", and the works page's back-to-showcase
 card) — each cropped to its card's aspect so CSS never has to squeeze a whole frame into
-a small plate — and, for the DSOTM backdrop pair, an exact two-tone unmix: those drawings
+a small plate; the back-to-showcase one also has the whole ceiling (beam included)
+painted out with a smooth fit of the surrounding wall — and, for the DSOTM backdrop pair, an exact two-tone unmix: those drawings
 are one pink on one navy, so a projection onto the navy→pink axis *is* the coverage, and
 the navy enclosed by the lines stays transparent for the page gradient to show through.
 The tiles card's "Dessert" painting is flat colour too: the cherry's cast shadow is a

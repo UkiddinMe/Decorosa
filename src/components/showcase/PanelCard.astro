@@ -1,6 +1,7 @@
 ---
 import { mouthVars, type Panel } from '../../data/panels';
 import { withBase } from '../../data/routes';
+import { t, type Dict } from '../../data/i18n';
 
 interface Props {
   panel: Panel;
@@ -8,6 +9,7 @@ interface Props {
 }
 const { panel, lang } = Astro.props;
 const { angleDeg, radius, dropY } = panel.spiral;
+const subtitle = t(lang).showcase.subtitles[panel.id as keyof Dict['showcase']['subtitles']];
 // Placement of this panel within the spiral (rotated/offset inside the spinning group).
 // Panels are cut-outs: each sets its own box from the artwork's proportions.
 const size = `--card-w:${panel.width}px;--card-h:${Math.round((panel.width * panel.image.h) / panel.image.w)}px;`;
@@ -24,6 +26,7 @@ const style = `--angle:${angleDeg}deg;--radius:${radius}px;--drop:${dropY}px;${s
   data-angle={angleDeg}
   data-radius={radius}
   data-alive={panel.mouth ? '' : undefined}
+  data-twitch={panel.twitch ? '' : undefined}
 >
   <!-- Wrapper, not the card itself: the card's transform is the spiral billboard, so the
        glide needs its own box to rock inside. The mouth rides along with the artwork. -->
@@ -37,6 +40,11 @@ const style = `--angle:${angleDeg}deg;--radius:${radius}px;--drop:${dropY}px;${s
       loading="eager"
       decoding="async"
     />
+    {
+      panel.twitch && (
+        <span class="card__twitch" style={`background-image:url(${withBase(panel.twitch)})`} />
+      )
+    }
     {
       panel.mouth && (
         <>
@@ -63,8 +71,12 @@ const style = `--angle:${angleDeg}deg;--radius:${radius}px;--drop:${dropY}px;${s
     }
   </span>
   <!-- Revealed by showcase.ts (.is-near) only while the panel sits in the closer half
-       of its apparent-size range — i.e. while it reads as "near the viewer". -->
-  <span class="card__title">{panel.title}</span>
+       of its apparent-size range — i.e. while it reads as "near the viewer". The
+       subtitle has a narrower window of its own (.is-nearer), nested inside the title's. -->
+  <span class="card__title">
+    <span class="card__heading">{panel.title}</span>
+    <span class="card__subtitle">{subtitle}</span>
+  </span>
 </a>
 
 <style>
@@ -132,29 +144,130 @@ const style = `--angle:${angleDeg}deg;--radius:${radius}px;--drop:${dropY}px;${s
     transform-origin: 50% 100%;
     scale: 1 clamp(0, calc(1.006 - var(--mouth-open, 0) * var(--mouth-squeeze)), 1);
   }
+  /* The twitch (panels.ts): while hovered — or, on touch screens, all the time — the
+     artwork is swapped for a strip of its mirrored/rotated copies and flicked through them in short irregular bursts, like a TV losing its signal. Every
+     copy is warped so the point the shapes converge on stays put, so the image jumps
+     around a still centre. The strip sits underneath at rest (opacity, not display, so it
+     is already loaded by the first hover); its first frame is the untouched artwork, so
+     between bursts the swap is invisible. `steps(1)` holds each frame without blending. */
+  @property --twitch-frame {
+    syntax: '<integer>';
+    inherits: false;
+    initial-value: 0;
+  }
+  .card__twitch {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    background-size: 800% 100%;
+    background-position: calc(var(--twitch-frame) * 100% / 7) 0;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    @media (hover: hover) {
+      .card[data-twitch]:is(:hover, :focus-visible) .card__media {
+        opacity: 0;
+      }
+      .card[data-twitch]:is(:hover, :focus-visible) .card__twitch {
+        opacity: 1;
+        animation: twitch 5s steps(1, end) infinite;
+      }
+    }
+    @media (hover: none) {
+      .card[data-twitch] .card__media {
+        opacity: 0;
+      }
+      .card[data-twitch] .card__twitch {
+        opacity: 1;
+        animation: twitch-touch 9.5s steps(1, end) infinite;
+      }
+    }
+  }
+  /* 5s loop; the quiet stretches between bursts run 1.3s, 0.3s, 1.9s and 1s, so the
+     rhythm never settles. Burst frames last ~50ms. */
+  @keyframes twitch {
+    0% { --twitch-frame: 0; translate: 0 0; }
+    9% { --twitch-frame: 4; translate: 3px 0; }
+    10% { --twitch-frame: 2; translate: 0 0; }
+    11% { --twitch-frame: 0; }
+    37% { --twitch-frame: 7; translate: -2px 1px; }
+    37.8% { --twitch-frame: 1; translate: 0 0; }
+    38.6% { --twitch-frame: 5; translate: 2px -1px; }
+    39.4% { --twitch-frame: 3; translate: 0 0; }
+    40.4% { --twitch-frame: 0; }
+    47% { --twitch-frame: 6; translate: -3px 0; }
+    48.2% { --twitch-frame: 0; translate: 0 0; }
+    86% { --twitch-frame: 4; translate: 1px 1px; }
+    87% { --twitch-frame: 0; translate: 0 0; }
+    88% { --twitch-frame: 2; translate: -1px 0; }
+    89% { --twitch-frame: 0; translate: 0 0; }
+  }
+  /* Touch: plays unprompted, so the quiet stretches are doubled (bursts unchanged). */
+  @keyframes twitch-touch {
+    0% { --twitch-frame: 0; translate: 0 0; }
+    9.5% { --twitch-frame: 4; translate: 3px 0; }
+    10% { --twitch-frame: 2; translate: 0 0; }
+    10.5% { --twitch-frame: 0; }
+    37.9% { --twitch-frame: 7; translate: -2px 1px; }
+    38.3% { --twitch-frame: 1; translate: 0 0; }
+    38.7% { --twitch-frame: 5; translate: 2px -1px; }
+    39.2% { --twitch-frame: 3; translate: 0 0; }
+    39.7% { --twitch-frame: 0; }
+    46.6% { --twitch-frame: 6; translate: -3px 0; }
+    47.3% { --twitch-frame: 0; translate: 0 0; }
+    87.1% { --twitch-frame: 4; translate: 1px 1px; }
+    87.6% { --twitch-frame: 0; translate: 0 0; }
+    88.1% { --twitch-frame: 2; translate: -1px 0; }
+    88.6% { --twitch-frame: 0; translate: 0 0; }
+  }
+  /* Positions the pair; the subtitle hangs below the heading (absolute), so the
+     heading alone stays centred on the panel. */
   .card__title {
     position: absolute;
     left: calc(100% + var(--title-gap, 22px));
     top: 50%;
     width: 5.4em;
+    translate: 0 -50%;
     /* px (not rem): the title lives in the scene's own coordinate space, so perspective
        — not the browser font size — is what makes it grow as the panel approaches. */
     font-family: var(--font-futura);
     font-size: 44px;
     font-weight: 500;
-    line-height: 0.95;
-    letter-spacing: 0.01em;
     /* Light halo (not a dark drop shadow): the titles are black, so they need to be
        lifted off the sky, not weighted down. */
     text-shadow: 0 2px 18px rgb(255 255 255 / 0.55);
+  }
+  .card__heading {
+    display: block;
+    line-height: 0.95;
+    letter-spacing: 0.01em;
     opacity: 0;
-    translate: -0.4em -50%;
+    translate: -0.4em 0;
     transition:
       opacity 0.5s var(--ease-out),
       translate 0.5s var(--ease-out);
   }
-  .card.is-near .card__title {
+  .card.is-near .card__heading {
     opacity: 1;
-    translate: 0 -50%;
+    translate: 0 0;
+  }
+  /* Divided by --scene-scale so it stays legible where the scene shrinks (mobile). Comes
+     in after the heading and slower; goes out earlier (its window is narrower) and over
+     a longer fade that still ends about when the heading's does. */
+  .card__subtitle {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    margin-top: 0.9em;
+    font-size: calc(11px / var(--scene-scale));
+    line-height: 1.35;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0;
+    transition: opacity 0.8s var(--ease-out);
+  }
+  .card.is-nearer .card__subtitle {
+    opacity: 1;
+    transition: opacity 1.2s var(--ease-out) 0.25s;
   }
 </style>
