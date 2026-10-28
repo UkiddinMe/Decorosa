@@ -44,7 +44,7 @@ src/
       BioPage.astro       WorksPage.astro      ArtifactPage.astro
       DarkSidePage.astro  Title + a two-row italic standfirst (rows stepped right of
                           each other) over a fixed backdrop layer (a dark room: deep
-                          navy-to-black with one blurred shaft of light falling on the
+                          navy-to-black, a corner vignette, one dim blurred shaft on the
                           right; the text glows softly as the brightest thing), then a native
                           <details name> accordion: Commissioni, Collaborazioni and
                           Prodotti disponibili — the last one a list of every artifact
@@ -182,11 +182,11 @@ that floats frameless at its own `width`.
 
 **`src/data/artifacts.ts`** — one entry per artwork: `id` (slug, also the cut-out's
 name, `public/assets/artifacts/<id>.webp`), `image` (its intrinsic size), `world` (which `worlds/*` component renders
-its detail scenery), an optional `sold` flag (sold pieces keep their page but drop out of
+its detail scenery), an optional `available` flag (only flagged pieces make
 `availableArtifacts`, the list the dark-side page shows) and IT/EN `i18n`
 title/subtitle/body, plus optional `chapters` (the extra text blocks a story shows, in
-order) and `listTitle` (the name the works run and the next-work link use — Italian
-noun titles with their article, e.g. "Gli attacchini"; falls back to `title`). `artifactPath(id, lang)` is the
+order). `title` is the one name used everywhere (works run, detail page, next-work link,
+dark-side list) — Italian noun titles carry their article, e.g. "Gli attacchini". `artifactPath(id, lang)` is the
 canonical URL builder — `routes.ts` derives its IT↔EN pairs from it. Adding an artifact =
 append an entry + its cut-out + (only for a new aesthetic) create a `worlds/*` component
 and register it in the `worlds` map in `ArtifactPage.astro` — until a `stories/*`

@@ -17,8 +17,8 @@ export interface Artifact {
   id: string;
   /** which worlds/* component renders the scenery of its detail page */
   world: WorldKind;
-  /** already sold: still has its own page, but is left out of the dark-side list */
-  sold?: boolean;
+  /** still up for grabs: listed on the dark-side page (the others keep only their own page) */
+  available?: boolean;
   /**
    * Shows the tiger chest cut-out (the showcase's "MY" piece, `tigerArt` in panels.ts)
    * in place of the card plate, opening its mouth while live (pieces.ts).
@@ -28,13 +28,11 @@ export interface Artifact {
   image?: { w: number; h: number };
   /**
    * localized text; `chapters` are the extra text blocks of a page told as a story
-   * (stories/*, registered in ArtifactPage), in the order the story shows them;
-   * `listTitle` is how the works run and the next-work link name it (Italian titles
-   * that are plain nouns take their article there), falling back to `title`
+   * (stories/*, registered in ArtifactPage), in the order the story shows them
    */
   i18n: Record<
     'it' | 'en',
-    { title: string; listTitle?: string; subtitle?: string; body: string; chapters?: Chapter[] }
+    { title: string; subtitle?: string; body: string; chapters?: Chapter[] }
   >;
 }
 
@@ -83,8 +81,7 @@ export const artifacts: Artifact[] = [
     world: 'disco',
     i18n: {
       it: {
-        title: 'Attacchini',
-        listTitle: 'Gli attacchini',
+        title: 'Gli attacchini',
         subtitle: 'The dark side of the mood',
         body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore.',
       },
@@ -115,12 +112,10 @@ export const artifacts: Artifact[] = [
   {
     id: 'giungla-dei-colori',
     image: { w: 842, h: 1200 },
-    sold: true,
     world: 'disco',
     i18n: {
       it: {
-        title: 'Giungla dei colori primari',
-        listTitle: 'La giungla dei colori primari',
+        title: 'La giungla dei colori primari',
         subtitle: 'Lorem ipsum',
         body: 'Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim.',
       },
@@ -134,7 +129,6 @@ export const artifacts: Artifact[] = [
   {
     id: 'drago',
     image: { w: 1022, h: 1200 },
-    sold: true,
     world: 'jungle',
     i18n: {
       it: {
@@ -151,13 +145,12 @@ export const artifacts: Artifact[] = [
   },
   {
     id: 'llorona',
+    available: true,
     image: { w: 1064, h: 1200 },
-    sold: true,
     world: 'desert',
     i18n: {
       it: {
-        title: 'Llorona',
-        listTitle: 'La Llorona',
+        title: 'La Llorona',
         subtitle: 'Lorem ipsum',
         body: 'Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit.',
       },
@@ -191,8 +184,7 @@ export const artifacts: Artifact[] = [
     world: 'jungle',
     i18n: {
       it: {
-        title: 'Mangrovie',
-        listTitle: 'Le mangrovie',
+        title: 'Le mangrovie',
         subtitle: 'Lorem ipsum',
         body: 'At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum.',
       },
@@ -209,7 +201,7 @@ export const artifacts: Artifact[] = [
 export const artifactImage = (a: Artifact): string => `/assets/artifacts/${a.id}.webp`;
 
 /** The ones still up for grabs — the dark-side page lists only these. */
-export const availableArtifacts = artifacts.filter((a) => !a.sold);
+export const availableArtifacts = artifacts.filter((a) => a.available);
 
 /** Placeholder icon (the world's own focal glyph) for compact lists — dark-side page. */
 const worldIcon: Record<WorldKind, string> = { disco: '🪩', jungle: '🌴', desert: '🍰' };

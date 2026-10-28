@@ -24,7 +24,7 @@ const src = next.tiger ? tigerArt.image.src : artifactImage(next);
   <span class="next-work__media" data-next-media>
     <img src={withBase(src)} alt="" loading="lazy" decoding="async" />
   </span>
-  <span class="next-work__title">{next.i18n[lang].listTitle ?? next.i18n[lang].title}</span>
+  <span class="next-work__title">{next.i18n[lang].title}</span>
   <span class="next-work__pull" aria-hidden="true">
     <span class="next-work__bar"></span>
     {dict.artifact.keepScrolling}

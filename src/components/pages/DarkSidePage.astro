@@ -89,8 +89,16 @@ const panels = [d.commissioni, d.collaborazioni] as const;
     z-index: 0;
     overflow: hidden;
     pointer-events: none;
-    /* A dark room, not the disco hall's dusk: deep saturated navy sinking to near-black. */
-    background: radial-gradient(130% 100% at 75% 0%, #0d1440 0%, #070b26 45%, #020309 100%);
+    /* A dark room, not the disco hall's dusk: a faint navy sinking fast to black. */
+    background: radial-gradient(130% 100% at 75% 0%, #080c2c 0%, #03051a 40%, #000002 100%);
+  }
+  /* Vignette over everything in the backdrop, drawings included, so the corners where
+     the ball and the cat stand fall off into the dark. */
+  .dark-side__bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(120% 90% at 55% 45%, transparent 35%, rgb(0 0 0 / 0.6) 100%);
   }
   /* The one light in the room: a soft vertical shaft falling from above on the right.
      Only position and direction are drawn — a trapezoid widening downwards, fading as it
@@ -113,9 +121,9 @@ const panels = [d.commissioni, d.collaborazioni] as const;
   .dark-side__light::before {
     inset: 0;
     background: linear-gradient(
-      rgb(150 165 255 / 0.32),
-      rgb(130 140 240 / 0.14) 55%,
-      transparent 90%
+      rgb(150 165 255 / 0.2),
+      rgb(130 140 240 / 0.08) 50%,
+      transparent 80%
     );
     clip-path: polygon(34% 0, 72% 0, 100% 100%, 0 100%);
   }
@@ -125,7 +133,7 @@ const panels = [d.commissioni, d.collaborazioni] as const;
     width: 64%;
     aspect-ratio: 1;
     border-radius: 50%;
-    background: radial-gradient(closest-side, rgb(170 180 255 / 0.22), transparent);
+    background: radial-gradient(closest-side, rgb(170 180 255 / 0.14), transparent);
   }
   .dark-side__ball,
   .dark-side__animal {
@@ -142,8 +150,8 @@ const panels = [d.commissioni, d.collaborazioni] as const;
     left: 4%;
     top: calc(var(--ball-w) * -0.45);
     width: var(--ball-w);
-    opacity: 0.75;
-    filter: drop-shadow(0 0 30px rgb(200 30 105 / 0.25));
+    opacity: 0.6;
+    filter: drop-shadow(0 0 30px rgb(200 30 105 / 0.15));
   }
   /* Small, tucked into the bottom-right corner — intentionally not the mirror of the
      ball's offsets. */
@@ -151,7 +159,7 @@ const panels = [d.commissioni, d.collaborazioni] as const;
     right: 5%;
     bottom: 1%;
     width: clamp(5.5rem, 13vw, 11rem);
-    opacity: 0.85;
+    opacity: 0.7;
   }
 
   .dark-side {
@@ -268,7 +276,7 @@ const panels = [d.commissioni, d.collaborazioni] as const;
   }
 
   /* --- Product list ---------------------------------------------------------------
-     One row per *unsold* artifact: the world's focal glyph as a placeholder icon (swap
+     One row per *available* artifact: the world's focal glyph as a placeholder icon (swap
      for a real thumbnail with the rest of the artwork) plus its title, the whole row
      linking to the same detail page the "MY" cards open. */
   .products {
