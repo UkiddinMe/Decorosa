@@ -260,37 +260,98 @@ save(Image.fromarray(np.dstack([np.zeros(strip.shape + (3,), np.uint8), strip]),
 # stretch would clip the lit hatch, which is already at 255 in places) without touching
 # either end, so the dark jacket and boots keep their weight.
 #
-# The ceiling (and the wooden beam on it) is painted out so plain wall runs straight up
-# over the window: the hand-drawn region above the doors and the window head is filled
-# with a smooth fit of the surrounding wall's light (linear across, quadratic down),
-# nudged to match the real wall where it borders, plus grain matched to the wall's own.
+# The room is then dissolved into plain white — wall, ceiling, beam, the rail under the
+# window and every cast shadow — so the hatch opens in empty space. What stays: the
+# hatch (frame, doors and lit inside, minus the shaded head above it) and the ladder as
+# hand-measured shapes in this frame, and her figure from the matting model.
 deco = Image.open(os.path.join(DATA, 'MY', 'DecoScala.jpeg')).convert('RGB')
 DECO_W, DECO_TOP = 776, 42
 deco = deco.crop((0, DECO_TOP, DECO_W, DECO_TOP + round(DECO_W * 3 / 2)))
 lifted = np.power(np.asarray(deco).astype(np.float32) / 255.0, 0.82)
 DH, DW = lifted.shape[:2]
-ceil = np.zeros((DH, DW), np.uint8)
-cv2.fillPoly(ceil, [np.array([(200, 0), (DW, 0), (DW, 150), (744, 135), (736, 132), (662, 220),
-                              (401, 143), (399, 30), (392, 25), (316, 111), (308, 117), (276, 85)])], 1)
-lum = lifted.mean(2)
-grad = cv2.GaussianBlur(np.hypot(cv2.Sobel(lum, cv2.CV_32F, 1, 0),
-                                 cv2.Sobel(lum, cv2.CV_32F, 0, 1)), (0, 0), 2)
-yy, xx = np.mgrid[:DH, :DW]
-# Clean wall only: left of the window, and below it left of the ladder.
-wall = ((grad < 0.08) & (cv2.dilate(ceil, np.ones((9, 9))) == 0)
-        & ((xx < 268) | ((xx < 395) & (yy > 480))))
-A = np.stack([np.ones(DH * DW), xx.ravel() / DW, yy.ravel() / DH, (yy.ravel() / DH) ** 2], 1)
-coef = np.linalg.lstsq(A[wall.ravel()], lifted.reshape(-1, 3)[wall.ravel()], rcond=None)[0]
-fill = (A @ coef).reshape(DH, DW, 3).astype(np.float32)
-src = wall.astype(np.float32)
-den = cv2.GaussianBlur(src, (0, 0), 50)[..., None]
-fill += (cv2.GaussianBlur((lifted - fill) * src[..., None], (0, 0), 50)
-         / np.maximum(den, 1e-6) * np.clip(den / 0.3, 0, 1))
-grain = cv2.GaussianBlur(np.random.default_rng(0).normal(0, 1, (DH, DW)).astype(np.float32),
-                         (0, 0), 0.7)
-fill += grain[..., None] * (lifted - cv2.GaussianBlur(lifted, (0, 0), 3)).mean(2)[wall].std() / grain.std()
-m = np.clip(cv2.GaussianBlur(ceil.astype(np.float32), (0, 0), 2.5), 0, 1)[..., None]
-out = lifted * (1 - m) + fill * m
+
+
+def lrail(y):  # left edge of each ladder rail: they lean right, the near one more
+    return 412 + 0.176 * (y - 455)
+
+
+def rrail(y):
+    return 679 + 0.2 * (y - 1160)
+
+
+def rung(y, t=12):
+    """A rung between the rails, its top edge at height `y` where x = 640, tilting down
+    to the left."""
+    xl, xr = lrail(y) + 15, rrail(y) + 4
+    yl, yr = y + 0.18 * (640 - xl), y + 0.18 * (640 - xr)
+    return [(xl, yl), (xr, yr), (xr, yr + t), (xl, yl + t)]
+
+
+# The frame's outline: its top edge is one straight line from the frame's top-left corner,
+# parallel to the opening's head (the left door pokes above it); its bottom edge slopes
+# down to where the ladder hooks on.
+hatch = np.zeros((DH, DW), np.uint8)
+cv2.fillPoly(hatch, [np.int32([(274, 85), (326, 98), (390, 28), (397, 30), (398, 116),
+                               (687, 190), (736, 132), (744, 135), (748, 405),
+                               (690, 440), (480, 456), (290, 433)])], 1)
+ladder = np.zeros((DH, DW), np.uint8)
+# The two rungs under her feet sit flatter than the lower ones: measured on their own.
+for p in ([(lrail(446), 446), (lrail(446) + 22, 446), (lrail(DH) + 22, DH), (lrail(DH), DH)],
+          [(rrail(560), 560), (rrail(560) + 14, 560), (rrail(DH) + 14, DH), (rrail(DH), DH)],
+          [(520, 999), (647, 979), (647, 994), (520, 1012)], rung(1104),
+          [(500, 877), (626, 873), (626, 883), (500, 890)],
+          [(480, 759), (600, 757), (600, 770), (480, 773)]):
+    # one call per shape: fillPoly given several at once leaves their overlaps empty
+    cv2.fillPoly(ladder, [np.int32(p)], 1)
+figure = np.asarray(remove(deco, session=matte, only_mask=True)).astype(np.float32) / 255.0
+shape = cv2.GaussianBlur((hatch | ladder).astype(np.float32), (0, 0), 1.2)
+keep = np.maximum(figure, shape)[..., None]
+# white wood on white: a touch of shade keeps the bare rails legible
+wood = cv2.GaussianBlur((ladder * (figure < 0.5) * (hatch == 0)).astype(np.float32), (0, 0), 1.5)
+fg = lifted * (1 - 0.1 * wood[..., None])
+# The white things (doors, frame, rails) shot in a grey room read grey against pure
+# white, i.e. pasted on; lifting the near-neutral light tones (not her) makes them high-key.
+pale = (np.clip((fg.mean(2) - 0.55) / 0.3, 0, 1) * np.clip(1 - (fg.max(2) - fg.min(2)) / 0.12, 0, 1)
+        * (1 - figure))[..., None]
+fg = fg + (1 - fg) * 0.6 * pale
+
+
+def spread(img, w, sigma):
+    """`img` smeared outward from where `w` holds, normalised so it keeps its colour."""
+    return (cv2.GaussianBlur(img * w, (0, 0), sigma)
+            / np.maximum(cv2.GaussianBlur(w, (0, 0), sigma), 1e-4)[..., None])
+
+
+# So nothing looks pasted on, subject and white are lit by the same light:
+#  * the hatch's lamp light spills out — a tight bloom round the opening plus a wide
+#    wash that tints the white well beyond it — and falls on the doors, frame, ladder
+#    and figure too, strongest near the opening;
+#  * the subject is bathed in the room's light: its darks lifted (colour kept), so the
+#    jacket and boots stay dark but no longer read as cut from a dimmer shot;
+#  * light wraps round every edge (the white bleeds a few px onto the subject) and the
+#    subject haloes softly into the white, as if seen through a faint haze.
+lit = hatch.astype(bool) & (lifted[..., 0] - lifted[..., 2] > 0.12) & (lifted.mean(2) > 0.7)
+warm = np.median(lifted[lit], 0)
+litf = lit.astype(np.float32)
+near, wide = cv2.GaussianBlur(litf, (0, 0), 35), cv2.GaussianBlur(litf, (0, 0), 160)
+glow = (1 - (1 - 0.6 * near / near.max()) * (1 - 0.75 * wide / wide.max()))[..., None]
+light = 1 - (1 - warm) * np.minimum(1.1 * glow ** 0.7, 1)   # off-white, warming toward the lamp
+light = light * (1 - 0.03 * (1 - glow))                     # the far corners a touch softer than paper white
+# bathed in light: the same lift added to all three channels raises the darks without
+# washing out their colour, and her colours get back the punch the lift takes off
+lum = fg.mean(2, keepdims=True)
+fg = fg + (0.1 + 0.12 * glow) * (1 - lum) ** 1.5 * (1 - lit[..., None])
+lum = fg.mean(2, keepdims=True)
+fg = lum + (fg - lum) * (1 + 0.25 * figure[..., None])
+fg = fg * (1 - (1 - warm) * 0.35 * glow * (~lit[..., None]))          # and warmed by the lamp
+haze = cv2.GaussianBlur(keep, (0, 0), 6)[..., None]
+bg = light * (1 - 0.25 * haze) + spread(fg, keep, 6) * light * 0.25 * haze
+wrap = np.clip(cv2.GaussianBlur(1 - keep[..., 0], (0, 0), 2), 0, 1)[..., None] * keep
+fg = fg + (spread(bg, 1 - keep, 2) - fg) * 0.35 * wrap
+out = fg * keep + bg * (1 - keep)
+# the opening itself overexposes: its glow blooms over the frame and doors in front
+bloom = cv2.GaussianBlur(litf, (0, 0), 14)[..., None]
+out = out + (1 - out) * 0.35 * bloom * (1 - litf[..., None])
 save(Image.fromarray((np.clip(out, 0, 1) * 255).astype(np.uint8), 'RGB'),
      'works/back-to-showcase', quality=90)
 

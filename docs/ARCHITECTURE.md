@@ -90,7 +90,7 @@ src/
       EndCard.astro       The two cards that close the run: the tiles page, and back
                           up to the showcase. Same plate as an ArtifactCard; the plate
                           is filled by the `media` prop (the showcase card's photo,
-                          which also gets an inner vignette) or by slotted markup
+                          which also gets a faint inner vignette) or by slotted markup
       DuneScene.astro     The tiles card's cherry + its shadow, animated over the Dessert plate
     stories/              One component per artifact told as a story — a sideways run of
                           full-height slices (after justinesoulie.fr's work pages; a
@@ -233,8 +233,11 @@ ink-density alpha for the DSOTM shape (and its twitch strip: the 8 flips/rotatio
 warped so the convergence point `HUB` stays put),
 hand-framed crops for the two photos ("I AM", and the works page's back-to-showcase
 card) — each cropped to its card's aspect so CSS never has to squeeze a whole frame into
-a small plate; the back-to-showcase one also has the whole ceiling (beam included)
-painted out with a smooth fit of the surrounding wall — and, for the DSOTM backdrop pair, an exact two-tone unmix: those drawings
+a small plate; the back-to-showcase one also has the whole room dissolved into plain
+white, keeping only the hatch and ladder (hand-measured shapes) and her figure (matting
+model), their pale tones lifted and the whole subject bathed in the light: the hatch's
+warm glow blooms out over the frame and tints the white well beyond it, light wraps
+round every edge and the subject haloes softly into it, so nothing reads as pasted on — and, for the DSOTM backdrop pair, an exact two-tone unmix: those drawings
 are one pink on one navy, so a projection onto the navy→pink axis *is* the coverage, and
 the navy enclosed by the lines stays transparent for the page gradient to show through.
 The tiles card's "Dessert" painting is flat colour too: the cherry's cast shadow is a
