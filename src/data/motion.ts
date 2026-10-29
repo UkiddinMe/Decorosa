@@ -80,7 +80,7 @@ export const motion: Record<string, MotionNode[]> = {
   ],
 
   // the leaf on the table top wipes out, then draws itself back in, both left to right
-  'si-sta-come-d-inverno': [{ base: true }, layer('clean'), { draw: { ink: 'ink', time: 'time' } }],
+  'si-sta-come': [{ base: true }, layer('clean'), { draw: { ink: 'ink', time: 'time' } }],
 
   // three boards fan apart; panther eyes follow, blue tiger snaps; looping in the
   // run: red tiger blinks, leopard's tail swishes (in two bones: the tip rides on the run)

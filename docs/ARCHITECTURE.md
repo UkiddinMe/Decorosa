@@ -239,7 +239,7 @@ catalogue cover and painting clip. No `media` key at all and the card is a plain
 does not open anything, which is `portogallo`.
 
 The showcase panels and two timeline events carry real artwork. Every artifact does too:
-the first (`credenza-jungle`) is the tiger chest, the rest a cut-out each — card and hero
+the first (`tigre-contro-tigre`) is the tiger chest, the rest a cut-out each — card and hero
 both. Titles and text are still placeholders.
 
 **Raw artwork** lives outside the repo, in the sibling `Decorosa Data/` folder (originals,

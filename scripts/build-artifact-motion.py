@@ -176,8 +176,8 @@ GEOMETRY['attacchini']['hat-cut'] = ' '.join(
 # = ink, alpha = how far each pixel sits from the green towards the ink), the green under
 # it is inpainted into a clean top, and a time map says when each ink pixel is reached —
 # its distance *along the veins* from the leaf's base, where they gather at the top's left tip.
-print('si-sta-come-d-inverno')
-slug = 'si-sta-come-d-inverno'
+print('si-sta-come')
+slug = 'si-sta-come'
 a = load(slug)
 rows, cols = np.ogrid[:a.shape[0], :a.shape[1]]
 rgb = a[..., :3]

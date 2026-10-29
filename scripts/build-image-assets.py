@@ -553,7 +553,7 @@ print('  shadow at x {:.1f} y {:.1f} size {:.1f}x{:.1f}'.format(
 # largest render (the detail hero, ~520 CSS px) at 2x.
 RUN = [
     ('2. Attacchini', 'attacchini'),
-    ('3. Si sta come d_inverno', 'si-sta-come-d-inverno'),
+    ('3. Si sta come d_inverno', 'si-sta-come'),
     ('4. Giungla dei colori', 'giungla-dei-colori'),
     ('5. Drago', 'drago'),
     ('6. llorona', 'llorona'),

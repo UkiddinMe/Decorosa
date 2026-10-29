@@ -39,7 +39,7 @@ export interface Artifact {
 export const artifacts: Artifact[] = [
   {
     // First of the run, and the one the tiger chest stands for: its card *is* the piece.
-    id: 'credenza-jungle',
+    id: 'tigre-contro-tigre',
     world: 'jungle',
     tiger: true,
     i18n: {
@@ -93,7 +93,7 @@ export const artifacts: Artifact[] = [
     },
   },
   {
-    id: 'si-sta-come-d-inverno',
+    id: 'si-sta-come',
     image: { w: 932, h: 829 },
     world: 'desert',
     i18n: {

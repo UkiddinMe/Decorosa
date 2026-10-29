@@ -26,7 +26,7 @@ const txt = artifact.i18n[lang];
 const worlds = { disco: DiscoWorld, jungle: JungleWorld, desert: DesertWorld } as const;
 const World = worlds[artifact.world];
 const stories: Partial<Record<string, typeof TigreStory>> = {
-  'credenza-jungle': TigreStory,
+  'tigre-contro-tigre': TigreStory,
   llorona: LloronaStory,
 };
 const Story = stories[artifact.id];
