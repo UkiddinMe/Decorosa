@@ -3,6 +3,7 @@ import PanelCard from './PanelCard.astro';
 import Ladder3D from './Ladder3D.astro';
 import { panels, isFrontOfLadder, type Panel } from '../../data/panels';
 import { withBase } from '../../data/routes';
+import { sized } from '../../data/images';
 
 interface Props {
   lang: 'it' | 'en';
@@ -70,7 +71,7 @@ const isFront = (p: Panel) =>
     panels.map((p) => (
       <li class="fallback__item">
         <a href={withBase(p.href[lang])}>
-          <img class="fallback__media" src={withBase(p.image.src)} width={p.image.w} height={p.image.h} alt="" loading="lazy" decoding="async" />
+          <img class="fallback__media" {...sized(p.image.src, p.image.w, p.image.h)} sizes="14rem" alt="" loading="lazy" decoding="async" />
           <h2>{p.title}</h2>
         </a>
       </li>

@@ -11,6 +11,7 @@
 // Assets: scripts/build-story-assets.py -> public/assets/stories/tigre/.
 import TigerPiece from '../works/TigerPiece.astro';
 import { withBase } from '../../data/routes';
+import { sized } from '../../data/images';
 import type { Artifact } from '../../data/artifacts';
 
 interface Props {
@@ -22,15 +23,17 @@ const txt = artifact.i18n[lang];
 const [first, second] = txt.chapters ?? [];
 const src = (name: string): string => withBase(`/assets/stories/tigre/${name}`);
 const alt = txt.title;
+// a photo with its smaller copies; each `sizes` below is its drawn width (portrait, landscape)
+const photo = (name: string, w: number, h: number) => sized(`/assets/stories/tigre/${name}.webp`, w, h);
 ---
 
 <div class="story" style={`--stripes: url(${src('stripes.webp')})`}>
   <!-- The room: the artist's ink drawing with its chest erased, and the live chest set
        back on the desk (where build-story-assets.py measured the painted one). -->
   <section class="s scene">
-    <img class="scene__room" src={src('scene.webp')} width="1600" height="1600" alt="" />
+    <img class="scene__room" {...photo('scene', 1600, 1600)} sizes="(orientation: portrait) 100vw, 100svh" alt="" />
     <div class="scene__chest" data-page-hero>
-      <TigerPiece />
+      <TigerPiece drawn={[['(orientation: portrait)', '25vw'], ['', '25svh']]} />
     </div>
   </section>
 
@@ -47,10 +50,10 @@ const alt = txt.title;
   <section class="s duo" data-pan>
     <div class="duo__stripes" aria-hidden="true"></div>
     <figure class="frame duo__a" data-wake>
-      <img src={src('shut.webp')} width="1800" height="1595" alt={alt} loading="lazy" />
+      <img {...photo('shut', 1800, 1595)} sizes="(orientation: portrait) 70vw, 74svh" alt={alt} loading="lazy" />
     </figure>
     <figure class="frame duo__b">
-      <img src={src('open.webp')} width="1800" height="1634" alt={alt} loading="lazy" />
+      <img {...photo('open', 1800, 1634)} sizes="(orientation: portrait) 70vw, 73svh" alt={alt} loading="lazy" />
     </figure>
   </section>
 
@@ -79,10 +82,10 @@ const alt = txt.title;
     </figure>
     <div class="col">
       <figure class="frame square" data-wake>
-        <img src={src('detail-contro.webp')} width="1080" height="1080" alt={alt} loading="lazy" />
+        <img {...photo('detail-contro', 1080, 1080)} sizes="(orientation: portrait) 39vw, 30svh" alt={alt} loading="lazy" />
       </figure>
       <figure class="frame square" data-wake>
-        <img src={src('detail-mirror.webp')} width="1080" height="1080" alt={alt} loading="lazy" />
+        <img {...photo('detail-mirror', 1080, 1080)} sizes="(orientation: portrait) 39vw, 30svh" alt={alt} loading="lazy" />
       </figure>
     </div>
   </section>
@@ -90,22 +93,22 @@ const alt = txt.title;
   <!-- Inside, in ink — the lens brings its colour back -->
   <section class="s wall">
     <figure class="frame lens" data-lens>
-      <img class="lens__ink" src={src('inside.webp')} width="1800" height="1650" alt={alt} loading="lazy" />
-      <img class="lens__paint" src={src('inside.webp')} width="1800" height="1650" alt="" loading="lazy" />
+      <img class="lens__ink" {...photo('inside', 1800, 1650)} sizes="(orientation: portrait) 83vw, 70svh" alt={alt} loading="lazy" />
+      <img class="lens__paint" {...photo('inside', 1800, 1650)} sizes="(orientation: portrait) 83vw, 70svh" alt="" loading="lazy" />
       <span class="lens__ring" aria-hidden="true"></span>
     </figure>
   </section>
 
   <section class="s wall">
     <figure class="frame tall" data-wake>
-      <img src={src('lid-up.webp')} width="1350" height="1800" alt={alt} loading="lazy" />
+      <img {...photo('lid-up', 1350, 1800)} sizes="(orientation: portrait) 111vw, 64svh" alt={alt} loading="lazy" />
     </figure>
     <div class="col">
       <figure class="frame square" data-wake>
-        <img src={src('detail-flower.webp')} width="1080" height="1080" alt={alt} loading="lazy" />
+        <img {...photo('detail-flower', 1080, 1080)} sizes="(orientation: portrait) 39vw, 30svh" alt={alt} loading="lazy" />
       </figure>
       <figure class="frame square" data-wake>
-        <img src={src('detail-drawer.webp')} width="1080" height="1080" alt={alt} loading="lazy" />
+        <img {...photo('detail-drawer', 1080, 1080)} sizes="(orientation: portrait) 39vw, 30svh" alt={alt} loading="lazy" />
       </figure>
     </div>
   </section>
@@ -128,7 +131,7 @@ const alt = txt.title;
   </section>
 
   <section class="s tongue" data-pan data-wake>
-    <img src={src('tongue.webp')} width="1350" height="1800" alt={alt} loading="lazy" />
+    <img {...photo('tongue', 1350, 1800)} sizes="(orientation: portrait) 174vw, 115svh" alt={alt} loading="lazy" />
   </section>
 
   {
@@ -142,10 +145,10 @@ const alt = txt.title;
 
   <section class="s wall pair" data-pan>
     <figure class="frame pair__a" data-wake>
-      <img src={src('back.webp')} width="1350" height="1800" alt={alt} loading="lazy" />
+      <img {...photo('back', 1350, 1800)} sizes="(orientation: portrait) 52vw, 56svh" alt={alt} loading="lazy" />
     </figure>
     <figure class="frame pair__b" data-wake>
-      <img src={src('top.webp')} width="1350" height="1800" alt={alt} loading="lazy" />
+      <img {...photo('top', 1350, 1800)} sizes="(orientation: portrait) 52vw, 56svh" alt={alt} loading="lazy" />
     </figure>
   </section>
 </div>

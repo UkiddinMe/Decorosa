@@ -1,0 +1,701 @@
+---
+// La Llorona's detail page, told — like every story — as a sideways run of full-height
+// slices (a column on portrait screens, the `(orientation: portrait)` block at the end).
+// Its idea is the wall the desk was photographed against: the whole page *is* that rough
+// stone (`wall.webp`, seamless; smaller stones in the opening scene) — the terrazzo floor (`floor.webp`) only under the
+// opening scene, ending under the first text panel; then niches along the midline, a
+// few pictures cutting through the wall's whole height. All of it lit by a broad
+// lantern glow that follows the pointer, only the far corners dimming
+// (`[data-lamp]`, artifact.ts; a slow sway where there is no pointer). The photos are
+// sunk into it as niches, some arched like a chapel's, their pictures drifting behind
+// the opening (`--pan`); the words are carved into two plain full-height panels; the
+// gold stars of the desk's top mark them; and the wall weeps — drops trickle down over
+// the stones (LloronaDrip): in the opening scene, and past it bigger, slower ones in the
+// bands of bare wall between the niches (`.seam`), never across a picture. The
+// roll-top rolls up as its slice crosses the screen (`.rt`). Moves: ANIMATIONS.md.
+// Assets: scripts/build-story-assets.py llorona -> public/assets/stories/llorona/.
+import ArtifactPiece from '../works/ArtifactPiece.astro';
+import LloronaDrip from './LloronaDrip.astro';
+import { withBase } from '../../data/routes';
+import { sized } from '../../data/images';
+import type { Artifact } from '../../data/artifacts';
+
+interface Props {
+  artifact: Artifact;
+  lang: 'it' | 'en';
+}
+const { artifact, lang } = Astro.props;
+const txt = artifact.i18n[lang];
+const [chapter] = txt.chapters ?? [];
+const src = (name: string): string => withBase(`/assets/stories/llorona/${name}`);
+const alt = txt.title;
+// a photo with its smaller copies (data/images.ts), for a `sizes` worked out from its niche —
+// the picture's drawn width, portrait and landscape (cover-cropped, and 1.12× where it pans)
+const photo = (name: string, w: number, h: number) => sized(`/assets/stories/llorona/${name}.webp`, w, h);
+---
+
+<div class="llorona" style={`--wall: url(${src('wall.webp')}); --terrazzo: url(${src('floor.webp')})`}>
+  <!-- the lantern: one huge soft disc of dark with a warm hole in it, moved whole -->
+  <div class="lamp" data-lamp aria-hidden="true"></div>
+
+  <section class="s hero">
+    <LloronaDrip x={12} y={8} len={34} delay={1.5} seed={11} />
+    <LloronaDrip x={81} y={4} len={46} delay={6.5} seed={23} />
+    <div class="hero__piece" data-page-hero>
+      {artifact.image && <ArtifactPiece artifact={{ ...artifact, image: artifact.image }} />}
+    </div>
+  </section>
+
+  <section class="s carve">
+    <h1 class="carve__title">{txt.title}</h1>
+    {txt.subtitle && <p class="carve__sub">{txt.subtitle}</p>}
+    <span class="stars" aria-hidden="true"><i></i><i></i><i></i></span>
+    <p class="carve__body">{txt.body}</p>
+  </section>
+
+
+  <!-- The lacquer-red nook, the snake drawer under it: the page's richest colours, in one
+       of its largest niches, shown whole (no drift) -->
+  <section class="s wall">
+    <figure class="niche arch grand" style="--ratio: 1539 / 1800">
+      <img {...photo('snake', 1539, 1800)} sizes="(orientation: portrait) 84vw, 65svh" alt={alt} loading="lazy" />
+    </figure>
+    <div class="col">
+      <figure class="niche square" data-pan>
+        <img {...photo('side', 1350, 1800)} sizes="(orientation: portrait) 44vw, 32svh" alt={alt} loading="lazy" />
+      </figure>
+      <figure class="niche square" data-pan>
+        <img {...photo('drawers', 1350, 1800)} sizes="(orientation: portrait) 44vw, 32svh" alt={alt} loading="lazy" />
+      </figure>
+    </div>
+    <div class="seam" aria-hidden="true"><LloronaDrip x={0} y={10} len={44} delay={2} seed={37} sway={1.8} pace={2.2} /></div>
+  </section>
+
+  <!-- the open desk -->
+  <section class="s wall roll">
+    <figure class="niche deep" data-pan>
+      <img {...photo('drawers-open', 1350, 1800)} sizes="(orientation: portrait) 94vw, 62svh" alt={alt} loading="lazy" />
+    </figure>
+    <div class="seam" aria-hidden="true"><LloronaDrip x={0} y={30} len={40} delay={9} seed={41} sway={1.8} pace={2.2} /></div>
+  </section>
+
+  <!-- The shutter rolls up through the wall's whole height as the slice comes to the
+       middle: the closed shot (warped onto the open one) shows only inside the shutter's
+       box, above an edge that rises. The shutter pulled shut from the side (IMG_2699)
+       beside it. -->
+  <section class="s wall">
+    <figure class="niche full rt" data-pan>
+      <img {...photo('open', 1350, 1800)} sizes="(orientation: portrait) 100vw, 75svh" alt={alt} loading="lazy" />
+      <img class="rt__shut" {...photo('closed', 1350, 1800)} sizes="(orientation: portrait) 100vw, 75svh" alt="" loading="lazy" />
+    </figure>
+    <figure class="niche arch film">
+      <video
+        src={src('rolltop.mp4')}
+        poster={src('rolltop.webp')}
+        width="720"
+        height="1280"
+        muted
+        loop
+        playsinline
+        preload="none"
+        data-play></video>
+    </figure>
+    <div class="seam" aria-hidden="true"><LloronaDrip x={0} y={4} len={52} delay={5} seed={67} sway={1.8} pace={2.2} /></div>
+  </section>
+
+  <!-- Face-on, open: the whole fall-front, uncropped -->
+  <section class="s wall">
+    <figure class="niche whole">
+      <img {...photo('front', 1800, 1230)} sizes="(orientation: portrait) 84vw, 126svh" alt={alt} loading="lazy" />
+    </figure>
+    <div class="seam" aria-hidden="true"><LloronaDrip x={0} y={46} len={36} delay={12} seed={53} sway={1.8} pace={2.2} /></div>
+  </section>
+
+  <!-- The frieze of beasts through a long slot, the top face-on below it; the stars
+       from above -->
+  <section class="s wall">
+    <div class="col">
+      <figure class="niche slot" data-pan>
+        <img {...photo('frieze', 1800, 682)} sizes="(orientation: portrait) 94vw, 63svh" alt={alt} loading="lazy" />
+      </figure>
+      <figure class="niche wide" data-pan>
+        <img {...photo('top', 1800, 1350)} sizes="(orientation: portrait) 94vw, 63svh" alt={alt} loading="lazy" />
+      </figure>
+    </div>
+    <figure class="niche arch tall" data-pan>
+      <img {...photo('stars', 950, 1800)} sizes="(orientation: portrait) 94vw, 52svh" alt={alt} loading="lazy" />
+    </figure>
+    <div class="seam" aria-hidden="true"><LloronaDrip x={0} y={14} len={48} delay={3.5} seed={71} sway={1.8} pace={2.2} /></div>
+  </section>
+
+
+  {
+    chapter && (
+      <section class="s carve">
+        <h2 class="carve__head">{chapter.title}</h2>
+        <span class="stars" aria-hidden="true"><i></i><i></i><i></i></span>
+        <p class="carve__body">{chapter.body}</p>
+      </section>
+    )
+  }
+
+  <!-- the shutter pulled shut face-on (IMG_2698), right against the words, through the
+       wall's whole height: cropped a little top and bottom, so it isn't a thin strip -->
+  <section class="s wall flush">
+    <figure class="niche full reel" style="--focus: 50% 40%">
+      <video
+        src={src('rolltop-front.mp4')}
+        poster={src('rolltop-front.webp')}
+        width="720"
+        height="1280"
+        muted
+        loop
+        playsinline
+        preload="none"
+        data-play></video>
+    </figure>
+  </section>
+
+  <!-- the desk from above, beside the shutter shut, from the side -->
+  <section class="s wall">
+    <figure class="niche arch tall low" data-pan>
+      <img {...photo('above', 1350, 1800)} sizes="(orientation: portrait) 94vw, 52svh" alt={alt} loading="lazy" />
+    </figure>
+    <figure class="niche arch film" style="--focus: 15% 50%">
+      <img {...photo('shut-side', 1132, 1800)} sizes="(orientation: portrait) 70vw, 44svh" alt={alt} loading="lazy" />
+    </figure>
+    <div class="seam" aria-hidden="true"><LloronaDrip x={0} y={24} len={42} delay={8} seed={83} sway={1.8} pace={2.2} /></div>
+  </section>
+
+
+  <!-- Last, the desk alone in the stone hall, the wall's whole height — the mirror ball
+       and the beams in, the light switch and the chairs at the right edge cut off -->
+  <section class="s wall">
+    <figure class="niche full room">
+      <img {...photo('room', 1350, 1800)} sizes="(orientation: portrait) 121vw, 81svh" alt={alt} loading="lazy" />
+    </figure>
+    <div class="seam" aria-hidden="true"><LloronaDrip x={0} y={8} len={50} delay={14} seed={97} sway={1.8} pace={2.2} /></div>
+  </section>
+</div>
+
+<style>
+  .llorona {
+    /* the desk's own colours: the stone it stood against, its pale celadon, the lacquer
+       red inside, the gilt of its stars */
+    --stone: #c9a586;
+    --umber: #24160e;
+    --celadon: #a9c6c1;
+    --lacquer: #a8261c;
+    --gilt: #b48a3c;
+    --wall-h: 62svh;
+    /* the floor's depth below the wall: only under the opening scene — past it the page
+       is wall alone, its slices on the midline */
+    --below: 21svh;
+    --gap: 5svh;
+    --edge: max(2px, 0.35svh);
+
+    display: flex;
+    height: 100%;
+    background: var(--wall) 0 0 / auto 100% repeat var(--stone);
+    color: var(--umber);
+  }
+  .s {
+    flex: 0 0 auto;
+    position: relative;
+    height: 100%;
+  }
+
+  /* The lantern: a screen-sized layer, dark but for a warm hole painted at --lx/--ly —
+     the pointer (artifact.ts) or, until it moves, a slow sway. (Not a huge disc slid
+     about: Chrome only rasterizes part of a layer that big, and the rest drops out as a
+     hard-edged band.) The flicker is opacity, so it never repaints. */
+  @property --lx {
+    syntax: '<length-percentage>';
+    inherits: false;
+    initial-value: 0px;
+  }
+  @property --ly {
+    syntax: '<length-percentage>';
+    inherits: false;
+    initial-value: 0px;
+  }
+  .lamp {
+    --lx: 50vw;
+    --ly: 45vh;
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at var(--lx) var(--ly), rgb(255 190 110 / 0.12) 0, transparent 40vmax),
+      radial-gradient(circle at var(--lx) var(--ly), transparent 45vmax, rgb(20 11 6 / 0.28) 80vmax, rgb(14 8 4 / 0.45) 110vmax);
+    animation:
+      lamp-sway 26s ease-in-out infinite alternate,
+      lamp-flicker 3.1s steps(1) infinite;
+  }
+  .lamp.is-aimed {
+    animation: lamp-flicker 3.1s steps(1) infinite;
+  }
+  @keyframes lamp-sway {
+    0% {
+      --lx: 34vw;
+      --ly: 40vh;
+    }
+    50% {
+      --lx: 62vw;
+      --ly: 55vh;
+    }
+    100% {
+      --lx: 46vw;
+      --ly: 36vh;
+    }
+  }
+  @keyframes lamp-flicker {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    13% {
+      opacity: 0.93;
+    }
+    21% {
+      opacity: 1;
+    }
+    34% {
+      opacity: 0.96;
+    }
+    58% {
+      opacity: 0.9;
+    }
+    71% {
+      opacity: 0.97;
+    }
+    83% {
+      opacity: 1;
+    }
+  }
+
+  /* A niche: the picture sunk into the wall. The rim catches the lantern along its lower
+     edge and falls into shadow along its upper one; inside, the stone's lip throws a
+     shadow over the picture, which drifts behind the opening on --pan. */
+  .niche {
+    position: relative;
+    margin: 0;
+    overflow: hidden;
+    border-radius: 0.6svh;
+    background: var(--umber);
+    box-shadow:
+      calc(var(--edge) * -1) calc(var(--edge) * -1.4) 0 rgb(30 16 8 / 0.7),
+      var(--edge) calc(var(--edge) * 1.4) 0 rgb(255 232 205 / 0.45);
+  }
+  .niche::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow:
+      inset 2svh 2.6svh 3svh rgb(14 8 4 / 0.75),
+      inset -0.5svh -0.5svh 1.5svh rgb(14 8 4 / 0.35);
+    pointer-events: none;
+  }
+  .niche img,
+  .niche video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* where a crop keeps to */
+    object-position: var(--focus, 50% 50%);
+  }
+  /* (not the roll-top: its two shots must stay registered) */
+  .niche[data-pan]:not(.rt) img {
+    scale: 1.12;
+    translate: calc(var(--pan, 0) * -4%) 0;
+  }
+  /* round-headed, like a chapel's window: the top corners are a half-ellipse as wide as
+     the niche and --arch of its height tall */
+  .arch {
+    --arch: 26%;
+    border-radius: 50% 50% 0.6svh 0.6svh / var(--arch) var(--arch) 0.6svh 0.6svh;
+  }
+
+  /* A drop's lane down the bare wall at a slice's right edge, mid-way across its padding
+     (or the shaft's, on portrait): bigger drops, their wander squeezed (`sway`) to fit. */
+  .seam {
+    position: absolute;
+    inset: 0 auto 0 calc(100% - 5svh);
+    --drip-u: 1.25svh;
+  }
+
+  .wall {
+    display: flex;
+    align-items: center;
+    gap: var(--gap);
+    padding: 0 10svh;
+  }
+  .col {
+    display: grid;
+    gap: var(--gap);
+  }
+  .tall {
+    height: var(--wall-h);
+    aspect-ratio: 3 / 4;
+  }
+  .grand {
+    height: 76svh;
+    aspect-ratio: var(--ratio, 3 / 4);
+    --arch: 30%;
+  }
+  /* shown whole, a strip of wall above and below */
+  .whole {
+    height: 86svh;
+    aspect-ratio: 1800 / 1230;
+  }
+  .square {
+    width: calc((var(--wall-h) - var(--gap)) / 2);
+    aspect-ratio: 1;
+  }
+  .slot {
+    width: 56svh;
+    aspect-ratio: 1800 / 682;
+    border-radius: 999px;
+  }
+  .wide {
+    width: 56svh;
+    aspect-ratio: 4 / 3;
+  }
+  /* off the midline, for the rhythm: sunk low or set high in the wall */
+  .low {
+    translate: 0 10svh;
+  }
+  /* a shaft cut through the wall's whole height (on portrait, its whole width): square,
+     its rims only down the sides */
+  .full {
+    flex: none;
+    /* not 100%: a percent height leaves the slice's own width at nothing */
+    height: 100svh;
+    aspect-ratio: var(--ratio, 3 / 4);
+    border-radius: 0;
+    box-shadow:
+      calc(var(--edge) * -1.4) 0 0 rgb(30 16 8 / 0.7),
+      calc(var(--edge) * 1.4) 0 0 rgb(255 232 205 / 0.45);
+  }
+  /* the room: a little taller than the opening, so the floor's edge goes too; the left
+     margin and the switch and chairs on the right fall outside */
+  .room {
+    --ratio: 2 / 3;
+  }
+  .room img {
+    height: 108%;
+    object-position: 25% 0;
+  }
+  /* a film shaft: wider than the 9:16 clip, cropped top and bottom about --focus */
+  .reel {
+    --ratio: 3 / 4;
+  }
+  .flush {
+    padding: 0;
+  }
+  .film {
+    height: 70svh;
+    aspect-ratio: 9 / 16;
+    --arch: 18%;
+  }
+
+  /* Hero: the live piece stands where the wall meets the floor — the terrazzo of IMG_3007
+     (floor.webp, seamless sideways), running on under the first text panel, which hides
+     where it ends. Its wall is the same stone seen from further back (smaller stones,
+     --hero-stone), so the scene reads as a room; past the panel the wall is full-size.
+     The wall darkens softly towards its foot, and the piece throws its shadow back
+     against it: a soft cast straddling the wall's foot, up onto the stone, and a denser
+     one on the floor between its feet. */
+  .hero {
+    --hero-stone: 45%;
+    /* the piece's width; its feet sit 0.234 of it (249/1064) above its foot */
+    --w: 58svh;
+    width: 118svh;
+    max-width: 100vw;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0 -4svh 0 0;
+    background:
+      var(--terrazzo) 0 100% / auto var(--below) repeat-x,
+      linear-gradient(transparent calc(100% - var(--below) - 40svh), rgb(20 11 6 / 0.28) calc(100% - var(--below))),
+      var(--wall) 0 0 / auto var(--hero-stone) repeat var(--stone);
+  }
+  /* Stood so its rear feet (y 951 of the cut-out's 1200, the front ones at its foot) land
+     just past the wall's foot, on the floor — whatever its width --w. */
+  /* --up: how far the cast climbs the wall; the box runs from there down to just past
+     the front feet, the wall's foot at --up from its top */
+  .hero::after {
+    --up: calc(var(--w) * 0.5);
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: calc(var(--below) - var(--w) * 0.234 - 4svh);
+    width: calc(var(--w) * 0.6);
+    height: calc(var(--up) + var(--w) * 0.234 + 4svh);
+    translate: -50% 0;
+    background:
+      radial-gradient(
+        ellipse 45% calc(var(--w) * 0.12 + 3svh) at 50% calc(var(--up) + var(--w) * 0.08),
+        rgb(20 11 6 / 0.27),
+        rgb(20 11 6 / 0.08) 50%,
+        transparent
+      ),
+      radial-gradient(
+        ellipse 45% var(--up) at 50% var(--up),
+        rgb(20 11 6 / 0.46),
+        rgb(20 11 6 / 0.17) 50%,
+        transparent
+      );
+  }
+  .hero__piece {
+    position: absolute;
+    z-index: 1;
+    left: 50%;
+    bottom: calc(var(--below) - var(--w) * 1200 / 1064 * (1 - 951 / 1200) - 1.5svh);
+    width: var(--w);
+    aspect-ratio: 1064 / 1200;
+    translate: -50% 0;
+    /* the run's card stamps the same name on itself on click, so it morphs into this */
+    view-transition-name: artifact-hero;
+  }
+
+  /* The words: a plain limestone panel through the wall's whole height, the letters cut
+     into it — the hollow of each shadowed at top-left, lit along its bottom-right. */
+  .carve {
+    /* over the floor's end and the drops */
+    z-index: 2;
+    width: clamp(300px, 34vw, 560px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-s);
+    padding: var(--space-l) var(--space-m);
+    text-align: center;
+    container-type: inline-size;
+    background: #dcc6aa;
+    box-shadow: 0 0 3svh rgb(14 8 4 / 0.45);
+    --cut: #5e4130;
+  }
+  .carve__title,
+  .carve__head {
+    font-family: var(--font-futura);
+    text-transform: uppercase;
+    line-height: 0.95;
+    letter-spacing: 0.02em;
+    text-wrap: balance;
+    color: var(--cut);
+    text-shadow:
+      -0.03em -0.035em 0.02em rgb(30 16 8 / 0.55),
+      0.03em 0.04em 0 rgb(255 244 228 / 0.7);
+  }
+  .carve__title {
+    font-size: clamp(2.25rem, 16cqi, 5rem);
+  }
+  .carve__head {
+    font-size: clamp(1.6rem, 10.5cqi, 3.2rem);
+  }
+  .carve__sub {
+    font-family: var(--font-display);
+    font-size: var(--step-0);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--lacquer);
+    text-shadow: 0.04em 0.05em 0 rgb(255 244 228 / 0.6);
+  }
+  .carve__body {
+    max-width: 34ch;
+    font-size: var(--step--1);
+    line-height: 1.6;
+    color: #4a3324;
+  }
+
+  /* the gilt stars of the desk's top, turning slowly, out of step: a warm glow round
+     them and a hard shadow under them, as if inlaid in the stone (on the row, since each
+     star is clipped to its shape) */
+  .stars {
+    display: flex;
+    align-items: center;
+    gap: 0.55em;
+    font-size: clamp(26px, 5.4svh, 54px);
+    filter: drop-shadow(0 0 0.18em rgb(255 205 120 / 0.55)) drop-shadow(0.04em 0.06em 0 rgb(60 34 14 / 0.55));
+  }
+  .stars i {
+    width: 1em;
+    aspect-ratio: 1;
+    background: linear-gradient(135deg, #fbe7a6, #d9a948 45%, var(--gilt) 65%, #7d5a22);
+    clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    animation: star-turn 9s ease-in-out infinite alternate;
+  }
+  .stars i:nth-child(2) {
+    scale: 1.35;
+    animation-delay: -3s;
+  }
+  .stars i:nth-child(3) {
+    animation-delay: -6s;
+  }
+  @keyframes star-turn {
+    to {
+      rotate: 72deg;
+    }
+  }
+
+  /* Roll-top: the closed shot is clipped to the shutter's box (measured on closed.webp:
+     x 25%–76.3%, y 33.5%–49.6%) and slid up into the top of it, its lower edge — the
+     handles on it — stopping at 36.5%, just over the rolled-up shutter's own handle bar
+     in open.webp, so the handles seen at first are the ones that come down (--open: 0
+     shut until the slice is well inside the screen, --pan 0.6, then rolled up by just
+     past the middle). */
+  .roll {
+    padding-inline: 12svh;
+  }
+  .deep {
+    height: 74svh;
+    aspect-ratio: 3 / 4;
+  }
+  .rt {
+    --open: clamp(0, (0.6 - var(--pan, 0)) / 0.7, 1);
+  }
+  .rt img {
+    position: absolute;
+    inset: 0;
+  }
+  .rt__shut {
+    translate: 0 calc(-13.1% * var(--open));
+    clip-path: inset(calc(33.5% + 13.1% * var(--open)) 23.7% 50.4% 25%);
+  }
+
+
+  /* The fixed pills read light-on-dark here, over the night wall; the bar is gilt. */
+  :global(html:has(.llorona) :is(.back-link, .lang-toggle)) {
+    mix-blend-mode: normal;
+    background: rgb(20 11 6 / 0.45);
+    color: #f1e3d0;
+    backdrop-filter: blur(4px);
+  }
+  :global(html:has(.llorona) .artifact__progress) {
+    background: var(--gilt, #b48a3c);
+  }
+
+  /* Portrait: the run turns into a column; the wall tiles downwards at a stone size made
+     for a phone, the niches stack, and --pan moves the pictures up and down instead. */
+  @media (orientation: portrait) {
+    .llorona {
+      --gap: 5vw;
+      --edge: max(2px, 0.5vw);
+      flex-direction: column;
+      height: auto;
+      background: var(--wall) 0 0 / auto 62vw repeat var(--stone);
+    }
+    .s {
+      width: 100%;
+      height: auto;
+    }
+    .lamp {
+      animation:
+        lamp-sway-tall 18s ease-in-out infinite alternate,
+        lamp-flicker 3.1s steps(1) infinite;
+    }
+
+    .hero {
+      --hero-stone: 29vw;
+      --w: min(84vw, 60svh);
+      max-width: none;
+      height: 100svh;
+    }
+    .hero::before {
+      inset: 0;
+    }
+
+    .carve {
+      padding: 16vw 8vw;
+    }
+
+    .wall,
+    .roll {
+      flex-direction: column;
+      align-items: stretch;
+      padding: 12vw 8vw;
+    }
+    .col {
+      grid-template-columns: 1fr 1fr;
+    }
+    .col:has(.slot) {
+      grid-template-columns: 1fr;
+    }
+    .tall,
+    .grand,
+    .whole,
+    .wide,
+    .slot,
+    .deep {
+      width: 100%;
+      height: auto;
+    }
+    .full {
+      height: auto;
+      margin-inline: -8vw;
+      box-shadow:
+        0 calc(var(--edge) * -1.4) 0 rgb(30 16 8 / 0.7),
+        0 calc(var(--edge) * 1.4) 0 rgb(255 232 205 / 0.45);
+    }
+    .flush {
+      padding: 0;
+    }
+    .flush .full {
+      margin-inline: 0;
+    }
+    /* a column has the height to spare: the clip whole */
+    .reel {
+      --ratio: 9 / 16;
+    }
+    .square {
+      width: auto;
+    }
+    .low {
+      translate: none;
+    }
+    /* in the side margin, smaller to fit it; none beside a shaft, which spans the width */
+    .seam {
+      left: calc(100% - 4vw);
+      --drip-u: 0.6svh;
+    }
+    .s:has(.full) .seam {
+      display: none;
+    }
+    .film {
+      width: 74%;
+      height: auto;
+      align-self: center;
+    }
+    .niche[data-pan]:not(.rt) img {
+      translate: 0 calc(var(--pan, 0) * -4%);
+    }
+  }
+  @keyframes lamp-sway-tall {
+    0% {
+      --lx: 30vw;
+      --ly: 32vh;
+    }
+    50% {
+      --lx: 68vw;
+      --ly: 52vh;
+    }
+    100% {
+      --lx: 44vw;
+      --ly: 64vh;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lamp,
+    .stars i {
+      animation: none;
+    }
+  }
+</style>

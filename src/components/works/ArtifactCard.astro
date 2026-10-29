@@ -7,6 +7,7 @@ import { artifactPath, type Artifact } from '../../data/artifacts';
 import ArtifactPiece from './ArtifactPiece.astro';
 import TigerPiece from './TigerPiece.astro';
 import { withBase } from '../../data/routes';
+import type { Sizes } from '../../data/images';
 
 interface Props {
   artifact: Artifact;
@@ -14,6 +15,8 @@ interface Props {
 }
 const { artifact, lang } = Astro.props;
 const txt = artifact.i18n[lang];
+// the tiger's drawn width: 1.6 cards (--artifact-w, WorksPage), ×1.2 at the centre's swell
+const TIGER: Sizes = [['', 'calc(clamp(170px, min(19vw, 34svh), 340px) * 1.92)']];
 ---
 
 <a
@@ -27,7 +30,7 @@ const txt = artifact.i18n[lang];
     {
       artifact.tiger ? (
         <span class="artifact-card__tiger">
-          <TigerPiece />
+          <TigerPiece drawn={TIGER} />
         </span>
       ) : (
         artifact.image && (

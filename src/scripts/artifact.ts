@@ -2,8 +2,8 @@
 // horizontal scroll — or, on portrait screens (`PORTRAIT`), plainly downwards; every
 // measure below follows that axis, and turning the device re-inits on the other one. Worlds drift their [data-depth] layers; stories (stories/*) read
 // `--near` ([data-wake], 1 at the middle of the screen) and `--pan` ([data-pan], -1..1 as
-// the slice crosses the screen), play their [data-play] videos while on screen, and aim
-// their [data-lens] at the pointer. Every page ends on NextWork: scrolling on past the
+// the slice crosses the screen), play their [data-play] videos while on screen, aim
+// their [data-lens] at the pointer, and carry their [data-lamp] after it. Every page ends on NextWork: scrolling on past the
 // end fills its bar and goes there. Lifecycle-safe for View-Transition navigation.
 import { navigate } from 'astro:transitions/client';
 import { prefersReduced } from './motion';
@@ -97,6 +97,39 @@ function lenses(viewport: HTMLElement): void {
   }
 }
 
+/** The lantern trails the pointer (eased, so it swings after it like a carried light);
+ *  until the pointer first moves, CSS sways it on its own. */
+const LAMP_EASE = 0.09;
+
+function lamps(viewport: HTMLElement): void {
+  const lamp = viewport.querySelector<HTMLElement>('[data-lamp]');
+  if (!lamp || !matchMedia('(hover: hover)').matches || prefersReduced()) return;
+  let x = 0;
+  let y = 0;
+  let toX = 0;
+  let toY = 0;
+  let frame = 0;
+  const step = (): void => {
+    x += (toX - x) * LAMP_EASE;
+    y += (toY - y) * LAMP_EASE;
+    lamp.style.setProperty('--lx', `${x.toFixed(1)}px`);
+    lamp.style.setProperty('--ly', `${y.toFixed(1)}px`);
+    frame = Math.abs(toX - x) + Math.abs(toY - y) > 0.5 ? requestAnimationFrame(step) : 0;
+  };
+  listen(window, 'pointermove', (event) => {
+    ({ clientX: toX, clientY: toY } = event as PointerEvent);
+    if (!lamp.classList.contains('is-aimed')) {
+      // pick up from wherever the sway has carried it
+      const at = getComputedStyle(lamp);
+      x = parseFloat(at.getPropertyValue('--lx'));
+      y = parseFloat(at.getPropertyValue('--ly'));
+      lamp.classList.add('is-aimed');
+    }
+    if (!frame) frame = requestAnimationFrame(step);
+  });
+  cleanup.push(() => cancelAnimationFrame(frame));
+}
+
 /** Off to the next artifact: its cut-out takes the hero's name, so it morphs into it. */
 function handOff(link: HTMLAnchorElement): void {
   const own = document.querySelector<HTMLElement>('[data-page-hero]');
@@ -183,6 +216,7 @@ function init(): void {
   );
   playWhenSeen(viewport);
   lenses(viewport);
+  lamps(viewport);
   nextWork(viewport, axis);
 }
 

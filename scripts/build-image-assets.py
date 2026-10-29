@@ -6,6 +6,8 @@ from PIL import Image, ImageDraw, ImageFilter, ImageOps
 from scipy import ndimage
 from rembg import new_session, remove
 
+import image_sizes
+
 DATA = 'E:/MyStuff/Websites/Decorosa Data'
 SRC = os.path.join(DATA, 'Pagina principale Scala')
 PUB = 'E:/MyStuff/Websites/Decorosa/public/assets'
@@ -141,6 +143,13 @@ def save(img, rel, **kw):
     os.makedirs(os.path.dirname(p), exist_ok=True)
     img.save(p, 'WEBP', method=6, **kw)
     print(f'{rel}.webp  {img.size[0]}x{img.size[1]}  {os.path.getsize(p) / 1024:.0f} KB')
+
+
+# SKY — the shared sky (--sky-bg in tokens.css), the whole of the owner's photo. The
+# original is small (587px wide) and grainy, so it is only Lanczos-upscaled 3x — enough
+# that the browser never stretches it much on a desktop-wide cover — and encoded once.
+sky = Image.open(os.path.join(DATA, 'cielo.jpeg')).convert('RGB')
+save(sky.resize((sky.width * 3, sky.height * 3), Image.LANCZOS), 'sky', quality=82)
 
 
 # Matting model for the cut-outs whose backgrounds are real places (a wall, a room), where
@@ -618,3 +627,6 @@ for folder, slug in RUN:
     k = min(1, 1200 / max(art.size))
     art = art.resize((round(art.width * k), round(art.height * k)), Image.LANCZOS)
     save(RETOUCH.get(slug, lambda img: img)(art), f'artifacts/{slug}', quality=88)
+
+# the smaller copies of every picture, remade from what was just written
+image_sizes.build()

@@ -97,13 +97,13 @@
   /* Shared sky background (landing hole, showcase backdrop, transition covers).
      --sky-url is set on <html> in BaseLayout so the path respects the deploy base.
      The size is an explicit `cover` of the showcase sky's overscan box (100vw wide,
-     124svh tall, centred on the viewport — see .sky in Scene.astro; 1280/2752 is
-     sky.jpg's aspect ratio). Every consumer paints the SAME framing regardless of its
+     124svh tall, centred on the viewport — see .sky in Scene.astro; 1761/3174 is
+     sky.webp's aspect ratio). Every consumer paints the SAME framing regardless of its
      own box, so the landing hole, the transition cover and the showcase backdrop stay
      pixel-identical across the page swap — element-based `cover` would reframe when
      the showcase scrollbar changes the box width, or on the 124%-tall overscan box. */
   --sky-bg: #8fb8e6 var(--sky-url) center /
-    max(100vw, calc(124svh * 1280 / 2752)) no-repeat;
+    max(100vw, calc(124svh * 1761 / 3174)) no-repeat;
 
   /* The disco hall backdrop — shared by DiscoWorld and the "dark side" page. */
   --disco-bg: radial-gradient(

@@ -5,11 +5,12 @@
 // rests, fades out in place and falls again; while it falls its shadow wipes in from the
 // bottom of the dune up to the peak, and fades out with it — one looping CSS animation.
 // The viewBox is the plate's own pixel grid (1024×1536, 2:3), so both layers sit exactly
-// where they were cut from the painting.
-import { withBase } from '../../data/routes';
+// where they were cut from the painting — and the painting's long side sizes their copies
+// along with its own (scripts/sized.ts).
+import { sizedHref } from '../../data/images';
 ---
 
-<svg class="dune" viewBox="0 0 1024 1536" aria-hidden="true">
+<svg class="dune" viewBox="0 0 1024 1536" data-sized="1536" aria-hidden="true">
   <defs>
     <!-- three shadow heights tall: a dark top third (it sits over the shadow at rest, soft
          band included, so nothing shows before the wipe starts), a soft band a tenth of
@@ -31,7 +32,7 @@ import { withBase } from '../../data/routes';
   </defs>
   <image
     class="shadow"
-    href={withBase('/assets/works/dessert-shadow.webp')}
+    {...sizedHref('/assets/works/dessert-shadow.webp', 1536)}
     x="539.4"
     y="754.7"
     width="484.6"
@@ -40,13 +41,17 @@ import { withBase } from '../../data/routes';
   />
   <image
     class="cherry"
-    href={withBase('/assets/works/dessert-cherry.webp')}
+    {...sizedHref('/assets/works/dessert-cherry.webp', 1536)}
     x="497.4"
     y="462.1"
     width="185.3"
     height="302.3"
   />
 </svg>
+
+<script>
+  import '../../scripts/sized.ts';
+</script>
 
 <style>
   .dune {

@@ -23,7 +23,7 @@ Map of the moving parts, in the order a visitor meets them.
 
 On hard loads, an inline `<head>` script adds `.is-loading` to `<html>` before anything
 paints (`html.is-loading body { opacity: 0 }`), and removes it once `window.load`,
-`document.fonts.ready` and the sky texture (`/assets/sky.jpg` — keep in sync with
+`document.fonts.ready` and the sky texture (`/assets/sky.webp` — keep in sync with
 `--sky-bg`) have all resolved, capped at 2.5s. The page then appears all at once via a
 fast (0.15s) body opacity fade — no staggered glyph pop-in, no sky reflow. SPA swaps
 are untouched (the script is head-inline, so it doesn't re-run).
@@ -169,7 +169,8 @@ size range" is a fixed z threshold: the z at which `scale` reaches the midpoint 
 The small subtitle under it uses `.is-nearer`: the same window narrowed by
 `SUBTITLE_LEAD` (14° of spin) on each side, so it arrives after the title and starts
 leaving before it; its fade is longer (1.2s in after a 0.25s delay, 0.8s out). Its size
-is divided by `--scene-scale` so it stays legible on mobile.
+is divided by `--scene-scale` so it stays legible on tablets; on phones (≤640px) it is
+a fixed, smaller size and wraps at 70% of the title's width, so it fits the viewport.
 
 **The tiger's mouth** (`PanelCard.astro` + `mouthOpen` in `showcase.ts`). The "MY" artwork is
 the chest with its mouth shut; over one column of it (`panel.mouth.box`, in % of the artwork's
@@ -185,7 +186,9 @@ squashed flat against the jaw line, and unfolds downward while pushing the close
 of sight — not a curtain lifting off a still picture. The strips are rectangles *because* they
 are scaled: a shaped cut-out would deform against paint that is not moving, while straight
 sides stay straight. The open strip is the taller file, so at full stretch it hangs past the
-bottom of the card box, as the real drawer does. The drive is
+bottom of the card box, as the real drawer does. Artwork and strips load as one group of
+smaller copies (scripts/image_sizes.py) with `aspect-ratio` pinned to the full files', so
+which copy loads never moves the seam. The drive is
 `cos(worldAngle)` — the same number that sets the panel's apparent size — smoothstepped from
 shut at `cos 0.1` to open at `0.85`: the piece comes at you growing *and* opening, and shuts
 again on the way out. At ≤ 1100px (phones either way up) the window narrows to `0.6 → 0.93`,
@@ -372,7 +375,9 @@ out alongside the cherry.
 **Live pieces** (`ArtifactPiece.astro`, `motion.ts`, `pieces.ts`). Every artifact but the
 tiger is drawn as an SVG whose viewBox is its cut-out's pixel grid: the cut-out, then the
 layers `scripts/build-artifact-motion.py` cut from it, each back exactly where it came
-from, so at rest the piece is the photo. A moving *part* always has a *patch* under it — flat
+from, so at rest the piece is the photo. All of it is in viewBox units, so `sized.ts` can
+swap every picture for the copy the drawn size needs (cut-out and layers together) without
+moving anything. A moving *part* always has a *patch* under it — flat
 sampled colour (wall, board, eye-white) — which is what shows in the sliver it uncovers;
 patches stop short of a part's joint, so the wedge a rotation opens there shows the
 original instead. Like the tiger, one switch drives it: `.is-live`, which `pieces.ts` sets on hover (or focus
@@ -457,6 +462,28 @@ fades back in on the drift.
 TigreStory's other moves are CSS only: the info panel's wave draws itself (dash offset).
 The tiger chest on the scene's desk is the live `TigerPiece` and the page's view-
 transition hero.
+`[data-lamp]` (LloronaStory): a fixed screen-sized layer, a broad warm glow painted at
+`--lx/--ly` that leaves all but the far corners clear (they dim a little) (registered `@property`s). Not a huge disc slid about by `translate`: Chrome
+rasterizes only part of a layer that big, and the rest drops out as a hard-edged band.
+With a hover pointer it trails the pointer (eased 0.09/frame, `.is-aimed`, picking up from
+wherever the sway left it); otherwise a CSS sway of the two properties (26s, a taller one
+on portrait) carries it, and a stepped opacity flicker breathes it either way. Static
+under reduced motion.
+LloronaStory's other moves: the roll-top's closed shot is clipped to the shutter's box
+and slid up into it with `--open`, so its lower edge — handles and all — rises like the
+real shutter, stopping just over the open shot's own handle bar so the handles seen first
+are the ones that come down (from its own `--pan`, which leaves its two shots unpanned so they stay registered; it fills a full-height shaft: still shut until the slice is well
+inside the screen, `--pan` 0.6, so the change is seen; rolled up just past the middle); niche photos drift behind their openings on `--pan` (not the snake nook nor the final
+hall: those two are shown whole); the text panels' gilt stars
+turn slowly. Drops (`LloronaDrip.astro`, behind the text panels) trickle down a seeded
+wandering curve — short steps down, a sideways drift carried step to step, kicked now and
+then into a skid, reined back when it strays — drawn as one Catmull-Rom path and animated
+in SMIL so it scales with the SVG: `animateMotion` plus a dash-offset wet streak share one
+`keyTimes` (linear). Each stretch's time is length / speed, speed rising with steepness
+times a random swell carried over from the stretch before, so the pace keeps changing; on
+some stretches the drop catches and crawls (0.15–0.3× speed) — it slows, never stops. It runs 60% of the cycle,
+then the streak dries. Past the opening scene they run only in `.seam` lanes, mid-way across a wall slice's right padding (portrait: its right margin; none beside a full-width shaft), never over a niche: sized by the `--drip-u` unit (1.25svh, portrait 0.6svh), wander squeezed by `sway`, cycle slowed by `pace` (2.2×). The drop is a round head (r 0.5) with a tail made of the path itself: six dashes of it, shorter as they widen up to the head's width, sliding just behind it in step, so the taper bends with each veer; head and dashes are painted solid in one group faded as a whole (0.6, `--celadon`, the desk's paint), so they read as one teardrop, with a glint on the head (`rotate="auto"`). The live `ArtifactPiece` stands on the floor as the hero, placed from its rear feet
+(y 951 of 1200) so they land just below the wall's foot at any width.
 
 `NextWork`: on click its cut-out takes the `artifact-hero` name (the page's own
 `[data-page-hero]` drops it), so it morphs into the next page's hero. Scrolling on past

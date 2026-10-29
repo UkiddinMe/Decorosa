@@ -4,6 +4,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import BackLink from '../BackLink.astro';
 import { bioEvents } from '../../data/bio';
 import { withBase } from '../../data/routes';
+import { sized } from '../../data/images';
 import { t } from '../../data/i18n';
 
 interface Props {
@@ -28,6 +29,14 @@ function mulberry32(seed: number): () => number {
 
 /** What a media entry is: the panel plays these, and a card cannot wear one as its face. */
 const isVideo = (src: string): boolean => /\.(mp4|webm)$/.test(src);
+// A card's photo is drawn as wide as the card (.bio-event__card) — more when it is cropped
+// to a squarer card — at its full swell (×1.19); in the panel, as tall as it fits.
+const cardSizes = (card: { width: number; ratio: number }, w: number, h: number): string =>
+  `calc(clamp(110px, min(13vw, 21svh), 200px) * ${+(card.width * 1.19 * Math.max(1, w / h / card.ratio)).toFixed(3)})`;
+const zoomSizes = (w: number, h: number): string => `min(${+((85 * w) / h).toFixed(1)}svh, 96vw)`;
+// its smaller copies too — when its size is known
+const photo = (item: { src: string; w?: number; h?: number }, sizes: (w: number, h: number) => string) =>
+  item.w && item.h ? { ...sized(item.src, item.w, item.h), sizes: sizes(item.w, item.h) } : { src: withBase(item.src) };
 
 const layout = bioEvents.map((_, index) => {
   const rand = mulberry32(index * 7919 + 13);
@@ -110,9 +119,7 @@ const layout = bioEvents.map((_, index) => {
                     {cover ? (
                       <img
                         class="bio-event__photo"
-                        src={withBase(cover.src)}
-                        width={cover.w}
-                        height={cover.h}
+                        {...photo(cover, (w, h) => cardSizes(card, w, h))}
                         alt={txt.title}
                         loading="lazy"
                         decoding="async"
@@ -171,9 +178,7 @@ const layout = bioEvents.map((_, index) => {
                     />
                   ) : (
                     <img
-                      src={withBase(item.src)}
-                      width={item.w}
-                      height={item.h}
+                      {...photo(item, zoomSizes)}
                       alt={txt.title}
                       loading="lazy"
                       decoding="async"

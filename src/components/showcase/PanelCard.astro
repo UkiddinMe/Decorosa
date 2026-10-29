@@ -1,6 +1,7 @@
 ---
 import { mouthVars, type Panel } from '../../data/panels';
 import { withBase } from '../../data/routes';
+import { ratio, sized, sizesAttr, type Sizes } from '../../data/images';
 import { t, type Dict } from '../../data/i18n';
 
 interface Props {
@@ -16,6 +17,14 @@ const size = `--card-w:${panel.width}px;--card-h:${Math.round((panel.width * pan
 const mouthBox = panel.mouth ? mouthVars(panel.mouth) : '';
 const gap = panel.titleGap === undefined ? '' : `--title-gap:${panel.titleGap}px;`;
 const style = `--angle:${angleDeg}deg;--radius:${radius}px;--drop:${dropY}px;${size}${mouthBox}${gap}`;
+// Drawn at its width ×--scene-scale (tokens.css), and up to ×1.45 more facing front, where
+// the perspective brings it nearest. The mouth strips are sized with the artwork (one group).
+const drawn: Sizes = [
+  ['(max-width: 640px)', `${Math.round(panel.width * 0.62 * 1.45)}px`],
+  ['(max-width: 1100px)', `${Math.round(panel.width * 0.8 * 1.45)}px`],
+  ['', `${Math.round(panel.width * 1.45)}px`],
+];
+const ref = Math.max(panel.image.w, panel.image.h);
 ---
 
 <a
@@ -33,9 +42,9 @@ const style = `--angle:${angleDeg}deg;--radius:${radius}px;--drop:${dropY}px;${s
   <span class="card__art">
     <img
       class="card__media"
-      src={withBase(panel.image.src)}
-      width={panel.image.w}
-      height={panel.image.h}
+      {...sized(panel.image.src, panel.image.w, panel.image.h)}
+      sizes={sizesAttr(drawn)}
+      style={ratio(panel.image)}
       alt=""
       loading="eager"
       decoding="async"
@@ -50,18 +59,18 @@ const style = `--angle:${angleDeg}deg;--radius:${radius}px;--drop:${dropY}px;${s
         <>
           <img
             class="card__mouth card__mouth--shut"
-            src={withBase(panel.mouth.shut.src)}
-            width={panel.mouth.shut.w}
-            height={panel.mouth.shut.h}
+            {...sized(panel.mouth.shut.src, panel.mouth.shut.w, panel.mouth.shut.h, ref)}
+            sizes={sizesAttr(drawn, panel.mouth.shut.w / panel.image.w)}
+            style={ratio(panel.mouth.shut)}
             alt=""
             loading="eager"
             decoding="async"
           />
           <img
             class="card__mouth card__mouth--open"
-            src={withBase(panel.mouth.open.src)}
-            width={panel.mouth.open.w}
-            height={panel.mouth.open.h}
+            {...sized(panel.mouth.open.src, panel.mouth.open.w, panel.mouth.open.h, ref)}
+            sizes={sizesAttr(drawn, panel.mouth.open.w / panel.image.w)}
+            style={ratio(panel.mouth.open)}
             alt=""
             loading="eager"
             decoding="async"
@@ -269,5 +278,14 @@ const style = `--angle:${angleDeg}deg;--radius:${radius}px;--drop:${dropY}px;${s
   .card.is-nearer .card__subtitle {
     opacity: 1;
     transition: opacity 1.2s var(--ease-out) 0.25s;
+  }
+  /* Phones: the title box runs past the viewport edge at the panel's closest point, so the
+     subtitle gets smaller and wraps short of it. */
+  @media (max-width: 640px) {
+    .card__subtitle {
+      width: 70%;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+    }
   }
 </style>

@@ -7,11 +7,11 @@
 // own) — plus three moves
 // that need a script (scripts/pieces.ts): eyes that follow the pointer, the table's veins
 // drawing in, the mangroves' water tripping out, the dragon's flames re-rolled each turn. Fills its container; `meet` + bottom
-// alignment stand the piece on the box's floor, exactly as `object-fit: contain` did.
+// alignment stand the piece on the box's floor, exactly as `object-fit: contain` did. Its
+// pictures are the smaller copies that fit how big it is drawn (scripts/sized.ts).
 import MotionNode from './MotionNode.astro';
 import { artifactImage, type Artifact } from '../../data/artifacts';
 import { motion } from '../../data/motion';
-import { withBase } from '../../data/routes';
 
 interface Props {
   artifact: Artifact & { image: { w: number; h: number } };
@@ -20,17 +20,24 @@ interface Props {
 }
 const { artifact, loop = false } = Astro.props;
 const { w, h } = artifact.image;
-const src = withBase(artifactImage(artifact));
+const src = artifactImage(artifact);
 const nodes = motion[artifact.id] ?? [{ base: true }];
 const uid = `${artifact.id}-${Math.random().toString(36).slice(2, 7)}`;
 ---
 
-<svg class:list={['piece', { 'piece--loop': loop }]} viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+<svg
+  class:list={['piece', { 'piece--loop': loop }]}
+  viewBox={`0 0 ${w} ${h}`}
+  preserveAspectRatio="xMidYMax meet"
+  data-sized={Math.max(w, h)}
+  aria-hidden="true"
+>
   {nodes.map((node) => <MotionNode node={node} id={artifact.id} uid={uid} src={src} w={w} h={h} />)}
 </svg>
 
 <script>
   import '../../scripts/pieces.ts';
+  import '../../scripts/sized.ts';
 </script>
 
 <style>

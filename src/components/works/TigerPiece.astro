@@ -4,35 +4,44 @@
 // ANIMATIONS.md) — only the drive differs. There the orbit opens the mouth; here it is
 // `.is-live` (pieces.ts — hover, or a cycle on touch): the drawer rolls out and the whole
 // piece shakes itself a few times.
-// Fills its container's width; the container places it and decides how big it is.
+// Fills its container's width; the container places it and decides how big it is — and
+// says so (`drawn`), for the copies the artwork and its strips are picked from.
 import { mouthVars, tigerArt } from '../../data/panels';
-import { withBase } from '../../data/routes';
+import { ratio, sized, sizesAttr, type Sizes } from '../../data/images';
+
+interface Props {
+  /** how wide the artwork is drawn */
+  drawn: Sizes;
+}
+const { drawn } = Astro.props;
+const { image, mouth } = tigerArt;
+const ref = Math.max(image.w, image.h);
 ---
 
-<span class="tiger" style={mouthVars(tigerArt.mouth)}>
+<span class="tiger" style={mouthVars(mouth)}>
   <img
     class="tiger__media"
-    src={withBase(tigerArt.image.src)}
-    width={tigerArt.image.w}
-    height={tigerArt.image.h}
+    {...sized(image.src, image.w, image.h)}
+    sizes={sizesAttr(drawn)}
+    style={ratio(image)}
     alt=""
     loading="eager"
     decoding="async"
   />
   <img
     class="tiger__mouth tiger__mouth--shut"
-    src={withBase(tigerArt.mouth.shut.src)}
-    width={tigerArt.mouth.shut.w}
-    height={tigerArt.mouth.shut.h}
+    {...sized(mouth.shut.src, mouth.shut.w, mouth.shut.h, ref)}
+    sizes={sizesAttr(drawn, mouth.shut.w / image.w)}
+    style={ratio(mouth.shut)}
     alt=""
     loading="eager"
     decoding="async"
   />
   <img
     class="tiger__mouth tiger__mouth--open"
-    src={withBase(tigerArt.mouth.open.src)}
-    width={tigerArt.mouth.open.w}
-    height={tigerArt.mouth.open.h}
+    {...sized(mouth.open.src, mouth.open.w, mouth.open.h, ref)}
+    sizes={sizesAttr(drawn, mouth.open.w / image.w)}
+    style={ratio(mouth.open)}
     alt=""
     loading="eager"
     decoding="async"

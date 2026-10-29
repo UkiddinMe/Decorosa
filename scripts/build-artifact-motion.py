@@ -20,6 +20,8 @@ from scipy import ndimage
 from skimage.graph import MCP_Geometric
 from skimage.morphology import convex_hull_image
 
+import image_sizes
+
 ROOT = 'D:/MyStuff/Websites/Decorosa'
 ART = os.path.join(ROOT, 'public/assets/artifacts')
 OUT = os.path.join(ART, 'motion')
@@ -352,3 +354,6 @@ layer(slug, 'water-mask', 255, soft(wide, 0.6) * a[..., 3] / 255)
 with open(os.path.join(ROOT, 'src/data/artifact-motion.json'), 'w') as f:
     json.dump(GEOMETRY, f, indent=1)
 print('geometry -> src/data/artifact-motion.json')
+
+# the smaller copies of every picture, the new layers' with them
+image_sizes.build()

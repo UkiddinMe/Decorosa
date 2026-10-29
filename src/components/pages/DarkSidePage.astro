@@ -7,6 +7,7 @@ import BackLink from '../BackLink.astro';
 import { t } from '../../data/i18n';
 import { availableArtifacts, artifactIcon, artifactPath } from '../../data/artifacts';
 import { withBase } from '../../data/routes';
+import { sized } from '../../data/images';
 
 interface Props {
   lang: 'it' | 'en';
@@ -28,8 +29,18 @@ const panels = [d.commissioni, d.collaborazioni] as const;
        `-dim` pair is the restyle's: deeper ink, lit from the right like the room. -->
   <div class="dark-side__bg" aria-hidden="true">
     <div class="dark-side__light"></div>
-    <img class="dark-side__ball" src={withBase('/assets/dark-side/ball-dim.webp')} alt="" width="960" height="1884" />
-    <img class="dark-side__animal" src={withBase('/assets/dark-side/animal-dim.webp')} alt="" width="660" height="1017" />
+    <img
+      class="dark-side__ball"
+      {...sized('/assets/dark-side/ball-dim.webp', 960, 1884)}
+      sizes="clamp(7.5rem, 20vw, 17.5rem)"
+      alt=""
+    />
+    <img
+      class="dark-side__animal"
+      {...sized('/assets/dark-side/animal-dim.webp', 660, 1017)}
+      sizes="clamp(5.5rem, 13vw, 11rem)"
+      alt=""
+    />
   </div>
 
   <main class="dark-side">

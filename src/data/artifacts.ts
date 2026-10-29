@@ -153,11 +153,23 @@ export const artifacts: Artifact[] = [
         title: 'La Llorona',
         subtitle: 'Lorem ipsum',
         body: 'Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit.',
+        chapters: [
+          {
+            title: 'Lorem ipsum dolor',
+            body: 'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis.',
+          },
+        ],
       },
       en: {
         title: 'Llorona',
         subtitle: 'Lorem ipsum',
         body: 'Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit.',
+        chapters: [
+          {
+            title: 'Lorem ipsum dolor',
+            body: 'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis.',
+          },
+        ],
       },
     },
   },

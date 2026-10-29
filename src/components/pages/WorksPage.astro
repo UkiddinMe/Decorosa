@@ -8,7 +8,7 @@ import EndCard from '../works/EndCard.astro';
 import DuneScene from '../works/DuneScene.astro';
 import { artifacts } from '../../data/artifacts';
 import { t } from '../../data/i18n';
-import { withBase } from '../../data/routes';
+import { sizedImageSet } from '../../data/images';
 
 interface Props {
   lang: 'it' | 'en';
@@ -16,6 +16,8 @@ interface Props {
 const { lang } = Astro.props;
 const dict = t(lang);
 const isIt = lang === 'it';
+/** an end card's usual drawn width, swell included (--artifact-w below, ×1.2) */
+const CARD = 300;
 ---
 
 <BaseLayout lang={lang} title={`${dict.works.heading} — DECOROSA`}>
@@ -29,14 +31,14 @@ const isIt = lang === 'it';
           href={isIt ? '/mosaico' : '/en/mosaic'}
           title={dict.works.tiles}
           returnHere
-          media={`url("${withBase('/assets/works/dessert.webp')}") center / cover`}
+          media={`${sizedImageSet('/assets/works/dessert.webp', 1024, 1536, CARD)} center / cover`}
         >
           <DuneScene />
         </EndCard>
         <EndCard
           href={isIt ? '/showcase' : '/en/showcase'}
           title={dict.works.backToShowcase}
-          media={`url("${withBase('/assets/works/back-to-showcase.webp')}") center / cover`}
+          media={`${sizedImageSet('/assets/works/back-to-showcase.webp', 776, 1164, CARD)} center / cover`}
         />
       </div>
     </div>

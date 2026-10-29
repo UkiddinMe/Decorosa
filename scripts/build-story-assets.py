@@ -11,10 +11,21 @@ Tigre (`MY/1. Tigre/...`):
   * a still from the illustrated teaser (IMG_0015): the orange/black stripes;
   * the teaser itself as a loop, minus its "coming soon" frames, and the phone demo
     (IMG_2520) re-encoded small and muted, each with a poster.
+
+Llorona (`MY/6. llorona/llorona-detail/...`):
+  * the photos, straight to webp — the closed roll-top registered onto the open one
+    (SIFT + RANSAC homography), so the page can roll the shutter up between them;
+  * the stone wall behind the desk, flat-fielded and made seamless both ways: the
+    page's own wall; and the terrazzo in front of it, its floor;
+  * the roll-top being pulled shut, from the side (IMG_2699) and face-on (IMG_2698),
+    muted at 720px, each with a poster.
+
+Run with the story to build: `python scripts/build-story-assets.py tigre|llorona` — then
+the smaller copies of every picture are remade (image_sizes.py).
 """
 import os
-import shutil
 import subprocess
+import sys
 import tempfile
 
 import cv2
@@ -22,11 +33,12 @@ import numpy as np
 from PIL import Image, ImageOps
 from scipy import ndimage
 
-DATA = 'D:/MyStuff/Websites/Decorosa Data'
-PUB = 'D:/MyStuff/Websites/Decorosa/public/assets/stories'
+import image_sizes
+
+DATA = 'E:/MyStuff/Websites/Decorosa Data'
+PUB = 'E:/MyStuff/Websites/Decorosa/public/assets/stories'
 
 TIGRE_SRC = os.path.join(DATA, 'MY', '1. Tigre', 'tigre contro tigre UNA TIGRE CHE PORTA GIOIE')
-TIGRE_OUT = os.path.join(PUB, 'tigre')
 
 # raw name -> published name
 TIGRE_PHOTOS = {
@@ -60,17 +72,24 @@ def ffmpeg() -> str:
         return 'ffmpeg'
 
 
+# the story being built: its published folder (set in main)
+OUT = ''
+
+
 def save_webp(img: Image.Image, name: str, long_side: int = 1800, quality: int = 80) -> None:
     img = img.copy()
     img.thumbnail((long_side, long_side), Image.LANCZOS)
-    img.save(os.path.join(TIGRE_OUT, name + '.webp'), quality=quality, method=6)
+    img.save(os.path.join(OUT, name + '.webp'), quality=quality, method=6)
     print(f'{name}.webp {img.size[0]}x{img.size[1]}')
+
+
+def load(folder: str, raw: str) -> Image.Image:
+    return ImageOps.exif_transpose(Image.open(os.path.join(folder, raw))).convert('RGB')
 
 
 def photos() -> None:
     for raw, name in TIGRE_PHOTOS.items():
-        img = ImageOps.exif_transpose(Image.open(os.path.join(TIGRE_SRC, raw))).convert('RGB')
-        save_webp(img, name)
+        save_webp(load(TIGRE_SRC, raw), name)
 
 
 def scene() -> None:
@@ -98,7 +117,7 @@ def scene() -> None:
 
     # The live chest: the showcase cut-out, as wide as the painted chest, standing on the
     # same base line. Percentages of the scene, for TigreStory.astro.
-    art_w, art_h = Image.open('D:/MyStuff/Websites/Decorosa/public/assets/showcase/my.webp').size
+    art_w, art_h = Image.open('E:/MyStuff/Websites/Decorosa/public/assets/showcase/my.webp').size
     w = right - left
     h = w * art_h / art_w
     size = rgb.shape[1]
@@ -125,7 +144,7 @@ def teaser() -> None:
             Image.fromarray(f).save(os.path.join(tmp, f'{i:03d}.png'))
         encode(['-framerate', '5', '-i', os.path.join(tmp, '%03d.png')], 'teaser', 1184, fps=5)
     Image.fromarray(keep[0]).resize((1184, 822), Image.LANCZOS).save(
-        os.path.join(TIGRE_OUT, 'teaser.webp'), quality=80)
+        os.path.join(OUT, 'teaser.webp'), quality=80)
 
 
 def demo() -> None:
@@ -134,7 +153,118 @@ def demo() -> None:
     ok, frame = cap.read()
     poster = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
     poster.thumbnail((720, 1280))
-    poster.save(os.path.join(TIGRE_OUT, 'demo.webp'), quality=78)
+    poster.save(os.path.join(OUT, 'demo.webp'), quality=78)
+
+
+LLORONA_SRC = os.path.join(DATA, 'MY', '6. llorona', 'llorona-detail')
+
+LLORONA_PHOTOS = {
+    'IMG_3007.jpeg': 'open',
+    'IMG_2681.jpeg': 'top',
+    'IMG_2680.jpeg': 'stars',
+    'IMG_2689.jpeg': 'drawers',
+    'IMG_2817.jpeg': 'snake',
+    'IMG_2690.jpeg': 'side',
+    'IMG_2678.jpeg': 'above',
+    'IMG_2848.jpeg': 'room',
+    'IMG_2989.jpeg': 'front',
+    'IMG_2688.jpeg': 'drawers-open',
+    'IMG_2697.jpeg': 'shut-side',
+}
+# the wall above the desk in IMG_2690 (px of the upright photo), and the tile's size
+WALL_SRC, WALL_BOX = 'IMG_2690.jpeg', (0, 0, 3024, 1240)
+WALL_H, WALL_BLEND = 900, 160
+# the terrazzo floor in IMG_3007, clear of the desk and its shadow (px of the upright
+# photo), and the strip's height
+FLOOR_SRC, FLOOR_BOX = 'IMG_3007.jpeg', (800, 3100, 3024, 4032)
+FLOOR_H, FLOOR_BLEND = 420, 60
+# the desk's front in the roll-top pair (left, top, right, bottom as fractions of the
+# frame) — below its starry top, which turned with it on another plane
+DESK = (0.2, 0.29, 0.84, 0.58)
+
+
+def llorona_photos() -> None:
+    for raw, name in LLORONA_PHOTOS.items():
+        save_webp(load(LLORONA_SRC, raw), name)
+    # the frieze of beasts was shot sideways: stood upright, cut to the frieze and the
+    # stone above it (the gilt rail of the roll-top at the bottom)
+    frieze = load(LLORONA_SRC, 'IMG_2683.jpeg').rotate(90, expand=True)
+    save_webp(frieze.crop((0, round(frieze.height * 0.38), frieze.width, frieze.height)), 'frieze')
+    # The closed roll-top (IMG_3008), warped onto the open one: the desk shifted between
+    # the two, so only keypoints on its front (DESK) count — the
+    # page wipes from one to the other inside the shutter's box only.
+    open_, shut = load(LLORONA_SRC, 'IMG_3007.jpeg'), load(LLORONA_SRC, 'IMG_3008.jpeg')
+    a, b = (cv2.cvtColor(np.asarray(im.resize((im.width // 2, im.height // 2))), cv2.COLOR_RGB2GRAY)
+            for im in (open_, shut))
+    mask = np.zeros(a.shape, np.uint8)
+    h, w = a.shape
+    mask[round(DESK[1] * h):round(DESK[3] * h), round(DESK[0] * w):round(DESK[2] * w)] = 255
+    sift = cv2.SIFT_create(4000)
+    ka, da = sift.detectAndCompute(a, mask)
+    kb, db = sift.detectAndCompute(b, mask)
+    pairs = cv2.BFMatcher().knnMatch(db, da, k=2)
+    good = [m for m, n in pairs if m.distance < 0.7 * n.distance]
+    src = np.float32([kb[m.queryIdx].pt for m in good]) * 2
+    dst = np.float32([ka[m.trainIdx].pt for m in good]) * 2
+    hom, _ = cv2.findHomography(src, dst, cv2.RANSAC, 4.0)
+    warped = cv2.warpPerspective(np.asarray(shut), hom, open_.size, borderMode=cv2.BORDER_REPLICATE)
+    save_webp(Image.fromarray(warped), 'closed')
+
+
+def llorona_wall() -> None:
+    """The page's stone: the wall above the desk, its light flattened (divided by its own
+    heavy blur) so no tile is brighter than the next, then made seamless both ways by
+    folding each far edge back over the near one."""
+    rgb = np.asarray(load(LLORONA_SRC, WALL_SRC).crop(WALL_BOX)).astype(np.float32)
+    lum = rgb.mean(axis=2, keepdims=True)
+    rgb = rgb / np.maximum(cv2.GaussianBlur(lum, (0, 0), 160)[..., None], 1) * lum.mean()
+    img = Image.fromarray(np.clip(rgb, 0, 255).astype(np.uint8))
+    img = np.asarray(img.resize((round(img.width * WALL_H / img.height), WALL_H), Image.LANCZOS)).astype(np.float32)
+    for axis in (1, 0):
+        img = np.moveaxis(img, axis, 0)
+        n = img.shape[0] - WALL_BLEND
+        t = np.linspace(0, 1, WALL_BLEND, endpoint=False)[:, None, None]
+        out = img[:n].copy()
+        out[:WALL_BLEND] = img[:WALL_BLEND] * t + img[n:] * (1 - t)
+        img = np.moveaxis(out, 0, axis)
+    tile = Image.fromarray(np.clip(img, 0, 255).astype(np.uint8))
+    tile.save(os.path.join(OUT, 'wall.webp'), quality=72, method=6)
+    print(f'wall.webp {tile.size[0]}x{tile.size[1]}')
+
+
+def llorona_floor() -> None:
+    """The page's floor: the terrazzo in front of the desk, its light evened out across
+    (not down — the near tiles stay brighter), and made seamless sideways: it repeats at
+    the width where the tile grid best meets itself again, the overlap cross-faded."""
+    rgb = np.asarray(load(LLORONA_SRC, FLOOR_SRC).crop(FLOOR_BOX)).astype(np.float32)
+    lum = cv2.GaussianBlur(rgb.mean(axis=2), (0, 0), 120)
+    rgb = rgb / lum[..., None] * lum.mean(axis=1, keepdims=True)[..., None]
+    h, w = rgb.shape[:2]
+    img = cv2.resize(np.clip(rgb, 0, 255), (round(w * FLOOR_H / h), FLOOR_H), interpolation=cv2.INTER_AREA)
+    head = img[:, :FLOOR_BLEND]
+    n = min(range(img.shape[1] // 2, img.shape[1] - FLOOR_BLEND),
+            key=lambda n: float(np.mean((img[:, n:n + FLOOR_BLEND] - head) ** 2)))
+    t = np.linspace(0, 1, FLOOR_BLEND, endpoint=False)[None, :, None]
+    out = img[:, :n].copy()
+    out[:, :FLOOR_BLEND] = head * t + img[:, n:n + FLOOR_BLEND] * (1 - t)
+    tile = Image.fromarray(np.clip(out, 0, 255).astype(np.uint8))
+    tile.save(os.path.join(OUT, 'floor.webp'), quality=74, method=6)
+    print(f'floor.webp {tile.size[0]}x{tile.size[1]}')
+
+
+# the roll-top being pulled shut, from the side and face-on: raw -> published name
+LLORONA_FILMS = {'IMG_2699.MOV': 'rolltop', 'IMG_2698.MOV': 'rolltop-front'}
+
+
+def llorona_film() -> None:
+    for raw, name in LLORONA_FILMS.items():
+        raw = os.path.join(LLORONA_SRC, raw)
+        encode(['-i', raw], name, 720, crf=30)
+        cap = cv2.VideoCapture(raw)
+        ok, frame = cap.read()
+        poster = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+        poster.thumbnail((720, 1280))
+        poster.save(os.path.join(OUT, name + '.webp'), quality=78)
 
 
 def encode(inputs: list, name: str, width: int, fps: int | None = None, crf: int = 26) -> None:
@@ -145,15 +275,21 @@ def encode(inputs: list, name: str, width: int, fps: int | None = None, crf: int
             '-crf', str(crf), '-pix_fmt', 'yuv420p', '-movflags', '+faststart']
     if fps:
         args += ['-r', str(fps)]
-    out = os.path.join(TIGRE_OUT, name + '.mp4')
+    out = os.path.join(OUT, name + '.mp4')
     subprocess.run([*args, out], check=True)
     print(f'{name}.mp4 {os.path.getsize(out) // 1024} KB')
 
 
 if __name__ == '__main__':
-    shutil.rmtree(TIGRE_OUT, ignore_errors=True)
-    os.makedirs(TIGRE_OUT)
-    photos()
-    scene()
-    teaser()
-    demo()
+    story = sys.argv[1] if len(sys.argv) > 1 else ''
+    jobs = {'tigre': (photos, scene, teaser, demo), 'llorona': (llorona_photos, llorona_wall, llorona_floor, llorona_film)}
+    if story not in jobs:
+        sys.exit(f'usage: build-story-assets.py {"|".join(jobs)}')
+    OUT = os.path.join(PUB, story)
+    # emptied rather than removed: Windows refuses to recreate a folder it is still deleting
+    os.makedirs(OUT, exist_ok=True)
+    for old in os.listdir(OUT):
+        os.remove(os.path.join(OUT, old))
+    for job in jobs[story]:
+        job()
+    image_sizes.build()

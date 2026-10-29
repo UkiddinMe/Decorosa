@@ -7,6 +7,7 @@
 import { artifactImage, artifactPath, artifacts, type Artifact } from '../../data/artifacts';
 import { tigerArt } from '../../data/panels';
 import { withBase } from '../../data/routes';
+import { sized } from '../../data/images';
 import { t } from '../../data/i18n';
 
 interface Props {
@@ -16,13 +17,27 @@ interface Props {
 const { artifact, lang } = Astro.props;
 const dict = t(lang);
 const next = artifacts[(artifacts.indexOf(artifact) + 1) % artifacts.length];
-const src = next.tiger ? tigerArt.image.src : artifactImage(next);
+const art = next.tiger ? tigerArt.image : next.image && { src: artifactImage(next), ...next.image };
+// No width/height: it is sized by max-width/max-height alone, which keep its proportions only
+// while both are auto. Its natural size is then `sizes` wide, so that must not fall short of
+// the box (min(70%, 36svh); on portrait 70% comes to ~55vw).
+const img = art && (({ width, height, ...rest }) => rest)(sized(art.src, art.w, art.h));
 ---
 
 <a class="next-work" href={withBase(artifactPath(next.id, lang))} data-next>
   <span class="next-work__label">{dict.artifact.next}</span>
   <span class="next-work__media" data-next-media>
-    <img src={withBase(src)} alt="" loading="lazy" decoding="async" />
+    {
+      img && (
+        <img
+          {...img}
+          sizes="(orientation: portrait) 60vw, 36svh"
+          alt=""
+          loading="lazy"
+          decoding="async"
+        />
+      )
+    }
   </span>
   <span class="next-work__title">{next.i18n[lang].title}</span>
   <span class="next-work__pull" aria-hidden="true">

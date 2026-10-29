@@ -3,7 +3,7 @@
 // Styled and driven from ArtifactPiece.astro (CSS) and scripts/pieces.ts (pointer).
 import Flames from './Flames.astro';
 import { cutPath, layerBox, type MotionNode } from '../../data/motion';
-import { withBase } from '../../data/routes';
+import { sizedHref } from '../../data/images';
 
 interface Props {
   node: MotionNode;
@@ -11,13 +11,16 @@ interface Props {
   id: string;
   /** per-instance prefix for the ids of masks and filters */
   uid: string;
-  /** the cut-out's url and pixel size */
+  /** the cut-out's path (unprefixed) and pixel size */
   src: string;
   w: number;
   h: number;
 }
 const { node, id, uid, src, w, h } = Astro.props;
-const layerSrc = (name: string) => withBase(`/assets/artifacts/motion/${id}-${name}.webp`);
+// every picture as the copy sized.ts picks for the whole piece (scaled with the cut-out)
+const ref = Math.max(w, h);
+const img = (path: string) => sizedHref(path, ref);
+const layer = (name: string) => img(`/assets/artifacts/motion/${id}-${name}.webp`);
 const box = (name: string) => {
   const [x, y, width, height] = layerBox(id, name);
   return { x, y, width, height };
@@ -35,10 +38,10 @@ const children = 'children' in node ? node.children : [];
           <rect width={w} height={h} fill="#fff" />
           <path d={cutPath(id, node.cut)} fill="#000" />
         </mask>
-        <image href={src} width={w} height={h} mask={`url(#${uid}-cut)`} />
+        <image {...img(src)} width={w} height={h} mask={`url(#${uid}-cut)`} />
       </>
     ) : (
-      <image href={src} width={w} height={h} />
+      <image {...img(src)} width={w} height={h} />
     ))
 }
 {
@@ -50,11 +53,11 @@ const children = 'children' in node ? node.children : [];
       height={node.crop[3]}
       viewBox={node.crop.join(' ')}
     >
-      <image href={src} width={w} height={h} />
+      <image {...img(src)} width={w} height={h} />
     </svg>
   )
 }
-{'layer' in node && <image href={layerSrc(node.layer)} {...box(node.layer)} />}
+{'layer' in node && <image {...layer(node.layer)} {...box(node.layer)} />}
 {
   'move' in node && (
     <g
@@ -91,9 +94,9 @@ const children = 'children' in node ? node.children : [];
         </feComponentTransfer>
       </filter>
       <mask id={`${uid}-draw`} maskUnits="userSpaceOnUse" x="0" y="0" width={w} height={h}>
-        <image href={layerSrc(node.draw.time)} {...box(node.draw.time)} filter={`url(#${uid}-draw-f)`} />
+        <image {...layer(node.draw.time)} {...box(node.draw.time)} filter={`url(#${uid}-draw-f)`} />
       </mask>
-      <image href={layerSrc(node.draw.ink)} {...box(node.draw.ink)} mask={`url(#${uid}-draw)`} />
+      <image {...layer(node.draw.ink)} {...box(node.draw.ink)} mask={`url(#${uid}-draw)`} />
     </>
   )
 }
@@ -107,10 +110,10 @@ const children = 'children' in node ? node.children : [];
         <feColorMatrix type="hueRotate" values="0" />
       </filter>
       <mask id={`${uid}-trip`} maskUnits="userSpaceOnUse" x="0" y="0" width={w} height={h}>
-        <image href={layerSrc(node.trip.mask)} {...box(node.trip.mask)} />
+        <image {...layer(node.trip.mask)} {...box(node.trip.mask)} />
       </mask>
       <g class="m-trip" mask={`url(#${uid}-trip)`}>
-        <image href={layerSrc(node.trip.layer)} {...box(node.trip.layer)} filter={`url(#${uid}-trip-f)`} />
+        <image {...layer(node.trip.layer)} {...box(node.trip.layer)} filter={`url(#${uid}-trip-f)`} />
       </g>
     </>
   )

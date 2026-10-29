@@ -11,6 +11,7 @@ import DiscoWorld from '../worlds/DiscoWorld.astro';
 import JungleWorld from '../worlds/JungleWorld.astro';
 import DesertWorld from '../worlds/DesertWorld.astro';
 import TigreStory from '../stories/TigreStory.astro';
+import LloronaStory from '../stories/LloronaStory.astro';
 import NextWork from '../works/NextWork.astro';
 import type { Artifact } from '../../data/artifacts';
 import { t } from '../../data/i18n';
@@ -24,7 +25,10 @@ const dict = t(lang);
 const txt = artifact.i18n[lang];
 const worlds = { disco: DiscoWorld, jungle: JungleWorld, desert: DesertWorld } as const;
 const World = worlds[artifact.world];
-const stories: Partial<Record<string, typeof TigreStory>> = { 'credenza-jungle': TigreStory };
+const stories: Partial<Record<string, typeof TigreStory>> = {
+  'credenza-jungle': TigreStory,
+  llorona: LloronaStory,
+};
 const Story = stories[artifact.id];
 const tone = Story || artifact.world === 'desert' ? 'light' : 'dark';
 ---
