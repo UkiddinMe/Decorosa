@@ -7,7 +7,15 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent; /* no blue flash on tap (mobile) */
   scroll-behavior: smooth;
+}
+
+/* No trackpad/touch swipe-to-go-back: horizontal overscroll stops at the page edge
+   instead of triggering browser history navigation. Vertical scrolling is untouched. */
+html,
+body {
+  overscroll-behavior-x: none;
 }
 
 /* First-paint gate: BaseLayout adds .is-loading to <html> before anything paints and

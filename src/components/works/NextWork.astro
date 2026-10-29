@@ -117,11 +117,6 @@ const img = art && (({ width, height, ...rest }) => rest)(sized(art.src, art.w, 
     background: linear-gradient(currentColor, currentColor) 0 0 / calc(var(--pull, 0) * 100%) 100%
       no-repeat, rgb(0 0 0 / 0.15);
   }
-  @media (hover: none) {
-    .next-work__pull {
-      display: none;
-    }
-  }
   @media (orientation: portrait) {
     .next-work {
       width: 100%;

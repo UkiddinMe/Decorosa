@@ -3,8 +3,8 @@
 // measure below follows that axis, and turning the device re-inits on the other one. Worlds drift their [data-depth] layers; stories (stories/*) read
 // `--near` ([data-wake], 1 at the middle of the screen) and `--pan` ([data-pan], -1..1 as
 // the slice crosses the screen), play their [data-play] videos while on screen, aim
-// their [data-lens] at the pointer, and carry their [data-lamp] after it. Every page ends on NextWork: scrolling on past the
-// end fills its bar and goes there. Lifecycle-safe for View-Transition navigation.
+// their [data-lens] at the pointer, and carry their [data-lamp] after it. Every page ends on NextWork: scrolling (or dragging) on
+// past the end fills its bar and goes there. Lifecycle-safe for View-Transition navigation.
 import { navigate } from 'astro:transitions/client';
 import { prefersReduced } from './motion';
 import {
@@ -19,6 +19,8 @@ import {
 const HERO = 'artifact-hero';
 /** wheel delta (px) it takes past the end to fill NextWork's bar */
 const PULL_PX = 1400;
+/** finger travel (px) past the end that fills it on touch screens */
+const PULL_TOUCH_PX = 180;
 /** ignore the wheel for this long after reaching the end, so the momentum that got
     there doesn't count as a pull */
 const PULL_ARM_MS = 450;
@@ -112,8 +114,8 @@ function lamps(viewport: HTMLElement): void {
   const step = (): void => {
     x += (toX - x) * LAMP_EASE;
     y += (toY - y) * LAMP_EASE;
-    lamp.style.setProperty('--lx', `${x.toFixed(1)}px`);
-    lamp.style.setProperty('--ly', `${y.toFixed(1)}px`);
+    lamp.style.setProperty('--lamp-x', `${x.toFixed(1)}px`);
+    lamp.style.setProperty('--lamp-y', `${y.toFixed(1)}px`);
     frame = Math.abs(toX - x) + Math.abs(toY - y) > 0.5 ? requestAnimationFrame(step) : 0;
   };
   listen(window, 'pointermove', (event) => {
@@ -121,8 +123,8 @@ function lamps(viewport: HTMLElement): void {
     if (!lamp.classList.contains('is-aimed')) {
       // pick up from wherever the sway has carried it
       const at = getComputedStyle(lamp);
-      x = parseFloat(at.getPropertyValue('--lx'));
-      y = parseFloat(at.getPropertyValue('--ly'));
+      x = parseFloat(at.getPropertyValue('--lamp-x'));
+      y = parseFloat(at.getPropertyValue('--lamp-y'));
       lamp.classList.add('is-aimed');
     }
     if (!frame) frame = requestAnimationFrame(step);
@@ -147,23 +149,36 @@ function nextWork(viewport: HTMLElement, axis: Axis): void {
   let endSince = 0;
   let lastWheel = 0;
   let frame = 0;
+  /** finger coordinate where a drag reached the end; null while not pulling */
+  let touchFrom: number | null = null;
+  const atEnd = (): boolean =>
+    axis === 'x'
+      ? viewport.scrollLeft >= viewport.scrollWidth - viewport.clientWidth - 2
+      : viewport.scrollTop >= viewport.scrollHeight - viewport.clientHeight - 2;
   const show = (): void => link.style.setProperty('--pull', pull.toFixed(3));
   // let go and the bar drains back
   const drain = (): void => {
-    if (performance.now() - lastWheel > 200) pull = Math.max(0, pull - 0.025);
+    if (touchFrom === null && performance.now() - lastWheel > 200) pull = Math.max(0, pull - 0.025);
     show();
     frame = pull > 0 ? requestAnimationFrame(drain) : 0;
+  };
+  const fill = (to: number): void => {
+    pull = Math.min(1, Math.max(0, to));
+    show();
+    if (pull >= 1) {
+      touchFrom = null;
+      handOff(link);
+      navigate(link.href);
+      return;
+    }
+    if (!frame) frame = requestAnimationFrame(drain);
   };
   listen(
     viewport,
     'wheel',
     (event) => {
       const { deltaX, deltaY } = event as WheelEvent;
-      const atEnd =
-        axis === 'x'
-          ? viewport.scrollLeft >= viewport.scrollWidth - viewport.clientWidth - 2
-          : viewport.scrollTop >= viewport.scrollHeight - viewport.clientHeight - 2;
-      if (!atEnd) {
+      if (!atEnd()) {
         endSince = 0;
         return;
       }
@@ -172,17 +187,31 @@ function nextWork(viewport: HTMLElement, axis: Axis): void {
       const delta = Math.abs(deltaY) > Math.abs(deltaX) ? deltaY : deltaX;
       if (now - endSince < PULL_ARM_MS || delta <= 0) return;
       lastWheel = now;
-      pull = Math.min(1, pull + delta / PULL_PX);
-      show();
-      if (pull >= 1) {
-        handOff(link);
-        navigate(link.href);
-        return;
-      }
-      if (!frame) frame = requestAnimationFrame(drain);
+      fill(pull + delta / PULL_PX);
     },
     { passive: true },
   );
+  // touch: dragging on past the end fills the bar; lifting the finger lets it drain
+  listen(
+    viewport,
+    'touchmove',
+    (event) => {
+      const touch = (event as TouchEvent).touches[0];
+      const at = axis === 'x' ? touch.clientX : touch.clientY;
+      if (!atEnd()) {
+        touchFrom = null;
+        return;
+      }
+      touchFrom ??= at;
+      fill((touchFrom - at) / PULL_TOUCH_PX);
+    },
+    { passive: true },
+  );
+  const release = (): void => {
+    touchFrom = null;
+  };
+  listen(viewport, 'touchend', release);
+  listen(viewport, 'touchcancel', release);
   cleanup.push(() => cancelAnimationFrame(frame));
 }
 

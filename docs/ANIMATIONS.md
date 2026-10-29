@@ -463,7 +463,7 @@ TigreStory's other moves are CSS only: the info panel's wave draws itself (dash 
 The tiger chest on the scene's desk is the live `TigerPiece` and the page's view-
 transition hero.
 `[data-lamp]` (LloronaStory): a fixed screen-sized layer, a broad warm glow painted at
-`--lx/--ly` that leaves all but the far corners clear (they dim a little) (registered `@property`s). Not a huge disc slid about by `translate`: Chrome
+`--lamp-x/--lamp-y` that leaves all but the far corners clear (they dim a little) (registered `@property`s — `@property` is global, so never reuse a name another page registers differently). Not a huge disc slid about by `translate`: Chrome
 rasterizes only part of a layer that big, and the rest drops out as a hard-edged band.
 With a hover pointer it trails the pointer (eased 0.09/frame, `.is-aimed`, picking up from
 wherever the sway left it); otherwise a CSS sway of the two properties (26s, a taller one
@@ -489,7 +489,8 @@ then the streak dries. Past the opening scene they run only in `.seam` lanes, mi
 `[data-page-hero]` drops it), so it morphs into the next page's hero. Scrolling on past
 the end also goes there: wheel delta past the end fills `--pull` (1400px to fill, drains
 back when let go), ignored for 450ms after the end is reached so the momentum that got
-there doesn't count.
+there doesn't count. On touch screens a finger dragged on past the end fills it instead
+(180px of travel, measured from where the drag reached the end; drains on lift).
 
 ## Dark-side accordion — `DarkSidePage.astro`
 

@@ -205,30 +205,30 @@ const photo = (name: string, w: number, h: number) => sized(`/assets/stories/llo
     height: 100%;
   }
 
-  /* The lantern: a screen-sized layer, dark but for a warm hole painted at --lx/--ly —
+  /* The lantern: a screen-sized layer, dark but for a warm hole painted at --lamp-x/--lamp-y —
      the pointer (artifact.ts) or, until it moves, a slow sway. (Not a huge disc slid
      about: Chrome only rasterizes part of a layer that big, and the rest drops out as a
      hard-edged band.) The flicker is opacity, so it never repaints. */
-  @property --lx {
+  @property --lamp-x {
     syntax: '<length-percentage>';
     inherits: false;
     initial-value: 0px;
   }
-  @property --ly {
+  @property --lamp-y {
     syntax: '<length-percentage>';
     inherits: false;
     initial-value: 0px;
   }
   .lamp {
-    --lx: 50vw;
-    --ly: 45vh;
+    --lamp-x: 50vw;
+    --lamp-y: 45vh;
     position: fixed;
     inset: 0;
     z-index: 30;
     pointer-events: none;
     background:
-      radial-gradient(circle at var(--lx) var(--ly), rgb(255 190 110 / 0.12) 0, transparent 40vmax),
-      radial-gradient(circle at var(--lx) var(--ly), transparent 45vmax, rgb(20 11 6 / 0.28) 80vmax, rgb(14 8 4 / 0.45) 110vmax);
+      radial-gradient(circle at var(--lamp-x) var(--lamp-y), rgb(255 190 110 / 0.12) 0, transparent 40vmax),
+      radial-gradient(circle at var(--lamp-x) var(--lamp-y), transparent 45vmax, rgb(20 11 6 / 0.28) 80vmax, rgb(14 8 4 / 0.45) 110vmax);
     animation:
       lamp-sway 26s ease-in-out infinite alternate,
       lamp-flicker 3.1s steps(1) infinite;
@@ -238,16 +238,16 @@ const photo = (name: string, w: number, h: number) => sized(`/assets/stories/llo
   }
   @keyframes lamp-sway {
     0% {
-      --lx: 34vw;
-      --ly: 40vh;
+      --lamp-x: 34vw;
+      --lamp-y: 40vh;
     }
     50% {
-      --lx: 62vw;
-      --ly: 55vh;
+      --lamp-x: 62vw;
+      --lamp-y: 55vh;
     }
     100% {
-      --lx: 46vw;
-      --ly: 36vh;
+      --lamp-x: 46vw;
+      --lamp-y: 36vh;
     }
   }
   @keyframes lamp-flicker {
@@ -679,16 +679,16 @@ const photo = (name: string, w: number, h: number) => sized(`/assets/stories/llo
   }
   @keyframes lamp-sway-tall {
     0% {
-      --lx: 30vw;
-      --ly: 32vh;
+      --lamp-x: 30vw;
+      --lamp-y: 32vh;
     }
     50% {
-      --lx: 68vw;
-      --ly: 52vh;
+      --lamp-x: 68vw;
+      --lamp-y: 52vh;
     }
     100% {
-      --lx: 44vw;
-      --ly: 64vh;
+      --lamp-x: 44vw;
+      --lamp-y: 64vh;
     }
   }
 
