@@ -39,11 +39,8 @@ const photo = (name: string, w: number, h: number) => sized(`/assets/stories/llo
   <div class="lamp" data-lamp aria-hidden="true"></div>
 
   <section class="s hero">
-    <LloronaDrip x={12} y={8} len={34} delay={1.5} seed={11} />
-    <LloronaDrip x={81} y={4} len={46} delay={6.5} seed={23} />
-    <LloronaDrip x={30} y={2} len={40} delay={4} seed={13} only="portrait" />
-    <LloronaDrip x={62} y={10} len={36} delay={9} seed={29} only="portrait" />
-    <LloronaDrip x={90} y={30} len={30} delay={2.5} seed={31} only="portrait" />
+    <LloronaDrip x={12} y={8} len={34} delay={1.5} seed={11} flat />
+    <LloronaDrip x={81} y={4} len={46} delay={6.5} seed={23} flat />
     <div class="hero__piece" data-page-hero>
       {artifact.image && <ArtifactPiece artifact={{ ...artifact, image: artifact.image }} />}
     </div>
