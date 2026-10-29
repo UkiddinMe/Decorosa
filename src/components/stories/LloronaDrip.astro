@@ -8,7 +8,7 @@
 // so the whole path scales with the SVG.) A dark wet streak grows behind it, then
 // dries, and the cycle rests before the next drop. Units are --drip-u (1svh unless the
 // page sets it): the SVG is as many units tall as the drop runs. Each drop is drawn
-// twice, one per orientation: on portrait the same run with a drop and streak PHONE×
+// twice, one per orientation: on portrait the same run with a drop and streak `phone`×
 // as big (`only` keeps just one of the two — e.g. extra drops for phones).
 interface Props {
   /** where it starts, % of its slice */
@@ -24,10 +24,10 @@ interface Props {
   /** how many times slower than the default the whole cycle runs */
   pace?: number;
   only?: 'landscape' | 'portrait';
+  /** how many times bigger the drop and its streak are on portrait */
+  phone?: number;
 }
-const { x, y, len, delay, seed, sway, pace = 1, only } = Astro.props;
-/** how many times bigger the drop and its streak are on portrait */
-const PHONE = 2.2;
+const { x, y, len, delay, seed, sway, pace = 1, only, phone = 1.6 } = Astro.props;
 
 // mulberry32
 let state = seed >>> 0;
@@ -113,7 +113,7 @@ const TAIL: Array<[number, number]> = [
 ];
 const sizes = [
   { media: 'landscape', k: 1 },
-  { media: 'portrait', k: PHONE },
+  { media: 'portrait', k: phone },
 ]
   .filter(({ media }) => !only || only === media)
   .map(({ media, k }) => ({
