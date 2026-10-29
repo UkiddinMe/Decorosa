@@ -41,6 +41,9 @@ const photo = (name: string, w: number, h: number) => sized(`/assets/stories/llo
   <section class="s hero">
     <LloronaDrip x={12} y={8} len={34} delay={1.5} seed={11} />
     <LloronaDrip x={81} y={4} len={46} delay={6.5} seed={23} />
+    <LloronaDrip x={30} y={2} len={40} delay={4} seed={13} only="portrait" />
+    <LloronaDrip x={62} y={10} len={36} delay={9} seed={29} only="portrait" />
+    <LloronaDrip x={90} y={30} len={30} delay={2.5} seed={31} only="portrait" />
     <div class="hero__piece" data-page-hero>
       {artifact.image && <ArtifactPiece artifact={{ ...artifact, image: artifact.image }} />}
     </div>
@@ -69,6 +72,7 @@ const photo = (name: string, w: number, h: number) => sized(`/assets/stories/llo
       </figure>
     </div>
     <div class="seam" aria-hidden="true"><LloronaDrip x={0} y={10} len={44} delay={2} seed={37} sway={1.8} pace={2.2} /></div>
+    <div class="seam seam--left" aria-hidden="true"><LloronaDrip x={0} y={26} len={30} delay={7} seed={137} sway={1.8} pace={2.2} only="portrait" /></div>
   </section>
 
   <!-- the open desk -->
@@ -77,6 +81,7 @@ const photo = (name: string, w: number, h: number) => sized(`/assets/stories/llo
       <img {...photo('drawers-open', 1350, 1800)} sizes="(orientation: portrait) 94vw, 62svh" alt={alt} loading="lazy" />
     </figure>
     <div class="seam" aria-hidden="true"><LloronaDrip x={0} y={30} len={40} delay={9} seed={41} sway={1.8} pace={2.2} /></div>
+    <div class="seam seam--left" aria-hidden="true"><LloronaDrip x={0} y={8} len={44} delay={3} seed={141} sway={1.8} pace={2.2} only="portrait" /></div>
   </section>
 
   <!-- The shutter rolls up through the wall's whole height as the slice comes to the
@@ -101,6 +106,7 @@ const photo = (name: string, w: number, h: number) => sized(`/assets/stories/llo
         data-play></video>
     </figure>
     <div class="seam" aria-hidden="true"><LloronaDrip x={0} y={4} len={52} delay={5} seed={67} sway={1.8} pace={2.2} /></div>
+    <div class="seam seam--left" aria-hidden="true"><LloronaDrip x={0} y={30} len={40} delay={11} seed={167} sway={1.8} pace={2.2} only="portrait" /></div>
   </section>
 
   <!-- Face-on, open: the whole fall-front, uncropped -->
@@ -109,6 +115,7 @@ const photo = (name: string, w: number, h: number) => sized(`/assets/stories/llo
       <img {...photo('front', 1800, 1230)} sizes="(orientation: portrait) 84vw, 126svh" alt={alt} loading="lazy" />
     </figure>
     <div class="seam" aria-hidden="true"><LloronaDrip x={0} y={46} len={36} delay={12} seed={53} sway={1.8} pace={2.2} /></div>
+    <div class="seam seam--left" aria-hidden="true"><LloronaDrip x={0} y={10} len={46} delay={6} seed={153} sway={1.8} pace={2.2} only="portrait" /></div>
   </section>
 
   <!-- The frieze of beasts through a long slot, the top face-on below it; the stars
@@ -126,6 +133,7 @@ const photo = (name: string, w: number, h: number) => sized(`/assets/stories/llo
       <img {...photo('stars', 950, 1800)} sizes="(orientation: portrait) 94vw, 52svh" alt={alt} loading="lazy" />
     </figure>
     <div class="seam" aria-hidden="true"><LloronaDrip x={0} y={14} len={48} delay={3.5} seed={71} sway={1.8} pace={2.2} /></div>
+    <div class="seam seam--left" aria-hidden="true"><LloronaDrip x={0} y={36} len={38} delay={10} seed={171} sway={1.8} pace={2.2} only="portrait" /></div>
   </section>
 
 
@@ -165,6 +173,7 @@ const photo = (name: string, w: number, h: number) => sized(`/assets/stories/llo
       <img {...photo('shut-side', 1132, 1800)} sizes="(orientation: portrait) 70vw, 44svh" alt={alt} loading="lazy" />
     </figure>
     <div class="seam" aria-hidden="true"><LloronaDrip x={0} y={24} len={42} delay={8} seed={83} sway={1.8} pace={2.2} /></div>
+    <div class="seam seam--left" aria-hidden="true"><LloronaDrip x={0} y={4} len={48} delay={1} seed={183} sway={1.8} pace={2.2} only="portrait" /></div>
   </section>
 
 
@@ -175,6 +184,7 @@ const photo = (name: string, w: number, h: number) => sized(`/assets/stories/llo
       <img {...photo('room', 1350, 1800)} sizes="(orientation: portrait) 121vw, 81svh" alt={alt} loading="lazy" />
     </figure>
     <div class="seam" aria-hidden="true"><LloronaDrip x={0} y={8} len={50} delay={14} seed={97} sway={1.8} pace={2.2} /></div>
+    <div class="seam seam--left" aria-hidden="true"><LloronaDrip x={0} y={32} len={42} delay={5} seed={197} sway={1.8} pace={2.2} only="portrait" /></div>
   </section>
 </div>
 
@@ -664,6 +674,10 @@ const photo = (name: string, w: number, h: number) => sized(`/assets/stories/llo
     .seam {
       left: calc(100% - 4vw);
       --drip-u: 0.6svh;
+    }
+    /* and a second lane in the left margin */
+    .seam--left {
+      left: 4vw;
     }
     .s:has(.full) .seam {
       display: none;

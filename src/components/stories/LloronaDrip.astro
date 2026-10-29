@@ -7,7 +7,9 @@
 // never stopped — before letting go. (SMIL,
 // so the whole path scales with the SVG.) A dark wet streak grows behind it, then
 // dries, and the cycle rests before the next drop. Units are --drip-u (1svh unless the
-// page sets it): the SVG is as many units tall as the drop runs.
+// page sets it): the SVG is as many units tall as the drop runs. Each drop is drawn
+// twice, one per orientation: on portrait the same run with a drop and streak PHONE×
+// as big (`only` keeps just one of the two — e.g. extra drops for phones).
 interface Props {
   /** where it starts, % of its slice */
   x: number;
@@ -21,8 +23,11 @@ interface Props {
   sway?: number;
   /** how many times slower than the default the whole cycle runs */
   pace?: number;
+  only?: 'landscape' | 'portrait';
 }
-const { x, y, len, delay, seed, sway, pace = 1 } = Astro.props;
+const { x, y, len, delay, seed, sway, pace = 1, only } = Astro.props;
+/** how many times bigger the drop and its streak are on portrait */
+const PHONE = 2.2;
 
 // mulberry32
 let state = seed >>> 0;
@@ -106,88 +111,101 @@ const TAIL: Array<[number, number]> = [
   [0.45, 0.72],
   [0.22, 0.88],
 ];
-const tails = TAIL.map(([length, width]) => {
-  const t = length / distance;
-  return { width, dash: `${t.toFixed(4)} 2`, offsets: fmt(along.map((v) => t - v)) };
-});
+const sizes = [
+  { media: 'landscape', k: 1 },
+  { media: 'portrait', k: PHONE },
+]
+  .filter(({ media }) => !only || only === media)
+  .map(({ media, k }) => ({
+    media,
+    k,
+    tails: TAIL.map(([length, width]) => {
+      const t = (length * k) / distance;
+      return { width: width * k, dash: `${t.toFixed(4)} 2`, offsets: fmt(along.map((v) => t - v)) };
+    }),
+  }));
 const xs = points.map(([a]) => a);
 const left = Math.min(...xs) - 1;
 const width = Math.max(...xs) + 1 - left;
 ---
 
-<svg
-  class="drip"
-  viewBox={`${left.toFixed(2)} -0.5 ${width.toFixed(2)} ${len + 1}`}
-  style={`left:${x}%;top:${y}%;margin-left:calc(${left.toFixed(2)} * var(--drip-u, 1svh));width:calc(${width.toFixed(2)} * var(--drip-u, 1svh));height:calc(${len + 1} * var(--drip-u, 1svh))`}
-  aria-hidden="true">
-  <path class="drip__trail" d={d} pathLength="1" stroke-dasharray="1 1" stroke-dashoffset="1">
-    <animate
-      attributeName="stroke-dashoffset"
-      values={trail}
-      keyTimes={keyTimes}
-      calcMode="linear"
-      dur={dur}
-      begin={begin}
-      repeatCount="indefinite"
-    />
-    <animate attributeName="opacity" values="1;1;0;0" keyTimes={`0;${RUN};0.95;1`} dur={dur} begin={begin} repeatCount="indefinite" />
-  </path>
-  <g opacity="0">
-    <!-- the drop: tail and head painted solid, faded as one, so it has no seams -->
-    <g class="drip__body">
-      {
-        tails.map(({ width, dash, offsets }) => (
-          <path d={d} pathLength="1" stroke-width={width} stroke-dasharray={dash} stroke-dashoffset="1">
-            <animate
-              attributeName="stroke-dashoffset"
-              values={offsets}
-              keyTimes={keyTimes}
-              calcMode="linear"
-              dur={dur}
-              begin={begin}
-              repeatCount="indefinite"
-            />
-          </path>
-        ))
-      }
-      <g>
-        <circle r={HEAD} />
-        <animateMotion
-          path={d}
-          rotate="auto"
-          keyPoints={keyPoints}
+{
+  sizes.map(({ media, k, tails }) => (
+    <svg
+      class={`drip drip--${media}`}
+      viewBox={`${left.toFixed(2)} -0.5 ${width.toFixed(2)} ${len + 1}`}
+      style={`left:${x}%;top:${y}%;margin-left:calc(${left.toFixed(2)} * var(--drip-u, 1svh));width:calc(${width.toFixed(2)} * var(--drip-u, 1svh));height:calc(${len + 1} * var(--drip-u, 1svh))`}
+      aria-hidden="true">
+      <path class="drip__trail" d={d} stroke-width={0.6 * k} pathLength="1" stroke-dasharray="1 1" stroke-dashoffset="1">
+        <animate
+          attributeName="stroke-dashoffset"
+          values={trail}
           keyTimes={keyTimes}
           calcMode="linear"
           dur={dur}
           begin={begin}
           repeatCount="indefinite"
         />
+        <animate attributeName="opacity" values="1;1;0;0" keyTimes={`0;${RUN};0.95;1`} dur={dur} begin={begin} repeatCount="indefinite" />
+      </path>
+      <g opacity="0">
+        <!-- the drop: tail and head painted solid, faded as one, so it has no seams -->
+        <g class="drip__body">
+          {
+            tails.map(({ width, dash, offsets }) => (
+              <path d={d} pathLength="1" stroke-width={width} stroke-dasharray={dash} stroke-dashoffset="1">
+                <animate
+                  attributeName="stroke-dashoffset"
+                  values={offsets}
+                  keyTimes={keyTimes}
+                  calcMode="linear"
+                  dur={dur}
+                  begin={begin}
+                  repeatCount="indefinite"
+                />
+              </path>
+            ))
+          }
+          <g>
+            <circle r={HEAD * k} />
+            <animateMotion
+              path={d}
+              rotate="auto"
+              keyPoints={keyPoints}
+              keyTimes={keyTimes}
+              calcMode="linear"
+              dur={dur}
+              begin={begin}
+              repeatCount="indefinite"
+            />
+          </g>
+        </g>
+        <!-- the glint on the head, turned along the path (rotate="auto"): upper-left once turned -->
+        <g>
+          <circle class="drip__shine" cx={-0.16 * k} cy={0.18 * k} r={0.13 * k} />
+          <animateMotion
+            path={d}
+            rotate="auto"
+            keyPoints={keyPoints}
+            keyTimes={keyTimes}
+            calcMode="linear"
+            dur={dur}
+            begin={begin}
+            repeatCount="indefinite"
+          />
+        </g>
+        <animate
+          attributeName="opacity"
+          values="0;1;1;0;0"
+          keyTimes={`0;0.02;${RUN};${RUN + 0.04};1`}
+          dur={dur}
+          begin={begin}
+          repeatCount="indefinite"
+        />
       </g>
-    </g>
-    <!-- the glint on the head, turned along the path (rotate="auto"): upper-left once turned -->
-    <g>
-      <circle class="drip__shine" cx="-0.16" cy="0.18" r="0.13" />
-      <animateMotion
-        path={d}
-        rotate="auto"
-        keyPoints={keyPoints}
-        keyTimes={keyTimes}
-        calcMode="linear"
-        dur={dur}
-        begin={begin}
-        repeatCount="indefinite"
-      />
-    </g>
-    <animate
-      attributeName="opacity"
-      values="0;1;1;0;0"
-      keyTimes={`0;0.02;${RUN};${RUN + 0.04};1`}
-      dur={dur}
-      begin={begin}
-      repeatCount="indefinite"
-    />
-  </g>
-</svg>
+    </svg>
+  ))
+}
 
 <style>
   .drip {
@@ -200,7 +218,6 @@ const width = Math.max(...xs) + 1 - left;
   .drip__trail {
     fill: none;
     stroke: rgb(40 22 12 / 0.45);
-    stroke-width: 0.6;
     stroke-linecap: round;
     stroke-linejoin: round;
   }
@@ -218,6 +235,16 @@ const width = Math.max(...xs) + 1 - left;
   }
   .drip__shine {
     fill: rgb(255 245 230 / 0.85);
+  }
+  @media (orientation: portrait) {
+    .drip--landscape {
+      display: none;
+    }
+  }
+  @media not (orientation: portrait) {
+    .drip--portrait {
+      display: none;
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     .drip {
