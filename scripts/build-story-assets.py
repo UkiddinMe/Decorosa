@@ -20,7 +20,14 @@ Llorona (`MY/6. llorona/llorona-detail/...`):
   * the roll-top being pulled shut, from the side (IMG_2699) and face-on (IMG_2698),
     muted at 720px, each with a poster.
 
-Run with the story to build: `python scripts/build-story-assets.py tigre|llorona` — then
+Drago (`MY/5. Drago/l_anno del drago di legno/...`):
+  * the photos, straight to webp, and the brown cabinet as it was (IMG_9829) warped onto
+    the painted one, from hand-measured points, for the page's wipe;
+  * square crops of the details, for the turntable's plates; the three paint swatches;
+  * the walk backwards (IMG_0902/4/6). Prints where each sits in the farthest one's frame;
+  * the piece turning (IMG_0535) and the door opening (IMG_0538), muted at 720px.
+
+Run with the story to build: `python scripts/build-story-assets.py tigre|llorona|drago` — then
 the smaller copies of every picture are remade (image_sizes.py).
 """
 import os
@@ -267,6 +274,98 @@ def llorona_film() -> None:
         poster.save(os.path.join(OUT, name + '.webp'), quality=78)
 
 
+DRAGO_SRC = os.path.join(DATA, 'MY', '5. Drago', 'l_anno del drago di legno')
+
+DRAGO_PHOTOS = {
+    'drago.jpeg': 'after',
+    'IMG_0550 2.jpeg': 'wall-near',
+    'IMG_0549 2.jpeg': 'wall-far',
+    'IMG_0908.jpeg': 'held',
+    'IMG_0909.jpeg': 'peek',
+    'Draghetto_OK copia.jpg': 'drawing',
+    'moodboard.jpg': 'street',
+}
+# The same points on the brown cabinet (IMG_9829) and on the painted one (drago.jpeg), as
+# fractions of each frame: shelf tips, finials, feet, hinges, handle, crest and door.
+DRAGO_OLD = [(.184, .420), (.827, .420), (.149, .900), (.864, .900), (.315, .975), (.705, .975), (.335, .352),
+             (.680, .352), (.503, .397), (.316, .425), (.697, .893), (.672, .527), (.681, .768), (.347, .612)]
+DRAGO_NEW = [(.115, .178), (.897, .175), (.122, .900), (.890, .895), (.298, .980), (.712, .985), (.288, .066),
+             (.717, .066), (.490, .150), (.272, .188), (.725, .890), (.695, .362), (.697, .715), (.320, .490)]
+# the turntable's plates: name -> centre and half-side on drago.jpeg (px)
+DRAGO_PLATES = {
+    'eye': (1935, 290, 215),
+    'crest': (1300, 330, 320),
+    'fang': (1770, 760, 270),
+    'handle': (860, 1480, 270),
+    'scales': (620, 2270, 300),
+    'teeth': (1050, 2180, 270),
+    'foot': (790, 2470, 200),
+}
+# the paint swatches at the foot of IMG_0575: name -> box (px)
+DRAGO_SWATCHES = {'blue': (78, 1225, 300, 1470), 'orange': (487, 1225, 702, 1470), 'yellow': (897, 1225, 1112, 1470)}
+# the walk backwards, nearest first: raw -> where to look for the door's orange frame (px)
+DRAGO_ZOOM = {
+    'IMG_0902.jpeg': (1100, 1200, 2100, 2700),
+    'IMG_0904.jpeg': (1250, 1550, 1750, 2200),
+    'IMG_0906.jpeg': (1330, 1700, 1620, 2000),
+}
+# the turning piece, and the door opening: raw -> published name
+DRAGO_FILMS = {'IMG_0535.MOV': 'turn', 'IMG_0538.MOV': 'door'}
+
+
+def drago_photos() -> None:
+    for raw, name in DRAGO_PHOTOS.items():
+        save_webp(load(DRAGO_SRC, raw), name)
+    # The brown cabinet as it was, warped onto the painted one, for the page's wipe.
+    old, new = load(DRAGO_SRC, 'IMG_9829.jpeg'), load(DRAGO_SRC, 'drago.jpeg')
+    src = np.float32(DRAGO_OLD) * old.size
+    dst = np.float32(DRAGO_NEW) * new.size
+    hom, _ = cv2.findHomography(src, dst, 0)
+    print('old cabinet off by', np.abs(cv2.perspectiveTransform(src[None], hom)[0] - dst).mean().round(1), 'px')
+    warped = cv2.warpPerspective(np.asarray(old), hom, new.size, borderMode=cv2.BORDER_REPLICATE)
+    save_webp(Image.fromarray(warped), 'before')
+    for name, (x, y, r) in DRAGO_PLATES.items():
+        save_webp(new.crop((x - r, y - r, x + r, y + r)).resize((640, 640), Image.LANCZOS), f'plate-{name}')
+    swatches = load(DRAGO_SRC, 'IMG_0575 2.jpeg')
+    for name, box in DRAGO_SWATCHES.items():
+        save_webp(swatches.crop(box), f'swatch-{name}')
+
+
+def drago_zoom() -> None:
+    """The walk backwards: three shots (all 3:4), placed in the farthest one's frame so
+    the door's frame coincides. Prints the numbers DragoStory.astro's `.zoom` takes."""
+    frames = []
+    for i, (raw, (x0, y0, x1, y1)) in enumerate(DRAGO_ZOOM.items()):
+        img = load(DRAGO_SRC, raw)
+        save_webp(img, f'zoom-{i + 1}')
+        hsv = cv2.cvtColor(np.asarray(img.crop((x0, y0, x1, y1))), cv2.COLOR_RGB2HSV)
+        paint = (hsv[..., 0] < 16) & (hsv[..., 1] > 110) & (hsv[..., 2] > 120)
+        lab, n = ndimage.label(paint)
+        door = lab == (np.argmax(ndimage.sum(paint, lab, range(1, n + 1))) + 1)
+        ys, xs = np.where(door)
+        frames.append((img.size, x0 + (xs.min() + xs.max()) / 2, y0 + (ys.min() + ys.max()) / 2, xs.max() - xs.min()))
+        print(raw, f'door centre {frames[-1][1]:.0f},{frames[-1][2]:.0f} width {frames[-1][3]}')
+    (W, H), cx, cy, width = frames[-1]
+    for i, ((w, h), x, y, door) in enumerate(frames):
+        s = width / door * w / W
+        left, top = (cx - x * width / door) / W, (cy - y * width / door) / H
+        print(f'zoom-{i + 1}: left {100 * left:.2f}%  top {100 * top:.2f}%  width {100 * s:.2f}%')
+        if i == 0:
+            z = 1 / s
+            print(f'start scale {z:.3f}, about {100 * z * left / (z - 1):.2f}% {100 * z * top / (z - 1):.2f}%')
+
+
+def drago_film() -> None:
+    for raw, name in DRAGO_FILMS.items():
+        raw = os.path.join(DRAGO_SRC, raw)
+        encode(['-i', raw], name, 720, crf=30)
+        cap = cv2.VideoCapture(raw)
+        ok, frame = cap.read()
+        poster = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+        poster.thumbnail((720, 720))
+        poster.save(os.path.join(OUT, name + '.webp'), quality=78)
+
+
 def encode(inputs: list, name: str, width: int, fps: int | None = None, crf: int = 26) -> None:
     """H.264 baseline-friendly mp4: muted, yuv420p, moov atom up front so it starts
     streaming at once."""
@@ -282,7 +381,11 @@ def encode(inputs: list, name: str, width: int, fps: int | None = None, crf: int
 
 if __name__ == '__main__':
     story = sys.argv[1] if len(sys.argv) > 1 else ''
-    jobs = {'tigre': (photos, scene, teaser, demo), 'llorona': (llorona_photos, llorona_wall, llorona_floor, llorona_film)}
+    jobs = {
+        'tigre': (photos, scene, teaser, demo),
+        'llorona': (llorona_photos, llorona_wall, llorona_floor, llorona_film),
+        'drago': (drago_photos, drago_zoom, drago_film),
+    }
     if story not in jobs:
         sys.exit(f'usage: build-story-assets.py {"|".join(jobs)}')
     OUT = os.path.join(PUB, story)

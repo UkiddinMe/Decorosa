@@ -135,11 +135,31 @@ export const artifacts: Artifact[] = [
         title: "L'anno del drago di legno",
         subtitle: 'Lorem ipsum',
         body: 'Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur.',
+        chapters: [
+          {
+            title: 'Lorem ipsum dolor',
+            body: 'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis.',
+          },
+          {
+            title: 'Sit amet consectetur',
+            body: 'Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.',
+          },
+        ],
       },
       en: {
         title: 'The Year of the Wood Dragon',
         subtitle: 'Lorem ipsum',
         body: 'Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur.',
+        chapters: [
+          {
+            title: 'Lorem ipsum dolor',
+            body: 'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis.',
+          },
+          {
+            title: 'Sit amet consectetur',
+            body: 'Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.',
+          },
+        ],
       },
     },
   },

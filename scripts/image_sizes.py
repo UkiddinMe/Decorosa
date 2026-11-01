@@ -21,7 +21,7 @@ SIZES = (500, 800, 1200)
 SIZED = re.compile(r'-(?:' + '|'.join(map(str, SIZES)) + r')\.webp$')
 # in a story's folder, not photos: the tiled walls and floor, the stripes background and
 # the videos' posters
-STORY_SKIP = {'wall', 'floor', 'stripes', 'teaser', 'demo', 'rolltop', 'rolltop-front'}
+STORY_SKIP = {'wall', 'floor', 'stripes', 'teaser', 'demo', 'rolltop', 'rolltop-front', 'turn', 'door'}
 
 
 def rel(pattern: str) -> list[str]:

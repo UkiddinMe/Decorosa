@@ -3,10 +3,11 @@
 // measure below follows that axis, and turning the device re-inits on the other one. Worlds drift their [data-depth] layers; stories (stories/*) read
 // `--near` ([data-wake], 1 at the middle of the screen) and `--pan` ([data-pan], -1..1 as
 // the slice crosses the screen), play their [data-play] videos while on screen, aim
-// their [data-lens] at the pointer, and carry their [data-lamp] after it. Every page ends on NextWork: scrolling (or dragging) on
+// their [data-lens] at the pointer, and carry their [data-lamp] after it; the Drago's street runs in drago.ts. Every page ends on NextWork: scrolling (or dragging) on
 // past the end fills its bar and goes there. Lifecycle-safe for View-Transition navigation.
 import { navigate } from 'astro:transitions/client';
 import { prefersReduced } from './motion';
+import { dragoStreet } from './drago';
 import {
   PORTRAIT,
   type Axis,
@@ -246,6 +247,7 @@ function init(): void {
   playWhenSeen(viewport);
   lenses(viewport);
   lamps(viewport);
+  cleanup.push(dragoStreet(viewport, axis));
   nextWork(viewport, axis);
 }
 

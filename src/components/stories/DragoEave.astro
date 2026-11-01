@@ -1,0 +1,161 @@
+---
+// The restaurant's eave along the top of a DragoStory slice: red-lit boards, the blue LED
+// rope chasing along their edge, and paper lanterns on cords — lit from inside, painted
+// with the piece's own eye and scales rather than with lettering. Each one swings on
+// `--sway` (scripts/drago.ts). Sizes are in the story's `--u`.
+interface Props {
+  /** x: % across the slice; drop: cord length; size: lantern width (both in --u) */
+  lanterns?: { x: number; drop: number; size: number }[];
+}
+const { lanterns = [] } = Astro.props;
+const uid = `lit${Math.random().toString(36).slice(2, 8)}`;
+---
+
+<div class="eave" aria-hidden="true">
+  <span class="led"><b></b><b></b><b></b></span>
+  {
+    lanterns.map(({ x, drop, size }) => (
+      <span class="lantern" data-lantern style={`left: ${x}%; --drop: ${drop}; --size: ${size}`}>
+        <i class="lantern__halo" />
+        <i class="lantern__cord" />
+        <svg viewBox="0 0 200 300">
+          <defs>
+            <radialGradient id={uid} cx="50%" cy="46%" r="58%">
+              <stop offset="0" stop-color="#fffbd6" />
+              <stop offset="0.16" stop-color="#ffc54a" />
+              <stop offset="0.42" stop-color="#ff3d1c" />
+              <stop offset="0.78" stop-color="#d4120f" />
+              <stop offset="1" stop-color="#7c0808" />
+            </radialGradient>
+            <clipPath id={`${uid}-paper`}>
+              <ellipse cx="100" cy="104" rx="96" ry="88" />
+            </clipPath>
+          </defs>
+          <rect x="76" y="0" width="48" height="16" rx="3" fill="#e0a93a" />
+          <ellipse cx="100" cy="104" rx="96" ry="88" fill={`url(#${uid})`} />
+          <g fill="none" stroke="#7c0808" stroke-width="1.6" opacity="0.55">
+            {[0.18, 0.42, 0.64, 0.84].map((k) => <ellipse cx="100" cy="104" rx={96 * k} ry="88" />)}
+          </g>
+          <g fill="none" stroke="#1d1f6b" stroke-width="3.5" opacity="0.75" clip-path={`url(#${uid}-paper)`}>
+            {[34, 66, 100, 134, 166].map((cx) => <path d={`M${cx - 17} 170 a17 17 0 0 1 34 0`} />)}
+            {[50, 83, 117, 150].map((cx) => <path d={`M${cx - 17} 153 a17 17 0 0 1 34 0`} />)}
+          </g>
+          <path d="M100 28 C118 54 132 66 132 88 A32 32 0 0 1 68 88 C68 66 82 54 100 28Z" fill="#fff7e6" opacity="0.92" />
+          <circle cx="100" cy="88" r="19" fill="#2230b8" />
+          <circle cx="100" cy="88" r="8" fill="#0b0c2c" />
+          <rect x="70" y="186" width="60" height="18" rx="3" fill="#e0a93a" />
+          <circle cx="100" cy="214" r="9" fill="#e0a93a" />
+          <path d="M84 222 h32 l6 74 h-44z" fill="#c80f12" />
+          <path d="M90 222 v74 M100 222 v74 M110 222 v74" stroke="#7c0808" stroke-width="1.5" />
+        </svg>
+      </span>
+    ))
+  }
+</div>
+
+<style>
+  .eave {
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: 4;
+    height: calc(var(--u) * 12);
+    background:
+      linear-gradient(rgb(40 4 2 / 0.75), transparent 70%),
+      repeating-linear-gradient(90deg, rgb(70 8 4 / 0.5) 0 2px, transparent 2px calc(var(--u) * 7)),
+      linear-gradient(#8e1a10, #ec4a1f);
+    box-shadow: 0 calc(var(--u) * 1.6) calc(var(--u) * 4) rgb(40 90 255 / 0.4);
+    pointer-events: none;
+  }
+  .led {
+    position: absolute;
+    inset: auto 0 0;
+    height: calc(var(--u) * 1.3);
+    background: rgb(50 130 255 / 0.55);
+    box-shadow:
+      0 0 calc(var(--u) * 0.9) rgb(90 170 255),
+      0 0 calc(var(--u) * 3) rgb(60 150 255 / 0.9);
+  }
+  /* the chase: three sets of bulbs lit in turn, on the compositor */
+  .led b {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle closest-side, #eaf8ff 25%, #39a0ff 55%, transparent) 0 0 /
+      calc(var(--u) * 3) 100% repeat-x;
+    opacity: 0.12;
+    animation: led-chase 0.72s steps(1) infinite;
+  }
+  .led b:nth-child(2) {
+    background-position-x: calc(var(--u) * 1);
+    animation-delay: -0.24s;
+  }
+  .led b:nth-child(3) {
+    background-position-x: calc(var(--u) * 2);
+    animation-delay: -0.48s;
+  }
+  @keyframes led-chase {
+    0% {
+      opacity: 1;
+    }
+    33.4% {
+      opacity: 0.12;
+    }
+  }
+
+  /* Hangs from the eave's edge; turns about that point. */
+  .lantern {
+    position: absolute;
+    top: 100%;
+    width: calc(var(--u) * var(--size));
+    translate: -50% 0;
+    transform-origin: 50% 0;
+    rotate: calc(var(--sway, 0) * 1deg);
+  }
+  .lantern__cord {
+    display: block;
+    width: max(1px, calc(var(--u) * 0.18));
+    height: calc(var(--u) * var(--drop));
+    margin-inline: auto;
+    background: #e9e2d4;
+  }
+  .lantern svg {
+    display: block;
+    width: 100%;
+    filter: drop-shadow(0 0 calc(var(--u) * 1) rgb(255 90 30 / 0.7));
+  }
+  /* centred on the paper's bright middle */
+  .lantern__halo {
+    position: absolute;
+    left: 50%;
+    top: calc(var(--u) * (var(--drop) + var(--size) * 0.52));
+    width: 340%;
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    background: radial-gradient(circle closest-side, rgb(255 110 40 / 0.5), rgb(255 60 20 / 0.16) 45%, transparent);
+    animation: halo-breathe 4.3s steps(1) infinite;
+  }
+  .lantern:nth-child(even) .lantern__halo {
+    animation-delay: -1.7s;
+  }
+  @keyframes halo-breathe {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    17% {
+      opacity: 0.84;
+    }
+    24% {
+      opacity: 1;
+    }
+    62% {
+      opacity: 0.9;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .led b,
+    .lantern__halo {
+      animation: none;
+    }
+  }
+</style>

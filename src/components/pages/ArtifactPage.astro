@@ -12,6 +12,7 @@ import JungleWorld from '../worlds/JungleWorld.astro';
 import DesertWorld from '../worlds/DesertWorld.astro';
 import TigreStory from '../stories/TigreStory.astro';
 import LloronaStory from '../stories/LloronaStory.astro';
+import DragoStory from '../stories/DragoStory.astro';
 import NextWork from '../works/NextWork.astro';
 import type { Artifact } from '../../data/artifacts';
 import { t } from '../../data/i18n';
@@ -28,6 +29,7 @@ const World = worlds[artifact.world];
 const stories: Partial<Record<string, typeof TigreStory>> = {
   'tigre-contro-tigre': TigreStory,
   llorona: LloronaStory,
+  drago: DragoStory,
 };
 const Story = stories[artifact.id];
 const tone = Story || artifact.world === 'desert' ? 'light' : 'dark';

@@ -110,6 +110,15 @@ src/
                           (LloronaDrip; past the hero only in the
                           bare-wall lanes beside the niches), a
                           full-height roll-top that rolls up
+                          DragoStory (+ DragoEave): the street outside an Italian Chinese
+                          restaurant at night, a deliberate kitsch of the Italian high
+                          street — no mock-oriental type or made-up characters. Red-lit
+                          boards, an eave of blue LED rope and swinging paper lanterns,
+                          photos as lit shop windows, neon title, vinyl pagoda window,
+                          laminated menu, details on a lazy Susan, the brown cabinet
+                          wiped into the painted one, a pinned walk backwards into the
+                          room — and the piece's scaled body snaking behind it all; last,
+                          the moodboard itself, full height
     worlds/               One component per artifact aesthetic (Disco / Jungle / Desert);
                           pure scenery, the artifact page slots its hero + caption in
   scripts/                Client-side TS (see ANIMATIONS.md)
@@ -119,6 +128,7 @@ src/
     came-from.ts          Path the last SPA navigation left (loaded by BaseLayout)
     showcase-return.ts    Hidden start pose of the showcase's return glide (BaseLayout)
     bio.ts  works.ts  artifact.ts    One controller per horizontal section
+    drago.ts              The Drago page's dragon body (canvas) and lantern swing
     pieces.ts             The pieces' `.is-live` switch (hover, or a touch cycle)
                           + scripted moves: eyes, drawn veins
     sized.ts              Points an SVG's pictures at the copy its drawn size needs
@@ -193,7 +203,8 @@ Every artifact detail page follows **justinesoulie.fr's work pages**
 (`https://justinesoulie.fr/work/<name-of-the-work>`, e.g. `/work/typography`) — desktop
 *and* mobile versions — but each one gets its **own, very different style and moodboard**,
 drawn from that piece's material: the tiger is black-and-white ink with the tiger's
-colours; the Llorona is the rough stone wall it was photographed against.
+colours; the Llorona is the rough stone wall it was photographed against; the Drago is
+the night street of its moodboard (`moodboard.jpg`, which closes the page as its last slice).
 
 ## Content model
 
@@ -292,8 +303,14 @@ the wall above the desk in IMG_2690, flat-fielded and made seamless both ways
 evened out across and repeating where its tile grid best meets itself (`floor.webp`, the
 page's floor); the roll-top being pulled shut, from the side (IMG_2699) and face-on
 (IMG_2698).
-`scrittoio_OK copia.jpg` (the ink staging) is deliberately unused. Run it per story:
-`python scripts/build-story-assets.py tigre|llorona`.
+`scrittoio_OK copia.jpg` (the ink staging) is deliberately unused.
+For the Drago (`MY/5. Drago/l_anno del drago di legno/…`): the photos, the moodboard and the
+ink drawing to webp; the brown cabinet (IMG_9829) warped onto the painted one (`drago.jpeg`) from
+hand-measured points; square detail crops for the plates (`DRAGO_PLATES`); the three paint
+swatches from IMG_0575; the walk backwards (IMG_0902/4/6), each located by its door's
+orange frame — it prints the boxes and zoom origin `.zoom` in DragoStory.astro takes; the
+turning piece (IMG_0535) and the door opening (IMG_0538). Run it per story:
+`python scripts/build-story-assets.py tigre|llorona|drago`.
 
 `scripts/build-artifact-motion.py` (by hand; Pillow + SciPy + OpenCV + scikit-image) runs
 *after* it, on the published cut-outs, so every layer shares its cut-out's pixel grid:

@@ -13,7 +13,7 @@ Map of the moving parts, in the order a visitor meets them.
 | Sideways sections (bio / works / artifact) | `src/scripts/hscroll.ts` + `bio.ts`, `works.ts`, `artifact.ts` |
 | Works end-card dune (falling cherry) | `src/components/works/DuneScene.astro` |
 | Live artifact pieces (run cards + detail heroes) | `works/ArtifactPiece.astro`, `MotionNode.astro`, `src/data/motion.ts`, `src/scripts/pieces.ts` |
-| Artifact pages (stories, worlds, next work) | `src/scripts/artifact.ts`, `stories/*`, `worlds/*`, `works/NextWork.astro`, `.world` in `global.css` |
+| Artifact pages (stories, worlds, next work) | `src/scripts/artifact.ts`, `drago.ts`, `stories/*`, `worlds/*`, `works/NextWork.astro`, `.world` in `global.css` |
 | Contacts micro-motion (floating labels, sweeping rules) | `src/components/pages/ContactsPage.astro` |
 
 **Reduced motion:** everything below is skipped when `prefers-reduced-motion` is on
@@ -484,6 +484,25 @@ times a random swell carried over from the stretch before, so the pace keeps cha
 some stretches the drop catches and crawls (0.15–0.3× speed) — it slows, never stops. It runs 60% of the cycle,
 then the streak dries. It also dries as it goes: its stroke is a vertical gradient whose 12 stops (placed where the drop is at even steps of its run) each fade out over 0.8×run from when the drop passes them — on landing the top fifth is gone, the rest lighter the older it is. Past the opening scene they run only in `.seam` lanes, mid-way across a wall slice's right padding (portrait: its right margin, plus a second lane in the left margin; none beside a full-width shaft), never over a niche: sized by the `--drip-u` unit (1.25svh, portrait 0.6svh), wander squeezed by `sway`, cycle slowed by `pace` (2.2×). The drop is a round head (r 0.5) with a tail made of the path itself: six dashes of it, shorter as they widen up to the head's width, sliding just behind it in step, so the taper bends with each veer; head and dashes are painted solid in one group faded as a whole (0.6, `--celadon`, the desk's paint), so they read as one teardrop, with a glint on the head (`rotate="auto"`). Each drop renders twice, one SVG per orientation: on portrait the same run with head, tail and streak `PHONE` (2.2×) as big; `only="portrait"` adds phone-only drops (the left-margin lanes). The opening scene's two drops are `flat`: drawn once, the same as on desktop. The live `ArtifactPiece` stands on the floor as the hero, placed from its rear feet
 (y 951 of 1200) so they land just below the wall's foot at any width.
+
+DragoStory's moves. *The body* (`drago.ts`): a fixed canvas (`z-index` 0 inside `.drago`'s
+`isolation`, so over the wall, under every slice, and covered by `NextWork`) draws only the
+stretch on screen: 6px slices of a procedural sprite (the door's teeth, orange and yellow
+trim, the blue scales), each turned to a sine curve along the page's axis and run on enough
+to close the gap on the outside of a bend. It starts dead behind the hero (the swing
+smoothstepped in) and ends out of sight behind the last slice (`[data-body-end]`); time and scroll both push the wave. Under
+reduced motion it is drawn still. *Lanterns* (`DragoEave.astro`, same loop): damped
+pendulums written to `--sway`, kicked by the scroll's speed and by a pointer passing over,
+with a slight breeze; halos breathe in stepped opacity. *LED rope*: three bulb layers
+lit in turn (0.72s, stepped opacity, so compositor only). *Neon title*: per-letter stepped
+flicker, the letters picked by `(word length + index) % 9` stutter. On `--pan`: the
+*wipe* clips the painted shot over the brown one behind a bright line (done just past the
+middle); the *lazy Susan* turns ±150°; the menu's gloss slides. *The walk backwards*: a slice
+three screens long whose stage is `sticky` for two of them, where `--pan` runs 0.5..-0.5,
+so `--t` is 0..1 across the pin. `.zoom__world` scales `pow(6.433, 1 - --t)` about the point
+that brings the nearest shot exactly to the frame at the start, and the far shot at the end,
+the three shots placed so the door's frame coincides; the near two dissolve as they stop
+filling the window.
 
 `NextWork`: on click its cut-out takes the `artifact-hero` name (the page's own
 `[data-page-hero]` drops it), so it morphs into the next page's hero. Scrolling on past
