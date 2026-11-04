@@ -298,7 +298,7 @@ to webp; the artist's staged ink drawing ("ambientazione") with the painted ches
 (saturated paint + a hand-boxed drawer, hulled, painted white) — it prints the % box the
 page sets the live chest back into; from the illustrated teaser (IMG_0015) the stripes
 still; the teaser as a loop minus its
-"coming soon" frames; the phone demo (IMG_2520) muted at 720px. Posters for both.
+"coming soon" frames; the demo (IMG_2520, a phone recording, shown cropped 3:4 in an ink frame) muted at 720px. Posters for both.
 For the Llorona (`MY/6. llorona/llorona-detail/…`): the photos to webp (the sideways
 frieze shot stood upright and cut to its band); the closed roll-top registered onto the
 open one (SIFT + RANSAC on the desk's front only — the desk moved between the shots);

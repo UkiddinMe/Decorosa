@@ -116,7 +116,7 @@ const photo = (name: string, w: number, h: number) => sized(`/assets/stories/tig
   <!-- Full colour at last: the stripes as painted, and the chest at work -->
   <section class="s demo" data-pan>
     <div class="demo__stripes" aria-hidden="true"></div>
-    <div class="demo__phone">
+    <figure class="frame demo__video">
       <video
         src={src('demo.mp4')}
         poster={src('demo.webp')}
@@ -127,7 +127,7 @@ const photo = (name: string, w: number, h: number) => sized(`/assets/stories/tig
         playsinline
         preload="none"
         data-play></video>
-    </div>
+    </figure>
   </section>
 
   <section class="s tongue" data-pan data-wake>
@@ -434,7 +434,8 @@ const photo = (name: string, w: number, h: number) => sized(`/assets/stories/tig
     }
   }
 
-  /* Demo: the stripes in their own colours, the chest at work on a phone */
+  /* Demo: the stripes in their own colours, the chest at work in a frame like the photos
+     (the portrait recording cropped to 3:4 so it doesn't read as a phone screen) */
   .demo {
     width: 110svh;
     max-width: 220vw;
@@ -442,22 +443,22 @@ const photo = (name: string, w: number, h: number) => sized(`/assets/stories/tig
     place-items: center;
     background: var(--tiger);
   }
-  .demo__phone {
+  /* Tilted, a video's own edge is drawn without anti-aliasing (stair-stepped), so an ink
+     rim painted over it hides that edge; its inner side is smoothed like any painted line.
+     Ink behind the video too, so no sub-pixel gap shows paper. */
+  .demo__video {
     position: relative;
-    height: 84svh;
-    aspect-ratio: 9 / 16;
-    padding: 1.1svh;
-    border-radius: 4.5svh;
+    height: 78svh;
+    aspect-ratio: 3 / 4;
     background: var(--ink);
-    box-shadow: 0 3svh 6svh rgb(0 0 0 / 0.35);
-    rotate: -3deg;
+    rotate: -2deg;
   }
-  .demo__phone video {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 3.5svh;
+  .demo__video::after {
+    content: '';
+    position: absolute;
+    inset: calc(-1 * var(--frame));
+    box-shadow: inset 0 0 0 calc(var(--frame) + 2px) var(--ink);
+    pointer-events: none;
   }
 
   /* Tongue: a full-height window, the shot sliding inside it */
@@ -576,14 +577,9 @@ const photo = (name: string, w: number, h: number) => sized(`/assets/stories/tig
       padding: 14vw 0;
       overflow: hidden;
     }
-    .demo__phone {
-      width: 60vw;
+    .demo__video {
+      width: 72vw;
       height: auto;
-      padding: 2.4vw;
-      border-radius: 9vw;
-    }
-    .demo__phone video {
-      border-radius: 7vw;
     }
 
     .tongue {
