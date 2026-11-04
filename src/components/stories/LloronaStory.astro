@@ -199,7 +199,6 @@ const photo = (name: string, w: number, h: number) => sized(`/assets/stories/llo
        is wall alone, its slices on the midline */
     --below: 21svh;
     --gap: 5svh;
-    --edge: max(2px, 0.35svh);
 
     display: flex;
     height: 100%;
@@ -282,28 +281,13 @@ const photo = (name: string, w: number, h: number) => sized(`/assets/stories/llo
     }
   }
 
-  /* A niche: the picture sunk into the wall. The rim catches the lantern along its lower
-     edge and falls into shadow along its upper one; inside, the stone's lip throws a
-     shadow over the picture, which drifts behind the opening on --pan. */
+  /* A niche: an opening cut clean into the wall, the picture drifting behind it on --pan. */
   .niche {
     position: relative;
     margin: 0;
     overflow: hidden;
     border-radius: 0.6svh;
     background: var(--umber);
-    box-shadow:
-      calc(var(--edge) * -1) calc(var(--edge) * -1.4) 0 rgb(30 16 8 / 0.7),
-      var(--edge) calc(var(--edge) * 1.4) 0 rgb(255 232 205 / 0.45);
-  }
-  .niche::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    box-shadow:
-      inset 2svh 2.6svh 3svh rgb(14 8 4 / 0.75),
-      inset -0.5svh -0.5svh 1.5svh rgb(14 8 4 / 0.35);
-    pointer-events: none;
   }
   .niche img,
   .niche video {
@@ -375,17 +359,13 @@ const photo = (name: string, w: number, h: number) => sized(`/assets/stories/llo
   .low {
     translate: 0 10svh;
   }
-  /* a shaft cut through the wall's whole height (on portrait, its whole width): square,
-     its rims only down the sides */
+  /* a shaft cut through the wall's whole height (on portrait, its whole width): square */
   .full {
     flex: none;
     /* not 100%: a percent height leaves the slice's own width at nothing */
     height: 100svh;
     aspect-ratio: var(--ratio, 3 / 4);
     border-radius: 0;
-    box-shadow:
-      calc(var(--edge) * -1.4) 0 0 rgb(30 16 8 / 0.7),
-      calc(var(--edge) * 1.4) 0 0 rgb(255 232 205 / 0.45);
   }
   /* the room: a little taller than the opening, so the floor's edge goes too; the left
      margin and the switch and chairs on the right fall outside */
@@ -594,7 +574,6 @@ const photo = (name: string, w: number, h: number) => sized(`/assets/stories/llo
   @media (orientation: portrait) {
     .llorona {
       --gap: 5vw;
-      --edge: max(2px, 0.5vw);
       flex-direction: column;
       height: auto;
       background: var(--wall) 0 0 / auto 62vw repeat var(--stone);
@@ -647,9 +626,6 @@ const photo = (name: string, w: number, h: number) => sized(`/assets/stories/llo
     .full {
       height: auto;
       margin-inline: -8vw;
-      box-shadow:
-        0 calc(var(--edge) * -1.4) 0 rgb(30 16 8 / 0.7),
-        0 calc(var(--edge) * 1.4) 0 rgb(255 232 205 / 0.45);
     }
     .flush {
       padding: 0;

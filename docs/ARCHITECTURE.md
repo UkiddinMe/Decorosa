@@ -100,8 +100,8 @@ src/
                           LloronaStory: the stone wall the desk was shot against (its
                           terrazzo floor only under the opening scene, its end hidden
                           under the first text panel; its wall's stones drawn smaller, softly shaded at its foot, a broad shadow under the piece), lit by a broad
-                          lantern glow that trails the pointer — photos sunk in as
-                          (arched) niches — a few cut the wall's full height (full
+                          lantern glow that trails the pointer — photos in clean-cut
+                          (arched) openings — a few cut the wall's full height (full
                           width on portrait; the face-on roll-top film one of them,
                           flush against the second text panel) — and two plain
                           full-height text panels,
