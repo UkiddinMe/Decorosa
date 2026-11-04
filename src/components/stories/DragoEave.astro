@@ -2,10 +2,13 @@
 // The restaurant's eave along the top of a DragoStory slice: red-lit boards, the blue LED
 // rope chasing along their edge, and paper lanterns on cords — lit from inside, painted
 // with the piece's own eye and scales rather than with lettering. Each one swings on
-// `--sway` (scripts/drago.ts). Sizes are in the story's `--u`.
+// `--sway` (scripts/drago.ts). Sizes are in the story's `--u`. On portrait screens a band
+// across the page would cut it in two, so there are no boards: the rope runs down both
+// edges, along the scroll, and each lantern hangs from an iron bracket off the nearer edge.
 interface Props {
-  /** x: % across the slice; drop: cord length; size: lantern width (both in --u) */
-  lanterns?: { x: number; drop: number; size: number }[];
+  /** x: % across the slice; drop: cord length; size: lantern width (both in --u);
+      portrait only: side, the edge its bracket comes off; y, how far down the slice, in --u */
+  lanterns?: { x: number; side: 'l' | 'r'; y: number; drop: number; size: number }[];
 }
 const { lanterns = [] } = Astro.props;
 const uid = `lit${Math.random().toString(36).slice(2, 8)}`;
@@ -13,9 +16,12 @@ const uid = `lit${Math.random().toString(36).slice(2, 8)}`;
 
 <div class="eave" aria-hidden="true">
   <span class="led"><b></b><b></b><b></b></span>
+  <span class="led led--far"><b></b><b></b><b></b></span>
   {
-    lanterns.map(({ x, drop, size }) => (
-      <span class="lantern" data-lantern style={`left: ${x}%; --drop: ${drop}; --size: ${size}`}>
+    lanterns.map(({ x, side, y, drop, size }) => (
+      <span class={`hang hang--${side}`} style={`--x: ${x}%; --y: ${y}; --drop: ${drop}; --size: ${size}`}>
+        <i class="hang__arm" />
+        <span class="lantern" data-lantern>
         <i class="lantern__halo" />
         <i class="lantern__cord" />
         <svg viewBox="0 0 200 300">
@@ -48,6 +54,7 @@ const uid = `lit${Math.random().toString(36).slice(2, 8)}`;
           <path d="M84 222 h32 l6 74 h-44z" fill="#c80f12" />
           <path d="M90 222 v74 M100 222 v74 M110 222 v74" stroke="#7c0808" stroke-width="1.5" />
         </svg>
+        </span>
       </span>
     ))
   }
@@ -101,12 +108,22 @@ const uid = `lit${Math.random().toString(36).slice(2, 8)}`;
     }
   }
 
+  .led--far,
+  .hang__arm {
+    display: none;
+  }
+
   /* Hangs from the eave's edge; turns about that point. */
-  .lantern {
+  .hang {
     position: absolute;
     top: 100%;
+    left: var(--x);
     width: calc(var(--u) * var(--size));
     translate: -50% 0;
+  }
+  .lantern {
+    position: relative;
+    display: block;
     transform-origin: 50% 0;
     rotate: calc(var(--sway, 0) * 1deg);
   }
@@ -133,7 +150,7 @@ const uid = `lit${Math.random().toString(36).slice(2, 8)}`;
     background: radial-gradient(circle closest-side, rgb(255 110 40 / 0.5), rgb(255 60 20 / 0.16) 45%, transparent);
     animation: halo-breathe 4.3s steps(1) infinite;
   }
-  .lantern:nth-child(even) .lantern__halo {
+  .hang:nth-child(even) .lantern__halo {
     animation-delay: -1.7s;
   }
   @keyframes halo-breathe {
@@ -149,6 +166,74 @@ const uid = `lit${Math.random().toString(36).slice(2, 8)}`;
     }
     62% {
       opacity: 0.9;
+    }
+  }
+
+  @media (orientation: portrait) {
+    .eave {
+      inset: 0;
+      height: auto;
+      background: none;
+      box-shadow: none;
+    }
+    .led {
+      inset: 0 auto 0 0;
+      width: 1.1vw;
+      height: auto;
+    }
+    .led--far {
+      display: block;
+      left: auto;
+      right: 0;
+    }
+    .led b {
+      background-position: 0 0;
+      background-size: 100% 3vw;
+      background-repeat: repeat-y;
+    }
+    .led b:nth-child(2) {
+      background-position: 0 1vw;
+    }
+    .led b:nth-child(3) {
+      background-position: 0 2vw;
+    }
+
+    .hang {
+      top: calc(var(--y) * 1vw);
+      width: calc(var(--size) * 0.7vw);
+    }
+    .hang--l {
+      left: 8vw;
+    }
+    .hang--r {
+      left: calc(100% - 8vw);
+    }
+    /* from the page's edge out to the lantern, a curved brace under it at the wall */
+    .hang__arm {
+      display: block;
+      position: absolute;
+      top: -0.7vw;
+      width: 8vw;
+      border-top: 0.7vw solid #e0a93a;
+      filter: drop-shadow(0.3vw 0.5vw 0.3vw rgb(25 2 2 / 0.6));
+    }
+    .hang--l .hang__arm {
+      right: 50%;
+    }
+    .hang--r .hang__arm {
+      left: 50%;
+      scale: -1 1;
+    }
+    .hang__arm::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 5vw;
+      height: 4vw;
+      border-right: 0.5vw solid #e0a93a;
+      border-bottom: 0.5vw solid #e0a93a;
+      border-bottom-right-radius: 100%;
     }
   }
 

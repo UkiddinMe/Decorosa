@@ -7,7 +7,7 @@
 // lanterns are painted with the piece's eye and scales. The page walks past that frontage:
 // red-lit boards under an eave (DragoEave: blue LED rope, swinging paper lanterns), the
 // photos as lit shop windows with a frosted band and a transom, the title in neon under a
-// night awning, a window with its vinyl pagoda, a laminated menu, the details served on a
+// night awning, a frosted window, a laminated menu, the details served on a
 // lazy Susan that turns with the scroll, the old brown cabinet wiped into the painted one,
 // a pinned walk backwards from the piece out into the room. And the piece, being a mouth
 // with eyes, is the head of a dragon: its scaled body snakes behind everything for the
@@ -34,28 +34,13 @@ const plateAt = (name: string) => photo(`plate-${name}`, 640, 640);
 // the arched heading's size: as big as fits along the arc
 const archSize = (title: string): number => Math.min(34, 560 / title.length);
 const ring = ['eye', 'fang', 'handle', 'scales', 'teeth', 'foot'];
-
-// The vinyl pagoda on the window: six roofs, widening downwards, on a stepped base.
-const CX = 60;
-const pagoda = (() => {
-  let d = `M${CX - 1.2} 2 h2.4 l1.4 16 h-5.2z`;
-  let y = 24;
-  for (let i = 0; i < 6; i++) {
-    const w = 11 + i * 5.5;
-    d += ` M${CX - w - 6} ${y} Q${CX - w * 0.6} ${y + 8} ${CX - w * 0.25} ${y - 7} H${CX + w * 0.25} Q${CX + w * 0.6} ${y + 8} ${CX + w + 6} ${y} L${CX + w} ${y + 7} H${CX - w}z`;
-    d += ` M${CX - w * 0.68} ${y + 7} h${w * 0.5} v13 h${-w * 0.5}z M${CX + w * 0.18} ${y + 7} h${w * 0.5} v13 h${-w * 0.5}z`;
-    y += 25;
-  }
-  return d + ` M${CX - 42} ${y} h84 v5 h-84z M${CX - 48} ${y + 5} h96 v6 h-96z`;
-})();
 ---
 
 <div class="drago" data-drago>
   <canvas class="body" data-dragon aria-hidden="true"></canvas>
 
   <section class="s hero">
-    <DragoEave lanterns={[{ x: 12, drop: 3, size: 21 }, { x: 88, drop: 7, size: 15 }]} />
-    <span class="number" aria-hidden="true">174</span>
+    <DragoEave lanterns={[{ x: 12, side: 'l', y: 16, drop: 3, size: 21 }, { x: 88, side: 'r', y: 124, drop: 7, size: 15 }]} />
     <div class="hero__piece" data-page-hero>
       {artifact.image && <ArtifactPiece artifact={{ ...artifact, image: artifact.image }} />}
     </div>
@@ -64,6 +49,7 @@ const pagoda = (() => {
   <!-- The sign: neon on the dark awning, its white struts crossing behind -->
   <section class="s sign">
     <DragoEave />
+    <div class="sign__panel">
     <i class="strut strut--a" aria-hidden="true"></i>
     <i class="strut strut--b" aria-hidden="true"></i>
     <h1 class="neon" aria-label={txt.title}>
@@ -81,11 +67,12 @@ const pagoda = (() => {
     </h1>
     {txt.subtitle && <p class="sign__sub">{txt.subtitle}</p>}
     <p class="sign__body">{txt.body}</p>
+    </div>
   </section>
 
   <!-- The brown cabinet it was, wiped away into the piece as the slice crosses the screen -->
   <section class="s bay" data-pan>
-    <DragoEave lanterns={[{ x: 92, drop: 2, size: 13 }]} />
+    <DragoEave lanterns={[{ x: 92, side: 'l', y: 3, drop: 2, size: 13 }]} />
     <figure class="shop shop--square wipe">
       <span class="shop__transom" aria-hidden="true"></span>
       <div class="shop__glass">
@@ -97,22 +84,22 @@ const pagoda = (() => {
   </section>
 
   <section class="s bay">
-    <DragoEave lanterns={[{ x: 4, drop: 5, size: 17 }, { x: 62, drop: 1, size: 12 }]} />
-    <figure class="shop shop--square">
+    <DragoEave lanterns={[{ x: 4, side: 'l', y: 160, drop: 5, size: 17 }, { x: 62, side: 'r', y: 40, drop: 1, size: 12 }]} />
+    <figure class="shop shop--square" data-lane="r">
       <span class="shop__transom" aria-hidden="true"></span>
       <div class="shop__glass">
         <video src={src('turn.mp4')} poster={src('turn.webp')} width="720" height="720" muted loop playsinline preload="none" data-play></video>
       </div>
     </figure>
-    <figure class="shop shop--tall">
+    <figure class="shop shop--tall" data-lane="l">
       <span class="shop__transom" aria-hidden="true"></span>
       <div class="shop__glass">
-        <img {...photo('wall-far', 1350, 1800)} sizes="(orientation: portrait) 88vw, 45svh" alt={alt} loading="lazy" />
+        <img {...photo('wall-far', 1350, 1800)} sizes="(orientation: portrait) 91vw, 45svh" alt={alt} loading="lazy" />
       </div>
     </figure>
   </section>
 
-  <!-- The frosted window, as on the moodboard: an arched heading in red vinyl, the pagoda -->
+  <!-- The frosted window, as on the moodboard: an arched heading in red vinyl -->
   {
     first && (
       <section class="s frost">
@@ -126,9 +113,6 @@ const pagoda = (() => {
               </text>
             </svg>
           </h2>
-          <svg class="frost__pagoda" viewBox="0 0 120 190" aria-hidden="true">
-            <path d={pagoda} />
-          </svg>
           <p class="frost__body">{first.body}</p>
         </div>
       </section>
@@ -137,35 +121,35 @@ const pagoda = (() => {
 
   <!-- The lazy Susan: the piece's details as dishes, turning with the scroll -->
   <section class="s susan" data-pan>
-    <DragoEave lanterns={[{ x: 8, drop: 9, size: 14 }, { x: 93, drop: 4, size: 19 }]} />
-    <div class="table">
-      <div class="turn">
+    <DragoEave lanterns={[{ x: 8, side: 'l', y: 3, drop: 9, size: 14 }, { x: 93, side: 'l', y: 150, drop: 4, size: 19 }]} />
+    <div class="table" data-susan>
+      <div class="turn" data-turn>
         {
           ring.map((name, i) => (
             <span class="dish" style={`--a: ${i * 60}deg`}>
-              <img {...plateAt(name)} sizes="(orientation: portrait) 22vw, 18svh" alt="" loading="lazy" />
+              <img {...plateAt(name)} sizes="(orientation: portrait) 46vw, 20svh" alt="" loading="lazy" />
             </span>
           ))
         }
         <span class="dish dish--middle">
-          <img {...plateAt('crest')} sizes="(orientation: portrait) 22vw, 18svh" alt={alt} loading="lazy" />
+          <img {...plateAt('crest')} sizes="(orientation: portrait) 46vw, 20svh" alt={alt} loading="lazy" />
         </span>
       </div>
     </div>
   </section>
 
   <section class="s bay">
-    <DragoEave lanterns={[{ x: 50, drop: 1, size: 11 }]} />
-    <figure class="shop shop--square">
+    <DragoEave lanterns={[{ x: 50, side: 'l', y: 40, drop: 1, size: 11 }]} />
+    <figure class="shop shop--square" data-lane="l">
       <span class="shop__transom" aria-hidden="true"></span>
       <div class="shop__glass">
         <video src={src('door.mp4')} poster={src('door.webp')} width="720" height="720" muted loop playsinline preload="none" data-play></video>
       </div>
     </figure>
-    <figure class="shop shop--square">
+    <figure class="shop shop--square" data-lane="r">
       <span class="shop__transom" aria-hidden="true"></span>
       <div class="shop__glass">
-        <img {...photo('wall-near', 1800, 1800)} sizes="(orientation: portrait) 88vw, 60svh" alt={alt} loading="lazy" />
+        <img {...photo('wall-near', 1800, 1800)} sizes="(orientation: portrait) 91vw, 60svh" alt={alt} loading="lazy" />
       </div>
     </figure>
   </section>
@@ -174,7 +158,7 @@ const pagoda = (() => {
        while the artist and the whole room come into view around it -->
   <section class="s pin" data-pan>
     <div class="pin__stage">
-      <DragoEave lanterns={[{ x: 10, drop: 6, size: 22 }, { x: 90, drop: 2, size: 16 }]} />
+      <DragoEave lanterns={[{ x: 10, side: 'l', y: 14, drop: 6, size: 22 }, { x: 90, side: 'r', y: 14, drop: 2, size: 16 }]} />
       <div class="zoom">
         <div class="zoom__world">
           <img class="zoom__far" {...photo('zoom-3', 1350, 1800)} sizes="(orientation: portrait) 100vw, 66svh" alt={alt} loading="lazy" />
@@ -189,7 +173,7 @@ const pagoda = (() => {
   {
     second && (
       <section class="s menu-slice" data-pan>
-        <DragoEave lanterns={[{ x: 86, drop: 3, size: 13 }]} />
+        <DragoEave lanterns={[{ x: 86, side: 'r', y: 3, drop: 3, size: 13 }]} />
         <div class="menu">
           <h2 class="menu__head">{second.title}</h2>
           <p class="menu__body">{second.body}</p>
@@ -206,20 +190,20 @@ const pagoda = (() => {
 
   <!-- Last, on the wall inside: the artist's drawing in its gilt frame, and the artist -->
   <section class="s bay last">
-    <DragoEave lanterns={[{ x: 30, drop: 2, size: 12 }, { x: 72, drop: 5, size: 18 }]} />
+    <DragoEave lanterns={[{ x: 30, side: 'l', y: 157, drop: 2, size: 12 }, { x: 72, side: 'r', y: 304, drop: 5, size: 18 }]} />
     <figure class="gilt">
-      <img {...photo('drawing', 1800, 1800)} sizes="(orientation: portrait) 78vw, 56svh" alt={alt} loading="lazy" />
+      <img {...photo('drawing', 1800, 1800)} sizes="(orientation: portrait) 88vw, 56svh" alt={alt} loading="lazy" />
     </figure>
-    <figure class="shop shop--tall">
+    <figure class="shop shop--tall" data-lane="l">
       <span class="shop__transom" aria-hidden="true"></span>
       <div class="shop__glass">
-        <img {...photo('held', 1350, 1800)} sizes="(orientation: portrait) 88vw, 45svh" alt={alt} loading="lazy" />
+        <img {...photo('held', 1350, 1800)} sizes="(orientation: portrait) 91vw, 45svh" alt={alt} loading="lazy" />
       </div>
     </figure>
-    <figure class="shop shop--tall">
+    <figure class="shop shop--tall" data-lane="r">
       <span class="shop__transom" aria-hidden="true"></span>
       <div class="shop__glass">
-        <img {...photo('peek', 1350, 1800)} sizes="(orientation: portrait) 88vw, 45svh" alt={alt} loading="lazy" />
+        <img {...photo('peek', 1350, 1800)} sizes="(orientation: portrait) 91vw, 45svh" alt={alt} loading="lazy" />
       </div>
     </figure>
   </section>
@@ -308,24 +292,13 @@ const pagoda = (() => {
     /* the run's card stamps the same name on itself on click, so it morphs into this */
     view-transition-name: artifact-hero;
   }
-  /* the enamel house number, as on the moodboard */
-  .number {
-    position: absolute;
-    left: calc(var(--u) * 4);
-    bottom: calc(var(--u) * 21);
-    padding: 0.2em 0.5em;
-    border: 2px solid #1b2150;
-    border-radius: 0.3em;
-    background: #f2eee2;
-    color: #1b2150;
-    font: 700 calc(var(--u) * 3) var(--font-display);
-    rotate: -6deg;
-    box-shadow: 2px 3px 0 rgb(30 2 2 / 0.6);
-  }
-
   /* The sign: neon under the night awning */
   .sign {
     width: clamp(340px, 62svh, 90vw);
+  }
+  .sign__panel {
+    position: relative;
+    height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -543,9 +516,9 @@ const pagoda = (() => {
     width: 100%;
     height: 100%;
     display: grid;
-    grid-template-rows: auto 1fr auto;
+    align-content: center;
     justify-items: center;
-    gap: calc(var(--u) * 1.5);
+    gap: calc(var(--u) * 4);
     padding: calc(var(--u) * 3) calc(var(--u) * 5) calc(var(--u) * 9);
     overflow: hidden;
     border: calc(var(--u) * 0.8) solid #33090a;
@@ -570,12 +543,6 @@ const pagoda = (() => {
     text-transform: uppercase;
     fill: currentColor;
   }
-  .frost__pagoda {
-    height: 100%;
-    min-height: 0;
-    fill: currentColor;
-    fill-rule: nonzero;
-  }
   .frost__body {
     max-width: 44ch;
     font-size: var(--step--1);
@@ -583,18 +550,20 @@ const pagoda = (() => {
     text-align: center;
   }
 
-  /* The lazy Susan, seen from above: a lacquered table and a glass turntable on it. */
+  /* The lazy Susan, seen from above: a lacquered table and a glass turntable on it. It lies
+     over the eave's LED rope, so the slice is wide enough to keep it clear of the lanterns. */
   .susan {
-    --d: calc(var(--u) * 76);
-    width: calc(var(--u) * 112);
-    max-width: 100vw;
+    --d: calc(var(--u) * 90);
+    width: calc(var(--u) * 134);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding-top: calc(var(--u) * 10);
+    padding-top: calc(var(--u) * 6);
   }
   .table {
     position: relative;
+    z-index: 5;
+    flex: none;
     width: var(--d);
     aspect-ratio: 1;
     border-radius: 50%;
@@ -604,6 +573,18 @@ const pagoda = (() => {
       inset 0 0 0 calc(var(--u) * 1.4) #5a0808,
       inset 0 0 0 calc(var(--u) * 1.7) #e0a93a,
       0 calc(var(--u) * 2) calc(var(--u) * 4) rgb(10 0 0 / 0.6);
+    /* dragging it turns it (drago.ts), instead of scrolling */
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .table:active {
+    cursor: grabbing;
+  }
+  /* no long-press menu or image drag on the plates: the pointer stays on the table */
+  .dish img {
+    pointer-events: none;
   }
   .turn {
     position: absolute;
@@ -611,7 +592,8 @@ const pagoda = (() => {
     border-radius: 50%;
     background: linear-gradient(125deg, rgb(255 255 255 / 0.32), rgb(255 255 255 / 0.06) 38%, rgb(255 255 255 / 0.22) 56%, rgb(255 255 255 / 0.04));
     box-shadow: inset 0 0 0 max(1px, calc(var(--u) * 0.2)) rgb(255 255 255 / 0.55);
-    rotate: calc(var(--pan, 0) * 150deg);
+    --scroll-turn: 150deg;
+    rotate: calc(var(--pan, 0) * var(--scroll-turn) + var(--spin, 0) * 1deg);
   }
   /* A dish: the picture in a white rim, its blue-and-gold band straight off the crockery */
   .dish {
@@ -803,12 +785,14 @@ const pagoda = (() => {
     box-shadow: 0 0 8px #39a0ff;
   }
 
-  /* Portrait: the same frontage, read downwards — every slice gets its own stretch of eave,
-     the windows stack at nearly full width with the body snaking through the gaps, the
-     lazy Susan fills the width, and the pin runs on the vertical. */
+  /* Portrait: the same frontage, read downwards. Nothing but the pin runs across the page.
+     A window with `data-lane` l or r stands against the other edge of the screen, leaving a
+     narrow free lane on that side; the rest are centred. */
   @media (orientation: portrait) {
     .drago {
       --u: 1vw;
+      --lane: 9vw;
+      --centred: 88vw;
       flex-direction: column;
       height: auto;
       background:
@@ -819,43 +803,60 @@ const pagoda = (() => {
       width: 100%;
       height: auto;
     }
+    [data-lane='l'],
+    [data-lane='r'] {
+      width: calc(100% - var(--lane));
+    }
+    [data-lane='l'] {
+      margin: 0 0 0 auto;
+    }
+    [data-lane='r'] {
+      margin: 0 auto 0 0;
+    }
+    .wipe,
+    .gilt,
+    .sign__panel,
+    .frost__glass,
+    .menu {
+      width: var(--centred);
+      margin-inline: auto;
+    }
 
     .hero {
       max-width: none;
       height: min(100svh, 150vw);
     }
     .hero__piece {
-      top: 26vw;
+      top: 20vw;
       width: 86vw;
     }
-    .number {
-      left: 6vw;
-      bottom: 6vw;
-      font-size: 4vw;
+    .sign,
+    .bay,
+    .frost,
+    .susan,
+    .menu-slice {
+      padding: 13vw 0;
     }
 
     .sign {
       width: 100%;
-      min-height: 110vw;
-      padding: 26vw 8vw 16vw;
+    }
+    .sign__panel {
+      height: auto;
+      padding: 12vw 6vw;
     }
     .neon {
-      font-size: clamp(2.2rem, 14vw, 4.6rem);
+      font-size: clamp(1.8rem, 15cqi, 4.6rem);
     }
 
     .bay {
       flex-direction: column;
-      gap: 10vw;
-      padding: 28vw 6vw 18vw;
+      gap: 26vw;
     }
     .shop--square .shop__glass,
     .shop--tall .shop__glass {
       width: 100%;
       height: auto;
-    }
-    .shop--square,
-    .shop--tall {
-      width: 100%;
     }
     .shop__transom {
       height: 7vw;
@@ -864,20 +865,24 @@ const pagoda = (() => {
     .frost {
       width: 100%;
       max-width: none;
-      height: 150vw;
-      padding: 22vw 6vw 12vw;
     }
     .frost__glass {
-      padding: 4vw 6vw 14vw;
-    }
-    .frost__body {
-      font-size: var(--step-0);
+      height: auto;
+      padding: 8vw 6vw 16vw;
     }
 
+    /* Its centre just in from the right edge, the middle dish cut by it, the rim nearly at
+       the left edge. The scroll only nudges it, a hint that it moves. */
     .susan {
-      --d: 96vw;
-      max-width: none;
-      padding: 26vw 0 12vw;
+      --d: 170vw;
+      justify-content: flex-start;
+    }
+    .turn {
+      --scroll-turn: 40deg;
+    }
+    .susan .table {
+      width: var(--d);
+      margin: 0 0 0 calc(100% - 7.8vw - var(--d) * 0.5);
     }
 
     .pin {
@@ -896,10 +901,8 @@ const pagoda = (() => {
 
     .menu-slice {
       max-width: none;
-      padding: 24vw 0 16vw;
     }
     .menu {
-      width: 86vw;
       gap: 5vw;
       padding: 12vw 8vw;
     }
@@ -912,10 +915,6 @@ const pagoda = (() => {
     }
     .menu__gloss {
       translate: 0 calc(var(--pan, 0) * 50%);
-    }
-
-    .gilt {
-      width: 88vw;
     }
 
     .street {

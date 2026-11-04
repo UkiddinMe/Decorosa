@@ -9,7 +9,8 @@
 //  * the table's veins [data-draw] are wiped out, then drawn back in, along their time
 //    map, once per turn;
 //  * the water [data-trip] fades into a ripple that runs through every hue, held while live;
-//  * the flames [data-flames] take new roots, sizes and paces every turn.
+//  * the flames [data-flames] take new roots, sizes and paces every turn, and burn out even
+//    if the turn ends first (`.is-burning`).
 // Lifecycle-safe for View-Transition navigation.
 import { prefersReduced } from './motion';
 
@@ -18,6 +19,8 @@ const DRAW_MS = 2400;
 /** touch cycle: live long enough for the longest one-shot (the veins), then a rest */
 const LIVE_MS = ERASE_MS + DRAW_MS;
 const REST_MS = 1750;
+/** the longest shake-and-flames: the slowest flame's --t plus its latest --d */
+const BURN_MS = 800;
 
 let cleanup: Array<() => void> = [];
 
@@ -154,7 +157,7 @@ const between = (a: number, b: number): number => a + Math.random() * (b - a);
     evenly spread from its top to its bottom
     end, each nudged up or down by up to a third of the spacing, so the whole edge burns but
     never the same way twice — and each its own size */
-function flames(edge: SVGGElement): (on: boolean) => void {
+function flames(edge: SVGGElement): () => void {
   type Edge = { x: number; out: [number, number][]; lean: number; height: [number, number]; unit: number; min: number };
   const { x, out, lean, height, unit, min }: Edge = JSON.parse(edge.dataset.flames!);
   const top = out[0][0];
@@ -165,8 +168,7 @@ function flames(edge: SVGGElement): (on: boolean) => void {
     const [[y0, x0], [y1, x1]] = [out[i - 1], out[i]];
     return x0 + ((x1 - x0) * (y - y0)) / (y1 - y0);
   };
-  return (on) => {
-    if (!on) return;
+  return () => {
     const all = Array.from(edge.children) as SVGGElement[];
     const n = Math.round(between(min - 0.5, all.length + 0.5));
     const step = (bottom - top) / (n - 1);
@@ -191,6 +193,23 @@ function flames(edge: SVGGElement): (on: boolean) => void {
   };
 }
 
+/** one burst per turn, on `.is-burning` rather than `.is-live` so that leaving the piece
+    doesn't cut it short; coming back before it has burned out doesn't restart it */
+function burn(piece: Element, edges: SVGGElement[]): (on: boolean) => void {
+  const rolls = edges.map(flames);
+  let timer = 0;
+  cleanup.push(() => clearTimeout(timer));
+  return (on) => {
+    if (!on || timer) return;
+    for (const roll of rolls) roll();
+    piece.classList.add('is-burning');
+    timer = window.setTimeout(() => {
+      piece.classList.remove('is-burning');
+      timer = 0;
+    }, BURN_MS);
+  };
+}
+
 function init(): void {
   const still = prefersReduced();
   if (!still) eyes();
@@ -200,7 +219,8 @@ function init(): void {
     const water = piece.querySelector<SVGFilterElement>('[data-trip]');
     if (!still && transfer) moves.push(draw(transfer));
     if (!still && water) moves.push(trip(piece, water));
-    if (!still) piece.querySelectorAll<SVGGElement>('[data-flames]').forEach((edge) => moves.push(flames(edge)));
+    const edges = Array.from(piece.querySelectorAll<SVGGElement>('[data-flames]'));
+    if (!still && edges.length) moves.push(burn(piece, edges));
     drive(piece, moves);
   }
 }

@@ -420,7 +420,9 @@ poses open and fold. Per piece:
   start (`--d` 0–0.06s). Each `flame` flares up and drifts along one smooth arc — out by
   `--dx` (to the edge's `to`, interpolated at its root) barely slowing (`flame-out`), up by
   `--dy` from the start and ever more steeply (`flame-rise`), both quadratic in time —
-  sways and fades; the last is gone by 0.8s.
+  sways and fades; the last is gone by 0.8s. Shake and flames run on `.is-burning`, which
+  `pieces.ts` sets for those 0.8s when a turn starts, so hovering out doesn't cut them short
+  and hovering back in before they end doesn't restart them.
 - *Llorona* — each drawer is a `crop` that `pull`s (scale 1.07 + drop shadow, 50ms apart,
   held while live) — plain crops of the cut-out, no layers from the script.
 - *Toucans* — the right bird's head and beak `poke` twice about the neck; the door's
@@ -497,7 +499,11 @@ with a slight breeze; halos breathe in stepped opacity. *LED rope*: three bulb l
 lit in turn (0.72s, stepped opacity, so compositor only). *Neon title*: per-letter stepped
 flicker, the letters picked by `(word length + index) % 9` stutter. On `--pan`: the
 *wipe* clips the painted shot over the brown one behind a bright line (done just past the
-middle); the *lazy Susan* turns ±150°; the menu's gloss slides. *The walk backwards*: a slice
+middle); the *lazy Susan* turns ±150° (on portrait ±40°, a hint; it can also be dragged, see below);
+the menu's gloss slides. *Spinning the Susan* (`spinSusan` in `drago.ts`, both orientations,
+finger or mouse): `touch-action: none` on the round table, so a touch that starts on it never scrolls; the
+pointer's angle about the centre adds to `--spin` either way round, and letting go glides on
+(exponential decay, 900ms; none if the finger had rested 80ms). *The walk backwards*: a slice
 three screens long whose stage is `sticky` for two of them, where `--pan` runs 0.5..-0.5,
 so `--t` is 0..1 across the pin. `.zoom__world` scales `pow(6.433, 1 - --t)` about the point
 that brings the nearest shot exactly to the frame at the start, and the far shot at the end,

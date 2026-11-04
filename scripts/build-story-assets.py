@@ -21,8 +21,9 @@ Llorona (`MY/6. llorona/llorona-detail/...`):
     muted at 720px, each with a poster.
 
 Drago (`MY/5. Drago/l_anno del drago di legno/...`):
-  * the photos, straight to webp, and the brown cabinet as it was (IMG_9829) warped onto
-    the painted one, from hand-measured points, for the page's wipe;
+  * the photos, straight to webp (the far wall shot cropped closer), and for the page's wipe the painted one with the cut-out's
+    rose retouch laid back on it, and the brown cabinet as it was (IMG_9829) warped onto
+    it from hand-measured points;
   * square crops of the details, for the turntable's plates; the three paint swatches;
   * the walk backwards (IMG_0902/4/6). Prints where each sits in the farthest one's frame;
   * the piece turning (IMG_0535) and the door opening (IMG_0538), muted at 720px.
@@ -41,6 +42,7 @@ from PIL import Image, ImageOps
 from scipy import ndimage
 
 import image_sizes
+from drago_retouch import drago_without_roses
 
 DATA = 'E:/MyStuff/Websites/Decorosa Data'
 PUB = 'E:/MyStuff/Websites/Decorosa/public/assets/stories'
@@ -277,7 +279,6 @@ def llorona_film() -> None:
 DRAGO_SRC = os.path.join(DATA, 'MY', '5. Drago', 'l_anno del drago di legno')
 
 DRAGO_PHOTOS = {
-    'drago.jpeg': 'after',
     'IMG_0550 2.jpeg': 'wall-near',
     'IMG_0549 2.jpeg': 'wall-far',
     'IMG_0908.jpeg': 'held',
@@ -285,12 +286,17 @@ DRAGO_PHOTOS = {
     'Draghetto_OK copia.jpg': 'drawing',
     'moodboard.jpg': 'street',
 }
+# shot with the piece low in a lot of empty wall: published name -> box (px), still 3:4, the
+# piece a touch off centre; the bottom edge stays, the shop's frosted band hides only wall
+DRAGO_CROPS = {'wall-far': (465, 1344, 2481, 4032)}
 # The same points on the brown cabinet (IMG_9829) and on the painted one (drago.jpeg), as
 # fractions of each frame: shelf tips, finials, feet, hinges, handle, crest and door.
 DRAGO_OLD = [(.184, .420), (.827, .420), (.149, .900), (.864, .900), (.315, .975), (.705, .975), (.335, .352),
              (.680, .352), (.503, .397), (.316, .425), (.697, .893), (.672, .527), (.681, .768), (.347, .612)]
 DRAGO_NEW = [(.115, .178), (.897, .175), (.122, .900), (.890, .895), (.298, .980), (.712, .985), (.288, .066),
              (.717, .066), (.490, .150), (.272, .188), (.725, .890), (.695, .362), (.697, .715), (.320, .490)]
+# where the published cut-out (its size, then SIFT: its x, y and scale) lies on drago.jpeg
+DRAGO_CUT = ((1022, 1200), (303.5, 169.0), 2.0728)
 # the turntable's plates: name -> centre and half-side on drago.jpeg (px)
 DRAGO_PLATES = {
     'eye': (1935, 290, 215),
@@ -313,9 +319,28 @@ DRAGO_ZOOM = {
 DRAGO_FILMS = {'IMG_0535.MOV': 'turn', 'IMG_0538.MOV': 'door'}
 
 
+def drago_painted() -> Image.Image:
+    """drago.jpeg with the roses out of its glass: the cut-out's retouch, run at the cut-out's
+    own scale and laid back on the full-size photo only where it changed anything."""
+    (w, h), (x, y), k = DRAGO_CUT
+    photo = load(DRAGO_SRC, 'drago.jpeg')
+    box = (x, y, x + w * k, y + h * k)
+    small = photo.resize((w, h), Image.LANCZOS, box=box).convert('RGBA')
+    done = drago_without_roses(small)
+    changed = (np.asarray(done)[..., :3] != np.asarray(small)[..., :3]).any(2).astype(np.float32)
+    x0, y0, x1, y1 = (round(v) for v in box)
+    size = (x1 - x0, y1 - y0)
+    over = np.asarray(done.convert('RGB').resize(size, Image.LANCZOS)).astype(np.float32)
+    mask = cv2.GaussianBlur(cv2.resize(changed, size, interpolation=cv2.INTER_LINEAR), (0, 0), 3)[..., None]
+    out = np.asarray(photo).astype(np.float32)
+    out[y0:y1, x0:x1] = out[y0:y1, x0:x1] * (1 - mask) + over * mask
+    return Image.fromarray(out.clip(0, 255).astype(np.uint8))
+
+
 def drago_photos() -> None:
     for raw, name in DRAGO_PHOTOS.items():
-        save_webp(load(DRAGO_SRC, raw), name)
+        save_webp(load(DRAGO_SRC, raw).crop(DRAGO_CROPS.get(name)), name)
+    save_webp(drago_painted(), 'after')
     # The brown cabinet as it was, warped onto the painted one, for the page's wipe.
     old, new = load(DRAGO_SRC, 'IMG_9829.jpeg'), load(DRAGO_SRC, 'drago.jpeg')
     src = np.float32(DRAGO_OLD) * old.size

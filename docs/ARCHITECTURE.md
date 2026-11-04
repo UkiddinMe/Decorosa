@@ -114,11 +114,15 @@ src/
                           restaurant at night, a deliberate kitsch of the Italian high
                           street — no mock-oriental type or made-up characters. Red-lit
                           boards, an eave of blue LED rope and swinging paper lanterns,
-                          photos as lit shop windows, neon title, vinyl pagoda window,
+                          photos as lit shop windows, neon title, frosted window,
                           laminated menu, details on a lazy Susan, the brown cabinet
                           wiped into the painted one, a pinned walk backwards into the
                           room — and the piece's scaled body snaking behind it all; last,
-                          the moodboard itself, full height
+                          the moodboard itself, full height. On portrait nothing but the
+                          pin crosses the page: no boards, the rope down both edges,
+                          lanterns on wall brackets; `data-lane` sets a window against
+                          one edge, leaving a narrow lane (the rest are centred);
+                          the Susan runs off both edges; dragged, it spins (desktop too)
     worlds/               One component per artifact aesthetic (Disco / Jungle / Desert);
                           pure scenery, the artifact page slots its hero + caption in
   scripts/                Client-side TS (see ANIMATIONS.md)
@@ -128,7 +132,7 @@ src/
     came-from.ts          Path the last SPA navigation left (loaded by BaseLayout)
     showcase-return.ts    Hidden start pose of the showcase's return glide (BaseLayout)
     bio.ts  works.ts  artifact.ts    One controller per horizontal section
-    drago.ts              The Drago page's dragon body (canvas) and lantern swing
+    drago.ts              The Drago page's dragon body (canvas), lantern swing, Susan spin
     pieces.ts             The pieces' `.is-live` switch (hover, or a touch cycle)
                           + scripted moves: eyes, drawn veins
     sized.ts              Points an SVG's pictures at the copy its drawn size needs
@@ -304,8 +308,10 @@ evened out across and repeating where its tile grid best meets itself (`floor.we
 page's floor); the roll-top being pulled shut, from the side (IMG_2699) and face-on
 (IMG_2698).
 `scrittoio_OK copia.jpg` (the ink staging) is deliberately unused.
-For the Drago (`MY/5. Drago/l_anno del drago di legno/…`): the photos, the moodboard and the
-ink drawing to webp; the brown cabinet (IMG_9829) warped onto the painted one (`drago.jpeg`) from
+For the Drago (`MY/5. Drago/l_anno del drago di legno/…`): the photos (`wall-far` cropped onto
+the piece, `DRAGO_CROPS`), the moodboard and the ink drawing to webp; the painted one (`drago.jpeg`) with the cut-out's rose retouch laid back
+on it (`drago_retouch.py`, shared with `build-image-assets.py`; `DRAGO_CUT` is where the
+cut-out lies on the photo, so re-measure it if the cut-out is re-trimmed); the brown cabinet (IMG_9829) warped onto it from
 hand-measured points; square detail crops for the plates (`DRAGO_PLATES`); the three paint
 swatches from IMG_0575; the walk backwards (IMG_0902/4/6), each located by its door's
 orange frame — it prints the boxes and zoom origin `.zoom` in DragoStory.astro takes; the

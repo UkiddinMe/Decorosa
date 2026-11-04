@@ -4,7 +4,9 @@
 // draws only the stretch on screen, as short slices of a procedural sprite turned to the
 // curve, so the scales bend with it; time and scroll both push the wave along. The
 // lanterns: damped pendulums kicked by the scroll's speed and the pointer passing by,
-// written to `--sway`. Under reduced motion the body is drawn still and nothing swings.
+// written to `--sway`. Under reduced motion the body is drawn still and nothing swings. The
+// lazy Susan also turns when dragged (finger or mouse), written to `--spin`, and glides on
+// when let go.
 import { prefersReduced } from './motion';
 import type { Axis } from './hscroll';
 
@@ -13,6 +15,18 @@ const SPRITE = 320;
 /** body slice length, CSS px */
 const STEP = 6;
 const MAX_SWAY = 20;
+/** the Susan: nearer its centre than this (px) the finger's angle is too jumpy to follow */
+const SPIN_DEAD_ZONE = 16;
+/** the Susan's glide: how fast it dies away (ms), how long a finger may rest before letting
+    go counts as having stopped (ms), and its top speed (deg/ms: a hard flick, a few turns) */
+const GLIDE_DECAY = 900;
+const GLIDE_REST = 80;
+const GLIDE_MAX = 1.2;
+
+const smooth = (t: number): number => {
+  const k = Math.min(1, Math.max(0, t));
+  return k * k * (3 - 2 * k);
+};
 
 /** The body's cross-section, one repeat twice over: fangs, trim, scales, trim (the piece's paint). */
 function paintSprite(): HTMLCanvasElement {
@@ -83,6 +97,76 @@ function paintSprite(): HTMLCanvasElement {
   return sprite;
 }
 
+/** The Susan dragged round (`touch-action: none` on the table keeps the page still): the
+    turn follows the pointer's angle about the centre. `glide` is for the frame loop. */
+function spinSusan(table: HTMLElement, turn: HTMLElement): { glide: (time: number) => void; stop: () => void } {
+  let spin = 0; // deg
+  let velocity = 0; // deg per ms
+  let finger: number | null = null;
+  let angle = 0;
+  let moved = 0; // when the finger last moved
+  let glided = 0; // when the glide last ran
+
+  const write = (): void => turn.style.setProperty('--spin', spin.toFixed(2));
+  const angleAt = (event: PointerEvent): { deg: number; off: number } => {
+    const box = table.getBoundingClientRect();
+    const dx = event.clientX - (box.left + box.width / 2);
+    const dy = event.clientY - (box.top + box.height / 2);
+    return { deg: (Math.atan2(dy, dx) * 180) / Math.PI, off: Math.hypot(dx, dy) };
+  };
+  const onDown = (event: PointerEvent): void => {
+    if (finger !== null || event.button !== 0) return;
+    event.preventDefault(); // no text selection or image drag from a mouse
+    finger = event.pointerId;
+    table.setPointerCapture(finger);
+    angle = angleAt(event).deg;
+    moved = event.timeStamp;
+    velocity = 0;
+  };
+  const onMove = (event: PointerEvent): void => {
+    if (event.pointerId !== finger) return;
+    const { deg, off } = angleAt(event);
+    if (off >= SPIN_DEAD_ZONE) {
+      // the short way round, across the ±180° seam (screen angles run clockwise, as `rotate` does)
+      const delta = ((deg - angle + 540) % 360) - 180;
+      // touch events can arrive bunched, so a tiny dt says nothing about the speed
+      const dt = Math.max(8, event.timeStamp - moved);
+      const speed = velocity * 0.6 + (delta / dt) * 0.4;
+      velocity = Math.max(-GLIDE_MAX, Math.min(GLIDE_MAX, speed));
+      spin += delta;
+      moved = event.timeStamp;
+      write();
+    }
+    angle = deg;
+  };
+  // after pointerup and pointercancel alike
+  const onLost = (event: PointerEvent): void => {
+    if (event.pointerId !== finger) return;
+    finger = null;
+    if (event.timeStamp - moved > GLIDE_REST) velocity = 0;
+  };
+  table.addEventListener('pointerdown', onDown);
+  table.addEventListener('pointermove', onMove);
+  table.addEventListener('lostpointercapture', onLost);
+
+  return {
+    glide(time) {
+      const dt = time - glided;
+      glided = time;
+      if (finger !== null || !velocity) return;
+      spin += velocity * dt;
+      velocity *= Math.exp(-dt / GLIDE_DECAY);
+      if (Math.abs(velocity) < 0.002) velocity = 0;
+      write();
+    },
+    stop() {
+      table.removeEventListener('pointerdown', onDown);
+      table.removeEventListener('pointermove', onMove);
+      table.removeEventListener('lostpointercapture', onLost);
+    },
+  };
+}
+
 export function dragoStreet(viewport: HTMLElement, axis: Axis): () => void {
   const root = viewport.querySelector<HTMLElement>('[data-drago]');
   const canvas = viewport.querySelector<HTMLCanvasElement>('[data-dragon]');
@@ -108,8 +192,10 @@ export function dragoStreet(viewport: HTMLElement, axis: Axis): () => void {
 
   function measure(): void {
     dpr = Math.min(devicePixelRatio, 2);
-    canvas!.width = innerWidth * dpr;
-    canvas!.height = innerHeight * dpr;
+    const w = Math.round(canvas!.clientWidth * dpr);
+    const h = Math.round(canvas!.clientHeight * dpr);
+    if (canvas!.width !== w) canvas!.width = w;
+    if (canvas!.height !== h) canvas!.height = h;
     unit = (x ? innerHeight : innerWidth) / 100;
     screen = x ? innerWidth : innerHeight;
     const stop = end!.getBoundingClientRect();
@@ -127,8 +213,7 @@ export function dragoStreet(viewport: HTMLElement, axis: Axis): () => void {
   const cross = (u: number, phase: number): number => {
     const a = (u / wave) * Math.PI * 2 + phase;
     // starts dead behind the piece, swings out from there
-    const out = Math.min(1, Math.max(0, (u - head) / (wave * 0.5)));
-    const grow = out * out * (3 - 2 * out);
+    const grow = smooth((u - head) / (wave * 0.5));
     return mid + grow * amp * (0.82 * Math.sin(a) + 0.18 * Math.sin(a * 2.7 - phase));
   };
 
@@ -201,12 +286,22 @@ export function dragoStreet(viewport: HTMLElement, axis: Axis): () => void {
     if (still) drawBody(0);
   };
   addEventListener('resize', onResize);
+  // the slices settle after this runs (fonts, for one), and the head's place is on them
+  const settled = new ResizeObserver(onResize);
+  settled.observe(root);
+
+  // even under reduced motion, or the table would just be a patch of page that won't scroll
+  const table = root.querySelector<HTMLElement>('[data-susan]');
+  const turn = root.querySelector<HTMLElement>('[data-turn]');
+  const susan = table && turn ? spinSusan(table, turn) : null;
 
   if (still) {
     const draw = (): void => drawBody(0);
     drawBody(0);
     viewport.addEventListener('scroll', draw, { passive: true });
     return () => {
+      susan?.stop();
+      settled.disconnect();
       removeEventListener('resize', onResize);
       viewport.removeEventListener('scroll', draw);
     };
@@ -224,10 +319,13 @@ export function dragoStreet(viewport: HTMLElement, axis: Axis): () => void {
   let frame = requestAnimationFrame(function tick(time: number) {
     drawBody(time);
     swing(time);
+    susan?.glide(time);
     frame = requestAnimationFrame(tick);
   });
   return () => {
     cancelAnimationFrame(frame);
+    susan?.stop();
+    settled.disconnect();
     removeEventListener('resize', onResize);
     removeEventListener('pointermove', onPointer);
   };
